@@ -25,6 +25,17 @@ docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/d
   --data-dir /data --api-key=$TYPESENSE_API_KEY
 ```
 
+```shell
+curl http://localhost:8108/health
+```
+
+`{"ok":true}`
+
+
+
+`curl -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" http://localhost:8108/collections`
+
+`curl -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" "http://localhost:8108/collections/zettleDocuments/documents/search?q=paas&query_by=title"`
 
 
 ## Collection Schema in Typesense for Documents
@@ -41,26 +52,14 @@ docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/d
 
 
 
-## Scaffold a nodejs console app 
+## Build and run
 
-```shell
-cd <project_folder>
-yarn init -y # create package.json
-yarn add typescript @types/node -D # add packages as dev deps
-npx tsc --init # create tscongig.json
-```
+- build `npx tsc`
+  - note: build `outDir: "/build"` in `tsconfig.json`
+- run `node ./build/main.js`
 
-Update tsconfig.json
 
-```json
-{
-  "compilerOptions": {
--   "target": "es5",
-+   "target": "ES2020",
-    ...
-+   "outDir": "./build",
-+   "importHelpers": false,
-    ...
-  }
-}
-```
+## Dev
+
+- watch mode `npx tsc -n -p`
+- run `node ./build/main.js`
