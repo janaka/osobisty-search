@@ -37,6 +37,22 @@ curl http://localhost:8108/health
 
 `curl -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" "http://localhost:8108/collections/zettleDocuments/documents/search?q=paas&query_by=title"`
 
+```shell
+curl "http://localhost:8108/multi_search?query_by=title" \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
+        -d '{
+          "searches": [
+            {
+              "collection": "zettleDocuments",
+              "q": "paas"
+            }
+          ]
+        }'
+```
+
+
 
 ## Collection Schema in Typesense for Documents
 
