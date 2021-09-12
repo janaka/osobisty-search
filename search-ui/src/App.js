@@ -1,5 +1,6 @@
 import React from 'react';
-import algoliasearch from 'algoliasearch/lite';
+// import algoliasearch from 'algoliasearch/lite';
+import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 import {
   InstantSearch,
   Hits,
@@ -10,7 +11,29 @@ import {
 import PropTypes from 'prop-types';
 import './App.css';
 
-const searchClient = algoliasearch('osobisty-search-ui', '6be0576ff61c053d5f9a3225e2a90f76');
+// 6be0576ff61c053d5f9a3225e2a90f76
+
+// const searchClient = algoliasearch('osobisty-search-ui', 'xyz');
+
+const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
+  server: {
+    apiKey: 'xyz', // Be sure to use the search-only-api-key
+    nodes: [
+      {
+        host: 'localhost',
+        port: '8108',
+        protocol: 'http',
+      },
+    ],
+  },
+  // The following parameters are directly passed to Typesense's search API endpoint.
+  //  So you can pass any parameters supported by the search endpoint below.
+  //  queryBy is required.
+  additionalSearchParameters: {
+    queryBy: 'title',
+  },
+});
+const searchClient = typesenseInstantsearchAdapter.searchClient;
 
 function App() {
   return (
@@ -57,10 +80,7 @@ function Hit(props) {
         <Highlight attribute="title" hit={props.hit} />
       </h1>
       <p>
-        <Highlight attribute="name" hit={props.hit} />
-      </p>
-      <p>
-        <Highlight attribute="description" hit={props.hit} />
+        <Highlight attribute="content" hit={props.hit} />
       </p>
     </article>
   );
