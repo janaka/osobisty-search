@@ -48,10 +48,14 @@ const tsSearchClient = new TypesenseSearchClient({
 });
 
 function App() {
-
+  const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
+  const [selectedDocID, setSelectedDocID] = useState(0);
   return (
     <div>
-      <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} />
+      <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
+        <Results data={searchRes} selectedDocID={setSelectedDocID} />
+        <DocPreview docID={selectedDocID} selectedDocID={setSelectedDocID} />
+      </Search>
     </div>
   );
 }
@@ -60,7 +64,7 @@ function App() {
 function Search(props: any) {
   const [docID, setDocID] = useState(0);
   //const [query, setQuery] = useState("");
-  const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
+
   function searchReq() {
     const search = {
       searches: [
@@ -85,8 +89,8 @@ function Search(props: any) {
 
     console.log(queryInput)
     let response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
-    console.log(response.results);
-    console.log(JSON.stringify(response));
+    console.log(response);
+    // console.log(JSON.stringify(response));
     // response["results"].map((result:any) => (
     //   result.hits.map((hit:any) => (
     //     console.log(hit)
@@ -105,10 +109,10 @@ function Search(props: any) {
           className="search-box-input"
           data-form-type=""
           onChange={async (e) => {
-            const r:any = await doSearch(props.typesenseClient, e.target.value);
-            setSearchRes(r);
+            const r: any = await doSearch(props.typesenseClient, e.target.value);
+            props.results(r);
             //r.foreach((e:any) => console.log(e));
-            r["results"].forEach((result: any) => (
+            r.results.forEach((result: any) => (
               result.hits.forEach((hit: any) => (
                 console.log(hit)
               ))
@@ -120,33 +124,67 @@ function Search(props: any) {
         </button>
       </div>
       <div>
-        {JSON.stringify(searchRes)}
-        {/* {<ol className="search-results-list">
-          {searchRes["results"].forEach((result: any) => (
-            result.hits.forEach((hit: any) => (
-              <li
-                className="search-result"
-                key={hit.id}
-                onClick={() => setDocID(hit.id)}
-              >
-                <span className="search-results-title">{hit.title}</span>
-                <span className="search-result-content">{hit.content}</span>
-              </li>
-            ))
-          ))
-          }
-        </ol>
-        } */}
+        {/* {JSON.stringify(searchRes)} */}
+        {props.children}
       </div>
     </div>
   );
 }
 
-// function results() {
-//   return (
+function Results(props: any) {
 
-//   )
-// }
+  return (
+    <ol className="search-results-list">
+      {
+        props.data.results[0].hits.map((hit: any) => (
+          <li
+            className="search-result"
+            key={hit.document.id}
+            onClick={() => (props.selectedDocID(hit.document.id))}
+          >
+            <span className="search-results-title">{hit.document.title}</span>
+            <span className="search-result-content">{hit.document.content}</span>
+          </li>
+        ))
+      }
+    </ol>
+  )
+}
+
+
+function DocPreview(props: any) {
+  return (
+    <div>
+      Preview
+      {props.docID > 0 &&
+        <div className="doc-preview">
+          <div className="doc-preview-buttons">
+            <button
+              title="Close preview"
+              className="button doc-preview-close"
+              onClick={() => (props.selectedDocID(0))}
+            >
+              ×
+            </button>
+            <a
+              title="Open on new page"
+              href="https://thesephist.com/posts/unbundling-cloud/"
+              // eslint-disable-next-line react/jsx-no-target-blank
+              target="_blank"
+              className="button doc-preview-open"
+            >
+              <span className="desktop">open </span>→
+            </a>
+            <div className="doc-preview-title">
+              <p>Open DocID: {props.docID}</p>
+            </div>
+          </div>
+          <div className="doc-preview-content"></div>
+        </div>
+      }
+    </div>
+  )
+}
 
 
 
