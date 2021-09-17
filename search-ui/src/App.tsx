@@ -49,12 +49,12 @@ const tsSearchClient = new TypesenseSearchClient({
 
 function App() {
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
-  const [selectedDocID, setSelectedDocID] = useState(0);
+  const [selectedHit, setSelectedHit] = useState(null);
   return (
     <div>
       <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
-        <Results data={searchRes} selectedDocID={setSelectedDocID} />
-        <DocPreview docID={selectedDocID} selectedDocID={setSelectedDocID} />
+        <Results data={searchRes} selectedHit={setSelectedHit} />
+        <DocPreview hitData={selectedHit} selectedHit={setSelectedHit} />
       </Search>
     </div>
   );
@@ -62,7 +62,7 @@ function App() {
 
 // Search component
 function Search(props: any) {
-  const [docID, setDocID] = useState(0);
+  // const [docID, setDocID] = useState(0);
   //const [query, setQuery] = useState("");
 
   function searchReq() {
@@ -140,7 +140,7 @@ function Results(props: any) {
           <li
             className="search-result"
             key={hit.document.id}
-            onClick={() => (props.selectedDocID(hit.document.id))}
+            onClick={() => (props.selectedHit(hit))}
           >
             <span className="search-results-title">{hit.document.title}</span>
             <span className="search-result-content">{hit.document.content}</span>
@@ -155,18 +155,17 @@ function Results(props: any) {
 function DocPreview(props: any) {
   return (
     <div>
-      Preview
-      {props.docID > 0 &&
+      {props.hitData &&
         <div className="doc-preview">
           <div className="doc-preview-buttons">
             <button
               title="Close preview"
               className="button doc-preview-close"
-              onClick={() => (props.selectedDocID(0))}
+              onClick={() => (props.selectedHit(null))}
             >
               ×
             </button>
-            <a
+            {props.hitData.document.link && <a
               title="Open on new page"
               href="https://thesephist.com/posts/unbundling-cloud/"
               // eslint-disable-next-line react/jsx-no-target-blank
@@ -174,12 +173,14 @@ function DocPreview(props: any) {
               className="button doc-preview-open"
             >
               <span className="desktop">open </span>→
-            </a>
+            </a>}
             <div className="doc-preview-title">
-              <p>Open DocID: {props.docID}</p>
+              <p>Open DocID: {props.hitData.document.title}</p>
             </div>
           </div>
-          <div className="doc-preview-content"></div>
+          <div className="doc-preview-content">
+            {props.hitData.document.content}
+          </div>
         </div>
       }
     </div>
