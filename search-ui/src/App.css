@@ -118,7 +118,7 @@ textarea {
   position: relative;
 }
 
-.search-box-input input {
+.search-box-input {
   padding: 16px 12px;
   border: 0;
   background: transparent;
@@ -127,11 +127,11 @@ textarea {
   box-sizing: border-box;
 }
 
-.search-box-input input:focus {
+.search-box-input:focus {
     outline: 0;
 }
 
-.search-box-clear button {
+.search-box-clear {
     position: absolute;
     top: 50%;
     right: 12px;
@@ -144,11 +144,11 @@ textarea {
     font-size: 18px;
 }
 
-.search-box-clear button:hover {
+.search-box-clear:hover {
     background: var(--hover-bg);
 }
 
-.search-box-clear button:active {
+.search-box-clear:active {
     background: var(--active-bg);
 }
 

@@ -64,7 +64,8 @@ function App() {
 function Search(props: any) {
   // const [docID, setDocID] = useState(0);
   //const [query, setQuery] = useState("");
-
+  const [resultCount, setResultCount] = useState(0);
+  const [searchTime, setSearchTime] = useState(0);
   function searchReq() {
     const search = {
       searches: [
@@ -109,19 +110,34 @@ function Search(props: any) {
           className="search-box-input"
           data-form-type=""
           onChange={async (e) => {
-            const r: any = await doSearch(props.typesenseClient, e.target.value);
-            props.results(r);
-            //r.foreach((e:any) => console.log(e));
-            r.results.forEach((result: any) => (
-              result.hits.forEach((hit: any) => (
-                console.log(hit)
-              ))
-            ));
+            let r: any = null;
+            if (e.target.value && e.target.value.length > 0) {
+              r = await doSearch(props.typesenseClient, e.target.value);
+              props.results(r);
+              setResultCount(r.results[0].found)
+              setSearchTime(r.results[0].search_time_ms)
+              //r.foreach((e:any) => console.log(e));
+              r.results.forEach((result: any) => (
+                result.hits.forEach((hit: any) => (
+                  console.log(hit)
+                ))
+              ));
+            } else {
+              // reset when input box is cleared
+              props.results(null)
+              setResultCount(0)
+              setSearchTime(0)
+            }
           }}
         />
         <button title="Clear search" className="search-box-clear">
           ×
         </button>
+      </div>
+      <div className="sidebar-stats">
+        <div className="sidebar-results-stats">
+          {resultCount} results ({searchTime}ms)
+        </div>
       </div>
       <div>
         {/* {JSON.stringify(searchRes)} */}
@@ -132,22 +148,28 @@ function Search(props: any) {
 }
 
 function Results(props: any) {
-
+  // const [selectedRowUI, setSelectedRowUI] = useState("");
   return (
-    <ol className="search-results-list">
-      {
-        props.data.results[0].hits.map((hit: any) => (
-          <li
-            className="search-result"
-            key={hit.document.id}
-            onClick={() => (props.selectedHit(hit))}
-          >
-            <span className="search-results-title">{hit.document.title}</span>
-            <span className="search-result-content">{hit.document.content}</span>
-          </li>
-        ))
-      }
-    </ol>
+    <div className="search-results">
+      {props.data &&
+        <ol className="search-results-list">
+          {props.data.results[0].hits.map((hit: any) => (
+            <li
+              className={"search-result "}
+              key={hit.document.id}
+              onClick={() => (
+                props.selectedHit(hit)
+              )
+              }
+            >
+              <span className="search-results-module"></span>
+              <span className="search-results-title">{hit.document.title}</span>
+              <span className="search-result-content">{hit.document.content}</span>
+            </li>
+          ))}
+
+        </ol>}
+    </div >
   )
 }
 
@@ -175,7 +197,7 @@ function DocPreview(props: any) {
               <span className="desktop">open </span>→
             </a>}
             <div className="doc-preview-title">
-              <p>Open DocID: {props.hitData.document.title}</p>
+              {props.hitData.document.title}
             </div>
           </div>
           <div className="doc-preview-content">
