@@ -107,7 +107,6 @@ function Search(props) {
       <div>
 
         {searchRes && <ol className="search-results-list">
-        
           {searchRes.hits.map(hit => (
             <li
               className="search-result"
