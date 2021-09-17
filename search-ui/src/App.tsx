@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { SearchClient as TypeSearchClient } from "typesense";
+import React, { useRef, useState } from 'react';
+//import { SearchClient as TypeSearchClient } from "typesense";
+import { SearchClient as TypesenseSearchClient } from "typesense";
 // import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
 // import {
 //   InstantSearch,
@@ -34,7 +35,7 @@ import './App.css';
 // });
 // const searchClient = typesenseInstantsearchAdapter.searchClient;
 
-const tsClient = new TypeSearchClient({
+const tsSearchClient = new TypesenseSearchClient({
   nodes: [
     {
       host: 'localhost',
@@ -47,18 +48,19 @@ const tsClient = new TypeSearchClient({
 });
 
 function App() {
-  
+
   return (
     <div>
-      <Search typesenseClient={tsClient} />
+      <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} />
     </div>
   );
 }
 
 // Search component
-function Search(props) {
+function Search(props: any) {
   const [docID, setDocID] = useState(0);
-  const [searchRes, setSearchRes] = useState(null);
+  //const [query, setQuery] = useState("");
+  const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   function searchReq() {
     const search = {
       searches: [
@@ -70,21 +72,27 @@ function Search(props) {
     return search;
   }
 
-  function commonSearchParams(query) {
+  function commonSearchParams(query: any) {
     console.log(query)
     let searchParams = {
-      'q': { query },
+      'q': query,
       'query_by': 'title',
     }
     return searchParams;
   }
 
-  function doSearch(typesenseClient, queryInput) {
+  async function doSearch(typesenseClient: any, queryInput: string) {
 
     console.log(queryInput)
-    let response = typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
-    // this is a promise so not available when being resolved int he results section below
-    console.log("asdfs"+response)
+    let response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
+    console.log(response.results);
+    console.log(JSON.stringify(response));
+    // response["results"].map((result:any) => (
+    //   result.hits.map((hit:any) => (
+    //     console.log(hit)
+    //   ))
+    // ))
+
     return response;
   }
 
@@ -96,8 +104,15 @@ function Search(props) {
           autoFocus={props.autoFocus}
           className="search-box-input"
           data-form-type=""
-          onKeyPress={(e) => {
-            setSearchRes(doSearch(props.typesenseClient, e.key))
+          onChange={async (e) => {
+            const r:any = await doSearch(props.typesenseClient, e.target.value);
+            setSearchRes(r);
+            //r.foreach((e:any) => console.log(e));
+            r["results"].forEach((result: any) => (
+              result.hits.forEach((hit: any) => (
+                console.log(hit)
+              ))
+            ));
           }}
         />
         <button title="Clear search" className="search-box-clear">
@@ -105,26 +120,33 @@ function Search(props) {
         </button>
       </div>
       <div>
-
-        {searchRes && <ol className="search-results-list">
-          {searchRes.hits.map(hit => (
-            <li
-              className="search-result"
-              key={hit.id}
-              onClick={() => setDocID(hit.id)}
-            >
-              <span className="search-results-title">{hit.title}</span>
-              <span className="search-result-content">{hit.content}</span>
-            </li>
-          ))}
+        {JSON.stringify(searchRes)}
+        {/* {<ol className="search-results-list">
+          {searchRes["results"].forEach((result: any) => (
+            result.hits.forEach((hit: any) => (
+              <li
+                className="search-result"
+                key={hit.id}
+                onClick={() => setDocID(hit.id)}
+              >
+                <span className="search-results-title">{hit.title}</span>
+                <span className="search-result-content">{hit.content}</span>
+              </li>
+            ))
+          ))
+          }
         </ol>
-        }
-
+        } */}
       </div>
     </div>
   );
 }
 
+// function results() {
+//   return (
+
+//   )
+// }
 
 
 
