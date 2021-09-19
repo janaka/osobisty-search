@@ -270,7 +270,19 @@ li.search-result {
 
 .search-result .search-result-module {
     display: inline-block;
-    width: 100px;
+    width: 140px;
+}
+
+.search-result .search-result-title {
+  overflow: hidden;
+  line-height: 1.4em;
+  color: var(--secondary-text);
+}
+
+.search-result .search-result-title mark{
+  background: var(--search-highlight);
+  display: inline-block;
+  border-radius: 3px;
 }
 
 .search-result .search-result-content {

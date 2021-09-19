@@ -1,39 +1,11 @@
+import { readFileSync } from 'fs';
 import React, { useRef, useState } from 'react';
-//import { SearchClient as TypeSearchClient } from "typesense";
 import { SearchClient as TypesenseSearchClient } from "typesense";
-// import TypesenseInstantSearchAdapter from 'typesense-instantsearch-adapter';
-// import {
-//   InstantSearch,
-//   SearchBox,
-//   Pagination,
-//   Highlight,
-//   connectHits,
-// } from 'react-instantsearch-dom';
+//import he from "he";
+var he = require('he');
 import './App.css';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
-
-// const searchClient = algoliasearch('osobisty-search-ui', 'xyz');
-
-// const typesenseInstantsearchAdapter = new TypesenseInstantSearchAdapter({
-//   server: {
-//     apiKey: 'xyz', // Be sure to use the search-only-api-key
-//     nodes: [
-//       {
-//         host: 'localhost',
-//         port: '8108',
-//         protocol: 'http',
-//       },
-//     ],
-//   },
-//   // The following parameters are directly passed to Typesense's search API endpoint.
-//   //  So you can pass any parameters supported by the search endpoint below.
-//   //  queryBy is required.
-//   additionalSearchParameters: {
-//     queryBy: 'title',
-//   },
-// });
-// const searchClient = typesenseInstantsearchAdapter.searchClient;
 
 const tsSearchClient = new TypesenseSearchClient({
   nodes: [
@@ -51,7 +23,9 @@ function App() {
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   const [selectedHit, setSelectedHit] = useState(null);
   return (
-    <div>
+    <div onKeyPress={(e) =>
+      e.key
+    }>
       <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
         <Results data={searchRes} selectedHit={setSelectedHit} />
         <DocPreview hitData={selectedHit} selectedHit={setSelectedHit} />
@@ -66,6 +40,7 @@ function Search(props: any) {
   //const [query, setQuery] = useState("");
   const [resultCount, setResultCount] = useState(0);
   const [searchTime, setSearchTime] = useState(0);
+
   function searchReq() {
     const search = {
       searches: [
@@ -88,7 +63,8 @@ function Search(props: any) {
 
   async function doSearch(typesenseClient: any, queryInput: string) {
 
-    console.log(queryInput)
+    console.log("doSearch():")
+    console.log("query input text: " + queryInput)
     let response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
     console.log(response);
     // console.log(JSON.stringify(response));
@@ -108,25 +84,32 @@ function Search(props: any) {
           placeholder={props.placeholderText}
           autoFocus={props.autoFocus}
           className="search-box-input"
-          data-form-type=""
           onChange={async (e) => {
             let r: any = null;
-            if (e.target.value && e.target.value.length > 0) {
-              r = await doSearch(props.typesenseClient, e.target.value);
-              props.results(r);
-              setResultCount(r.results[0].found)
-              setSearchTime(r.results[0].search_time_ms)
-              //r.foreach((e:any) => console.log(e));
-              r.results.forEach((result: any) => (
-                result.hits.forEach((hit: any) => (
-                  console.log(hit)
-                ))
-              ));
-            } else {
-              // reset when input box is cleared
-              props.results(null)
-              setResultCount(0)
-              setSearchTime(0)
+            try {
+              if (e.target.value && e.target.value.length > 0) {
+                r = await doSearch(props.typesenseClient, e.target.value);
+                if ('error' in r.results[0]) {
+                  console.error("Typesense backend returned an error", r.results[0])
+                  return
+                }
+                props.results(r);
+                setResultCount(r.results[0].found)
+                setSearchTime(r.results[0].search_time_ms)
+                //r.foreach((e:any) => console.log(e));
+                r.results.forEach((result: any) => (
+                  result.hits.forEach((hit: any) => (
+                    console.log(hit)
+                  ))
+                ));
+              } else {
+                // reset when input box is cleared
+                props.results(null)
+                setResultCount(0)
+                setSearchTime(0)
+              }
+            } catch (e) {
+              console.error(e)
             }
           }}
         />
@@ -162,8 +145,14 @@ function Results(props: any) {
               )
               }
             >
-              <span className="search-results-module"></span>
-              <span className="search-results-title">{hit.document.title}</span>
+              { hit.document.type
+                ? <span className="search-result-module">{hit.document.type}</span>
+                : <span className="search-result-module">none</span>
+              }
+              {hit.highlights.length > 0 
+                ? <span className="search-result-title" dangerouslySetInnerHTML={{__html:hit.highlights[0].snippet}}></span>
+                : <span className="search-result-title">{hit.document.title}</span>
+              }
               <span className="search-result-content">{hit.document.content}</span>
             </li>
           ))}

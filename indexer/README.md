@@ -52,30 +52,14 @@ curl "http://localhost:8108/multi_search?query_by=title" \
         }'
 ```
 
-
-
-## Collection Schema in Typesense for Documents
-
-	//unique identifier
-	ID string `json:"id"`
-	//title
-	Title string `json:"title"`
-	//potential link to the source if applicable
-	Link string `json:"link"`
-	//text content to display on results page
-	Content string `json:"content"`
-	//map of tokens to their frequency
-
-
-
 ## Build and run
 
-- build `npx tsc`
+- build `yarn build`
   - note: build `outDir: "/build"` in `tsconfig.json`
-- run `node ./build/main.js`
+- run `yarn start`
 
 
 ## Dev
 
-- watch mode `npx tsc -n -p`
-- run `node ./build/main.js`
+- watch mode `yarn watch`
+- run `yarn start`
