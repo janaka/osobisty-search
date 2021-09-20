@@ -56,7 +56,7 @@ function Search(props: any) {
     console.log(query)
     let searchParams = {
       'q': query,
-      'query_by': 'title',
+      'query_by': 'tags, title, content'
     }
     return searchParams;
   }
@@ -187,7 +187,10 @@ function DocPreview(props: any) {
             </a>}
             <div className="doc-preview-title">
               {props.hitData.document.title}
-            </div>
+            </div>          
+          </div>
+          <div className="doc-preview-data">
+            Tags: {props.hitData.document.tags}
           </div>
           <div className="doc-preview-content">
             {props.hitData.document.content}

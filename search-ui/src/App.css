@@ -367,6 +367,14 @@ li.search-result {
     margin: 5px 0;
 }
 
+.doc-preview-data {
+  height: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding: 1em;
+  margin-bottom: 5px;
+}
+
 /* Merlot Markdown output styles */
 
 .doc-preview-content {
