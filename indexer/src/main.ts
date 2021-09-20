@@ -15,31 +15,20 @@ let typesense = new Typesense.Client({
   connectionTimeoutSeconds: 2,
 });
 
-let schemaZettleDocuments = {
-  name: 'zettleDocuments',
-  fields: [
-    { name: 'id', type: 'string', facet: false },
-    { name: 'type', type: 'string', facet: true },
-    { name: 'title', type: 'string', facet: false, optional: true },
-    { name: 'tags', type: 'string', facet: true },
-    { name: 'content', type: 'string', facet: false },
-    { name: 'date', type: 'string', facet: true },
-    { name: 'rank', type: 'int32', facet: false },
-  ],
-  default_sorting_field: 'rank',
-};
+
 
 var myArgs = process.argv.slice(2);
 switch (myArgs[0]) {
   case 'delete-collections':
     deleteCollection("zettleDocuments")
+    deleteCollection("kindleHighlights")
     break;
-  case 'create-collections':
-    createCollections();
+  case 'indexZettle':
+    fullIndexZettkeDocuments()
     break;
-  case 'index':
-    fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", indexZettleDocs);
-    break;
+  case 'indexKindle':
+    fullIndexKindleHighlights()
+    break;  
   case 'test':
     t();
     break;
@@ -86,7 +75,6 @@ async function deleteCollection(name: string) {
     console.log("collection deleted");
   } catch (err: any) {
     console.log("collection doesn't exist");
-    console.error(err);
   }
 }
 
@@ -109,8 +97,8 @@ async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction
     files.forEach(async (file: fs.Dirent) => {
       let mdfile = null;
       if (file.isFile()) {
-        console.log("file:" + file.name)
         if (file.name.endsWith(fileExtFilter)) {
+          console.log("file:" + file.name)
           indexerFunction(dir, file.name)
         }
       } else {
@@ -125,8 +113,35 @@ async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction
   });
 }
 
-async function indexZettleDocs(zettleDir: string, filename: string) {
+async function fullIndexZettkeDocuments() {
+  const schemaName = "zettleDocuments";
+  
+  let schemaZettleDocuments = {
+    name: schemaName,
+    fields: [
+      { name: 'id', type: 'string', facet: false },
+      { name: 'type', type: 'string', facet: true },
+      { name: 'title', type: 'string', facet: false, optional: true },
+      { name: 'tags', type: 'string', facet: true },
+      { name: 'content', type: 'string', facet: false },
+      { name: 'date', type: 'string', facet: true },
+      { name: 'rank', type: 'int32', facet: false },
+    ],
+    default_sorting_field: 'rank',
+  };
+  
+  await deleteCollection(schemaName);
+
+  await createCollection(schemaZettleDocuments);
+
+  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", indexZettleDoc);
+}
+
+// Index a single Zettle document
+async function indexZettleDoc(zettleDir: string, filename: string) {
   let mdfile = null;
+  const schemaName = "zettleDocuments";
+
   try {
     mdfile = matter.read(zettleDir + filename);
     console.log("title:" + mdfile.data.title + " tags:" + mdfile.data.tags)
@@ -139,7 +154,7 @@ async function indexZettleDocs(zettleDir: string, filename: string) {
       content: mdfile.content ? mdfile.content : "",
       rank: 1
     }
-    await typesense.collections("zettleDocuments").documents().create(mddoc);
+    await typesense.collections(schemaName).documents().create(mddoc);
 
   } catch (err: any) {
     console.error("issue with doc: ", filename);
@@ -148,27 +163,69 @@ async function indexZettleDocs(zettleDir: string, filename: string) {
   }
 }
 
-// Index Kindle highlights files exported using https://readwise.io/bookcision
-async function indexKindleHighlights(kindleHighlightsDir: String) {
-  let highlightfile = null;
-  try {
-    
-    highlightfile = await fs.readFile(zettleDir + filename);
-    console.log("title:" + mdfile.data.title + " tags:" + mdfile.data.tags)
 
-    let mddoc = {
-      type: mdfile.data.type ? "zettle-" + mdfile.data.type : "unknown",
-      title: mdfile.data.title ? mdfile.data.title : filename,
-      tags: mdfile.data.tags ? mdfile.data.tags : "",
-      date: mdfile.data.date ? mdfile.data.date : "",
-      content: mdfile.content ? mdfile.content : "",
-      rank: 1
-    }
-    await typesense.collections("zettleDocuments").documents().create(mddoc);
+async function fullIndexKindleHighlights() {
+  const schemaName = "kindleHighlights";
+  
+  let schemaKindleHighlights = {
+    name: schemaName,
+    fields: [
+      { name: 'id', type: 'string', facet: false },
+      { name: 'type', type: 'string', facet: true }, // kindle
+      { name: 'bookTitle', type: 'string', facet: true},
+      { name: 'bookAuthors', type: 'string', facet: false },
+      { name: 'content', type: 'string', facet: false },
+      { name: 'note', type: 'string', facet: false, optopnal: true},
+      { name: 'locationLink', type: 'string', facet: false },
+      { name: 'locationValue', type: 'int32', facet: false },
+      { name: 'rank', type: 'int32', facet: false },
+    ],
+    default_sorting_field: 'rank',
+  };
+  
+  await deleteCollection(schemaName);
+
+  await createCollection(schemaKindleHighlights);
+
+  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/literature/", ".json", indexKindleHighlight);
+}
+
+// Index Kindle highlights files exported using https://readwise.io/bookcision
+async function indexKindleHighlight(kindleHighlightsDir: string, filename: string) {
+  const schemaName = "kindleHighlights";
+  let highlights = null;
+
+  try {
+
+    fs.readFile(kindleHighlightsDir + filename, 'utf-8', (err: any, data: string) => {
+      if (err) throw err;
+      
+      let highlights = JSON.parse(data);
+      
+      const booktitle = highlights.title
+      const bookauthors = highlights.authors
+
+      console.log("TITLE:" + highlights.title + " AUTHORS: "+ highlights.authors + " HIGHLIGHT COUNT: " + highlights.highlights.length);
+
+      highlights.highlights.forEach(async (highlight: any) => {
+        let kindleHighlight = {
+          type: "Kindle",
+          bookTitle: booktitle,
+          bookAuthors: bookauthors, 
+          content: highlight.text ? highlight.text : "",
+          note: highlight.note ? highlight.note : "",
+          locationLink: highlight.location.url,
+          locationValue: highlight.location.value,
+          rank: 1
+        }
+        await typesense.collections(schemaName).documents().create(kindleHighlight);
+      });
+    });
+
+
 
   } catch (err: any) {
     console.error("issue with doc: ", filename);
-    mdfile ? console.error(mdfile.stringify("data")) : console.error("gray-matter failed to load mdfile.")
     console.error(err);
   }
 }
@@ -187,9 +244,6 @@ async function t() {
   }
 }
 
-async function createCollections() {
-  createCollection(schemaZettleDocuments);
-}
 
 
 //t();
