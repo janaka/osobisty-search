@@ -1,9 +1,13 @@
-import { readFileSync } from 'fs';
+
 import React, { useRef, useState, useEffect } from 'react';
 import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './useFetchHook';
-//import he from "he";
-var he = require('he');
+import {
+  BrowserRouter as Router,
+  useLocation,
+} from "react-router-dom";
+
+
 import './App.css';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
@@ -24,23 +28,40 @@ function App() {
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   const [selectedHit, setSelectedHit] = useState(null);
   return (
-    <div onKeyPress={(e) =>
-      e.key
-    }>
-      <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
-        <Results data={searchRes} selectedHit={setSelectedHit} />
-        <DocPreview hitData={selectedHit} selectedHit={setSelectedHit} />
-      </Search>
-    </div>
+    <Router>
+      <div onKeyPress={(e) =>
+        console.log(e.key)
+      }>
+        <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
+          <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
+          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+        </Search>
+      </div>
+    </Router>
   );
 }
 
+
+// A custom hook that builds on useLocation to parse
+// the query string params
+function useQuery():URLSearchParams {
+  return new URLSearchParams(useLocation().search);
+}
+
+
 // Search component
 function Search(props: any) {
-  // const [docID, setDocID] = useState(0);
-  //const [query, setQuery] = useState("");
   const [resultCount, setResultCount] = useState(0);
   const [searchTime, setSearchTime] = useState(0);
+  let query = useQuery();
+  const q = query.get("q")
+  let q1
+
+  if (resultCount==0 && q) {
+    q1 = q
+    console.log("==="+q1)
+    doSearch(props.typesenseClient, q1);
+  }
 
   function searchReq() {
     const search = {
@@ -62,18 +83,26 @@ function Search(props: any) {
     return searchParams;
   }
 
-  async function doSearch(typesenseClient: any, queryInput: string) {
+  async function doSearch(typesenseClient: any, queryInput: string | null | undefined) {
 
     console.log("doSearch():")
     console.log("query input text: " + queryInput)
+    if (queryInput == null || undefined) return
     let response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
     console.log(response);
-    // console.log(JSON.stringify(response));
-    // response["results"].map((result:any) => (
-    //   result.hits.map((hit:any) => (
+    if ('error' in response.results[0]) {
+      console.error("Typesense backend returned an error", response.results[0])
+      return
+    }
+    props.results(response);
+    setResultCount(response.results[0].found)
+    setSearchTime(response.results[0].search_time_ms)
+    //r.foreach((e:any) => console.log(e));
+    // response.results.forEach((result: any) => (
+    //   result.hits.forEach((hit: any) => (
     //     console.log(hit)
     //   ))
-    // ))
+    // ));
 
     return response;
   }
@@ -82,6 +111,7 @@ function Search(props: any) {
     <div>
       <div className="search-box">
         <input
+          value = {q1}
           placeholder={props.placeholderText}
           autoFocus={props.autoFocus}
           className="search-box-input"
@@ -89,20 +119,20 @@ function Search(props: any) {
             let r: any = null;
             try {
               if (e.target.value && e.target.value.length > 0) {
-                r = await doSearch(props.typesenseClient, e.target.value);
-                if ('error' in r.results[0]) {
-                  console.error("Typesense backend returned an error", r.results[0])
-                  return
-                }
-                props.results(r);
-                setResultCount(r.results[0].found)
-                setSearchTime(r.results[0].search_time_ms)
-                //r.foreach((e:any) => console.log(e));
-                r.results.forEach((result: any) => (
-                  result.hits.forEach((hit: any) => (
-                    console.log(hit)
-                  ))
-                ));
+                await doSearch(props.typesenseClient, e.target.value);
+                //   if ('error' in r.results[0]) {
+                //     console.error("Typesense backend returned an error", r.results[0])
+                //     return
+                //   }
+                //   props.results(r);
+                //   setResultCount(r.results[0].found)
+                //   setSearchTime(r.results[0].search_time_ms)
+                //   //r.foreach((e:any) => console.log(e));
+                //   r.results.forEach((result: any) => (
+                //     result.hits.forEach((hit: any) => (
+                //       console.log(hit)
+                //     ))
+                //   ));
               } else {
                 // reset when input box is cleared
                 props.results(null)
@@ -124,7 +154,7 @@ function Search(props: any) {
         </div>
       </div>
       <div>
-        {/* {JSON.stringify(searchRes)} */}
+        {}
         {props.children}
       </div>
     </div>
@@ -141,10 +171,10 @@ function Results(props: any) {
             props.data.results.map((result: any) => (
               result.hits.map((hit: any) => (
                 <li
-                  className={"search-result "}
+                  className={ (props.selectedHit && props.selectedHit.document.id==hit.document.id) ? "search-result selected" : "search-result" }
                   key={hit.document.id}
                   onClick={() => (
-                    props.selectedHit(hit)
+                    props.setSelectedHit(hit)
                   )
                   }
                 >
@@ -152,9 +182,9 @@ function Results(props: any) {
                     ? <span className="search-result-module">{hit.document.type}</span>
                     : <span className="search-result-module">none</span>
                   }
+                  {hit.document.title && <span className="search-result-title">{hit.document.title}</span>}
                   {hit.highlights.length > 0
-                    ? <span className="search-result-title" dangerouslySetInnerHTML={{ __html: hit.highlights[0].snippet }}></span>
-                    : <span className="search-result-title">{hit.document.title}</span>
+                    && <span className="search-result-content" dangerouslySetInnerHTML={{ __html: hit.highlights[0].snippet }}></span>
                   }
                   <span className="search-result-content">{hit.document.content}</span>
                 </li>
@@ -168,19 +198,19 @@ function Results(props: any) {
 
 
 function DocPreview(props: any) {
-  function addHightlightMarkup(tsHitDataObj:any, fieldname: string): string {
-    let fieldvalue:string = tsHitDataObj.document[fieldname];
-    tsHitDataObj.highlights.map((highlight:any) => {
-      if (highlight.field==fieldname) {
-        highlight.matched_tokens.map((match_token:string) => (
-          fieldvalue = tsHitDataObj.document[fieldname].replaceAll(match_token, "<mark>" + match_token + "</mark>")        
-        )) 
-      }  
-    }) 
+  function addHightlightMarkup(tsHitDataObj: any, fieldname: string): string {
+    let fieldvalue: string = tsHitDataObj.document[fieldname];
+    tsHitDataObj.highlights.map((highlight: any) => {
+      if (highlight.field == fieldname) {
+        highlight.matched_tokens.map((match_token: string) => (
+          fieldvalue = tsHitDataObj.document[fieldname].replaceAll(match_token, "<mark>" + match_token + "</mark>")
+        ))
+      }
+    })
     return fieldvalue
   }
 
-  function addHtmlFormatting(content:string): string {
+  function addHtmlFormatting(content: string): string {
     let _content = content;
 
     _content = "<p>" + _content + "</p>"
@@ -199,7 +229,7 @@ function DocPreview(props: any) {
             <button
               title="Close preview"
               className="button doc-preview-close"
-              onClick={() => (props.selectedHit(null))}
+              onClick={() => (props.setSelectedHit(null))}
             >
               ×
             </button>
@@ -216,10 +246,10 @@ function DocPreview(props: any) {
             </div>
           </div>
           <div className="doc-preview-data">
-            <div><span className="field-heading">Type:</span><span className="field-value">{props.hitData.document.type} </span></div>
-            {props.hitData.document.authors && <div><span className="field-heading">Authors:</span><span className="field-value">{props.hitData.document.authors}</span></div>}
-            <div><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
-            <div><span className="field-heading">Tags:</span><span className="field-value">{props.hitData.document.tags}</span></div>
+            <div className="data-row"><span className="field-heading">Type:</span><span className="field-value">{props.hitData.document.type} </span></div>
+            {props.hitData.document.authors && <div className="data-row"><span className="field-heading">Authors:</span><span className="field-value">{props.hitData.document.authors}</span></div>}
+            <div className="data-row"><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
+            <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value">{props.hitData.document.tags}</span></div>
           </div>
           <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "content")) }}>
           </div>
@@ -249,24 +279,26 @@ interface TwitterEmbed {
 }
 
 
-function EmbedTweet(props:any) {
+function EmbedTweet(props: any) {
 
 
-    const url = "https://publish.twitter.com/oembed?url=" + encodeURIComponent(props.tweetUrl)
+  const url = "https://publish.twitter.com/oembed?url=" + encodeURIComponent(props.tweetUrl)
 
 
-    const { data, error } = useFetch<TwitterEmbed[]>(url, { mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers : { 
+  const { data, error } = useFetch<TwitterEmbed[]>(url, {
+    mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers: {
       'Content-Type': 'application/json',
       'Accept': '*/*',
-      'Access-Control-Allow-Origin' : '*'
-     }})
+      'Access-Control-Allow-Origin': '*'
+    }
+  })
 
-    if (error) return <p>There is an error. {console.error(error)}</p>
-    if (!data) return <p>Loading...</p>
-    return (
-      <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
-      </div>
-    )
+  if (error) return <p>There is an error. {console.error(error)}</p>
+  if (!data) return <p>Loading...</p>
+  return (
+    <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
+    </div>
+  )
 
 }
 

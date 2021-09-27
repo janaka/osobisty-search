@@ -270,13 +270,14 @@ li.search-result {
 
 .search-result .search-result-module {
     display: inline-block;
-    width: 140px;
+    width: 130px;
 }
 
 .search-result .search-result-title {
   overflow: hidden;
   line-height: 1.4em;
-  color: var(--secondary-text);
+  color: var(--primary-text);
+  margin-right: 12px;
 }
 
 .search-result .search-result-content {
@@ -365,12 +366,32 @@ mark{
   background: var(--search-highlight);
   display: inline-block;
   border-radius: 3px;
+  color: var(--secondary-text);
 }
 
 .doc-preview-data {
   white-space: pre-wrap;
   word-break: break-word;
   padding: 1em;
+  margin-bottom: 5px;
+}
+
+.doc-preview-data .field-heading {
+  white-space: pre-wrap;
+  word-break: break-word;
+  padding-right: 0.5em;
+  color: var(--secondary-text);
+  font-weight: lighter;
+}
+
+.doc-preview-data .field-value {
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--secondary-text);
+  font-weight:normal;
+}
+
+.doc-preview-data .data-row {
   margin-bottom: 5px;
 }
 
