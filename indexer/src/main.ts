@@ -23,12 +23,22 @@ switch (myArgs[0]) {
     deleteCollection("zettleDocuments")
     deleteCollection("kindleHighlights")
     break;
+  case 'recreate-collections':
+    recreateCollections();
+    break;
+  case 'index':
+    fullIndexKindleHighlights()
+    fullIndexZettkeDocuments()
+    break;
   case 'indexZettle':
     fullIndexZettkeDocuments()
     break;
   case 'indexKindle':
     fullIndexKindleHighlights()
-    break;  
+    break;
+  case 'indexTwitter':
+    fullIndexTwitterBookmarks()
+    break;
   case 'test':
     t();
     break;
@@ -84,7 +94,7 @@ async function deleteCollection(name: string) {
 *   Opens each file in `dir` and runs `indexerFunction` aginast the file
 *   indexerFunctions are doc type specific
 *   Only runs indexerFunction on files that match the `fileExtFilter`
-*/ 
+*/
 async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction: (path: string, filename: string) => void) {
   // loopthrough directories recursively and index all *.md files
   //TODO: add support other file extentions
@@ -113,26 +123,31 @@ async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction
   });
 }
 
-async function fullIndexZettkeDocuments() {
+async function recreateCollections() {
   const schemaName = "zettleDocuments";
-  
   let schemaZettleDocuments = {
     name: schemaName,
     fields: [
       { name: 'id', type: 'string', facet: false },
       { name: 'type', type: 'string', facet: true },
-      { name: 'title', type: 'string', facet: false, optional: true },
-      { name: 'tags', type: 'string', facet: true },
       { name: 'content', type: 'string', facet: false },
-      { name: 'date', type: 'string', facet: true },
+      { name: 'title', type: 'string', facet: false, optional: true },
+      { name: 'authors', type: 'string', facet: false, optional: true },
+      { name: 'tags', type: 'string', facet: true, optional: true },
+      { name: 'link', type: 'string', facet: false, optional: true },
+      { name: 'date', type: 'string', facet: true, optional: true },
       { name: 'rank', type: 'int32', facet: false },
     ],
     default_sorting_field: 'rank',
   };
-  
+
   await deleteCollection(schemaName);
 
   await createCollection(schemaZettleDocuments);
+}
+
+async function fullIndexZettkeDocuments() {
+
 
   fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", indexZettleDoc);
 }
@@ -148,7 +163,7 @@ async function indexZettleDoc(zettleDir: string, filename: string) {
 
     let mddoc = {
       type: mdfile.data.type ? "zettle-" + mdfile.data.type : "unknown",
-      title: mdfile.data.title ? mdfile.data.title : filename,
+      title: mdfile.data.title == null ? mdfile.data.title : filename,
       tags: mdfile.data.tags ? mdfile.data.tags : "",
       date: mdfile.data.date ? mdfile.data.date : "",
       content: mdfile.content ? mdfile.content : "",
@@ -165,65 +180,95 @@ async function indexZettleDoc(zettleDir: string, filename: string) {
 
 
 async function fullIndexKindleHighlights() {
-  const schemaName = "kindleHighlights";
-  
-  let schemaKindleHighlights = {
-    name: schemaName,
-    fields: [
-      { name: 'id', type: 'string', facet: false },
-      { name: 'type', type: 'string', facet: true }, // kindle
-      { name: 'bookTitle', type: 'string', facet: true},
-      { name: 'bookAuthors', type: 'string', facet: false },
-      { name: 'content', type: 'string', facet: false },
-      { name: 'note', type: 'string', facet: false, optopnal: true},
-      { name: 'locationLink', type: 'string', facet: false },
-      { name: 'locationValue', type: 'int32', facet: false },
-      { name: 'rank', type: 'int32', facet: false },
-    ],
-    default_sorting_field: 'rank',
-  };
-  
-  await deleteCollection(schemaName);
-
-  await createCollection(schemaKindleHighlights);
 
   fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/literature/", ".json", indexKindleHighlight);
 }
 
 // Index Kindle highlights files exported using https://readwise.io/bookcision
 async function indexKindleHighlight(kindleHighlightsDir: string, filename: string) {
-  const schemaName = "kindleHighlights";
+  const schemaName = "zettleDocuments";
   let highlights = null;
 
   try {
 
     fs.readFile(kindleHighlightsDir + filename, 'utf-8', (err: any, data: string) => {
       if (err) throw err;
-      
+
       let highlights = JSON.parse(data);
-      
+
       const booktitle = highlights.title
       const bookauthors = highlights.authors
 
-      console.log("TITLE:" + highlights.title + " AUTHORS: "+ highlights.authors + " HIGHLIGHT COUNT: " + highlights.highlights.length);
+      console.log("TITLE:" + booktitle + " AUTHORS: " + bookauthors + " HIGHLIGHT COUNT: " + highlights.highlights.length);
 
       highlights.highlights.forEach(async (highlight: any) => {
+        let content = highlight.text ? "<quote>" + highlight.text + "</quote>" : ""
+        content = highlight.note ? content + "<br />Note: " + highlight.note : ""
         let kindleHighlight = {
           type: "Kindle",
-          bookTitle: booktitle,
-          bookAuthors: bookauthors, 
-          content: highlight.text ? highlight.text : "",
-          note: highlight.note ? highlight.note : "",
-          locationLink: highlight.location.url,
-          locationValue: highlight.location.value,
+          title: booktitle,
+          authors: bookauthors,
+          content: content,
+          link: highlight.location.url,
           rank: 1
         }
         await typesense.collections(schemaName).documents().create(kindleHighlight);
       });
     });
+  } catch (err: any) {
+    console.error("issue with doc: ", filename);
+    console.error(err);
+  }
+}
 
 
+async function fullIndexTwitterBookmarks() {
 
+  
+
+
+  //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
+  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks);
+}
+
+async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename: string) {
+  const schemaName = "zettleDocuments";
+  let c = 0;
+  try {
+    fs.readFile(twitterBookmarksJsonFile + filename, 'utf-8', (err: any, data: string) => {
+      if (err) throw err;
+      let twitterBookmarks = JSON.parse(data);
+
+      console.log("==============")
+      console.log(filename)
+      console.log("==============")
+      //data.bookmark_timeline.timeline.instructions[0].entries[0].content.itemContent.tweet_results.result.legacy.full_text
+      twitterBookmarks.data.bookmark_timeline.timeline.instructions[0].entries.forEach(async (entry: any) => {
+        c = c + 1;
+        if (entry.content.entryType == "TimelineTimelineItem") {
+          console.log("\x1b[36m%s\x1b[0m", c + ": " + entry.entryId)
+          if (entry.content.itemContent.tweet_results.result) {
+            console.log(entry.content.itemContent.tweet_results.result.legacy.full_text)
+            const screenName = entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.screen_name
+            const tweetRestId = entry.content.itemContent.tweet_results.result.rest_id
+            // Tweet Link Ex.1 https://twitter.com/QuinnyPig/status/1091041507342086144?s=20
+            // Ex.2 https://twitter.com/b0rk/status/1091554624711081985?s=20
+            const tweetLink = "https://twitter.com/" + screenName +"/status/" + tweetRestId + "?s=20"
+            let twitterBookmark = {
+              type: "Twitter-bm",
+              authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" +screenName+")",
+              content: entry.content.itemContent.tweet_results.result.legacy.full_text,
+              date: entry.content.itemContent.tweet_results.result.legacy.created_at,
+              link: tweetLink,
+              rank: 1
+            }
+            await typesense.collections(schemaName).documents().create(twitterBookmark);
+          } else {
+            console.log(">>>>>>>>>> tweet_results is empty")
+          }          
+        }
+      })
+    });
   } catch (err: any) {
     console.error("issue with doc: ", filename);
     console.error(err);
@@ -236,8 +281,8 @@ async function t() {
     let mdfile = matter.read("/Users/janakaabeywardhana/code-projects/zettelkasten/projects/osobisty personal universal search engine.md");
     console.log("title:" + mdfile.data.title)
     console.log("tags:" + mdfile.data.tags)
-    console.log("content:" + mdfile.content)
-    console.log("stringifydata:" + mdfile.stringify("data"))
+    //console.log("content:" + mdfile.content)
+    //console.log("stringifydata:" + mdfile.stringify("data"))
 
   } catch (err: any) {
     console.error(err);

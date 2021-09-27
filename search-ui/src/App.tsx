@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { SearchClient as TypesenseSearchClient } from "typesense";
+import useFetch from './useFetchHook';
 //import he from "he";
 var he = require('he');
 import './App.css';
@@ -46,7 +47,7 @@ function Search(props: any) {
       searches: [
         {
           'collection': 'zettleDocuments',
-        },
+        }
       ]
     }
     return search;
@@ -56,7 +57,7 @@ function Search(props: any) {
     console.log(query)
     let searchParams = {
       'q': query,
-      'query_by': 'tags, title, content'
+      'query_by': 'content, tags, title, authors'
     }
     return searchParams;
   }
@@ -136,27 +137,30 @@ function Results(props: any) {
     <div className="search-results">
       {props.data &&
         <ol className="search-results-list">
-          {props.data.results[0].hits.map((hit: any) => (
-            <li
-              className={"search-result "}
-              key={hit.document.id}
-              onClick={() => (
-                props.selectedHit(hit)
-              )
-              }
-            >
-              { hit.document.type
-                ? <span className="search-result-module">{hit.document.type}</span>
-                : <span className="search-result-module">none</span>
-              }
-              {hit.highlights.length > 0 
-                ? <span className="search-result-title" dangerouslySetInnerHTML={{__html:hit.highlights[0].snippet}}></span>
-                : <span className="search-result-title">{hit.document.title}</span>
-              }
-              <span className="search-result-content">{hit.document.content}</span>
-            </li>
-          ))}
-
+          {
+            props.data.results.map((result: any) => (
+              result.hits.map((hit: any) => (
+                <li
+                  className={"search-result "}
+                  key={hit.document.id}
+                  onClick={() => (
+                    props.selectedHit(hit)
+                  )
+                  }
+                >
+                  {hit.document.type
+                    ? <span className="search-result-module">{hit.document.type}</span>
+                    : <span className="search-result-module">none</span>
+                  }
+                  {hit.highlights.length > 0
+                    ? <span className="search-result-title" dangerouslySetInnerHTML={{ __html: hit.highlights[0].snippet }}></span>
+                    : <span className="search-result-title">{hit.document.title}</span>
+                  }
+                  <span className="search-result-content">{hit.document.content}</span>
+                </li>
+              ))
+            ))
+          }
         </ol>}
     </div >
   )
@@ -164,6 +168,18 @@ function Results(props: any) {
 
 
 function DocPreview(props: any) {
+  function addHightlightMarkup(tsHitDataObj:any, fieldname: string): string {
+    let fieldvalue:string = tsHitDataObj.document[fieldname];
+    tsHitDataObj.highlights.map((highlight:any) => {
+      if (highlight.field==fieldname) {
+        highlight.matched_tokens.map((match_token:string) => (
+          fieldvalue = tsHitDataObj.document[fieldname].replaceAll(match_token, "<mark>" + match_token + "</mark>")        
+        )) 
+      }  
+    }) 
+    return fieldvalue
+  }
+
   return (
     <div>
       {props.hitData &&
@@ -178,29 +194,70 @@ function DocPreview(props: any) {
             </button>
             {props.hitData.document.link && <a
               title="Open on new page"
-              href="https://thesephist.com/posts/unbundling-cloud/"
+              href={props.hitData.document.link}
               // eslint-disable-next-line react/jsx-no-target-blank
               target="_blank"
               className="button doc-preview-open"
             >
               <span className="desktop">open </span>→
             </a>}
-            <div className="doc-preview-title">
-              {props.hitData.document.title}
-            </div>          
+            <div className="doc-preview-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "title") }}>
+            </div>
           </div>
           <div className="doc-preview-data">
-            Tags: {props.hitData.document.tags}
+            <div><span className="field-heading">Type:</span><span className="field-value">{props.hitData.document.type} </span></div>
+            {props.hitData.document.authors && <div><span className="field-heading">Authors:</span><span className="field-value">{props.hitData.document.authors}</span></div>}
+            <div><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
+            <div><span className="field-heading">Tags:</span><span className="field-value">{props.hitData.document.tags}</span></div>
           </div>
-          <div className="doc-preview-content">
-            {props.hitData.document.content}
+          <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "content") }}>
           </div>
+          {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> }
         </div>
       }
     </div>
   )
 }
 
+// twitter embed API https://developer.twitter.com/en/docs/twitter-for-websites/embedded-tweets/overview
+// https://usehooks-typescript.com/react-hook/use-fetch
+
+
+interface TwitterEmbed {
+  url: string
+  author_name: string
+  author_url: string
+  html: string
+  width: number
+  height: number
+  type: string
+  cache_age: number
+  provider_name: string
+  provider_url: string
+  version: string
+}
+
+
+function EmbedTweet(props:any) {
+
+
+    const url = "https://publish.twitter.com/oembed?url=" + encodeURIComponent(props.tweetUrl)
+
+
+    const { data, error } = useFetch<TwitterEmbed[]>(url, { mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers : { 
+      'Content-Type': 'application/json',
+      'Accept': '*/*',
+      'Access-Control-Allow-Origin' : '*'
+     }})
+
+    if (error) return <p>There is an error. {console.error(error)}</p>
+    if (!data) return <p>Loading...</p>
+    return (
+      <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
+      </div>
+    )
+
+}
 
 
 export default App;
