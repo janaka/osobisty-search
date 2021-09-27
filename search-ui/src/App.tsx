@@ -180,6 +180,17 @@ function DocPreview(props: any) {
     return fieldvalue
   }
 
+  function addHtmlFormatting(content:string): string {
+    let _content = content;
+
+    _content = "<p>" + _content + "</p>"
+    //console.log(_content)
+    _content = _content.replace(/[\n]{2}/g, "</p><p>")
+    //console.log(_content)
+
+    return _content
+  }
+
   return (
     <div>
       {props.hitData &&
@@ -210,9 +221,9 @@ function DocPreview(props: any) {
             <div><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
             <div><span className="field-heading">Tags:</span><span className="field-value">{props.hitData.document.tags}</span></div>
           </div>
-          <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "content") }}>
+          <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "content")) }}>
           </div>
-          {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> }
+          {/* {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> } */}
         </div>
       }
     </div>
