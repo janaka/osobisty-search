@@ -63,3 +63,7 @@ curl "http://localhost:8108/multi_search?query_by=title" \
 
 - watch mode `yarn watch`
 - run `yarn start`
+
+## Notes
+
+Currently using a single collection for with a `type` field to distinguish variations of type. The overhead of a separate collocation is only worth it for types that are very different from each other. Multi search is possible across collections however results are returned separately for each collection. They can me merged client side using the `match_score`. 
