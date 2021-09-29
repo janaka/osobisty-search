@@ -1,15 +1,47 @@
+/* MIT License
 
+Copyright (c) 2021 Linus Lee
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. */
+
+
+/*
+Credits
+
+This style sheet is a forked from Linus Lee's Monocle project.
+
+Original: https://github.com/thesephist/monocle/blob/main/static/css/main.css
+Monocle Project: https://github.com/thesephist/monocle
+Linus Lee aka @thesephist: https://thesephist.com/
+
+ */
 
 .dark {
-    --primary-bg: #141516;
+    --primary-bg: #373c42;
     --primary-text: #ebebeb;
-    --secondary-bg: #272c2e;
+    --secondary-bg: #2e3538;
     --secondary-text: #a4a7a9;
     --hover-bg: #474c50;
     --active-bg: #626569;
     --translucent: rgba(47, 52, 55, .8);
     --transparent: rgba(47, 52, 55, 0);
-    --search-highlight: #36655b;
+    --search-highlight: #3e7569;
 }
 
 /* resets */
@@ -106,25 +138,25 @@ textarea {
 
 .sidebar-stats {
     font-size: 14px;
-    margin: 0 12px 8px 12px;
+    margin: 2px 12px 8px 12px;
     color: var(--secondary-text);
 }
 
 .search-box {
     position: relative;
+    padding: 16px 0px;
+  
 }
 
+
 .search-box-input {
+  border-bottom: 1px solid rgb(66, 124, 105);
   position: relative;
-}
-
-.search-box-input {
-  padding: 16px 12px;
-  border: 0;
+  padding: 1px 12px;
+  border-top: 0;
   background: transparent;
   height: 100%;
   width: 100%;
-  box-sizing: border-box;
 }
 
 .search-box-input:focus {

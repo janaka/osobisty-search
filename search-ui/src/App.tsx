@@ -379,8 +379,10 @@ function Suggestions() {
           Osobisty means <em>private</em> in Polish.</p>
         <p>
           Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="">Janaka</a>.
-          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a> <a href="https://github.com/thesephist/monocle" target="_blank">Monolce</a>, UI is a clone.
-          It's built with React, Typescript, and Typesenes for the full-text index and search engine in the backend. Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
+          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a> 
+          <a href="https://github.com/thesephist/monocle" target="_blank">Monolce</a>, the UI design is a clone.
+          It's built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend. 
+          Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
         </p>
         <p>Read more about why I built Osobisty here.</p>
       </div>
