@@ -2,13 +2,16 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './useFetchHook';
+import useKeyboardShortcut from './useKeyboardShortcutHook';
 import {
   BrowserRouter as Router,
   useLocation,
+  useHistory
 } from "react-router-dom";
 
 
 import './App.css';
+import { func } from 'prop-types';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -27,16 +30,69 @@ const tsSearchClient = new TypesenseSearchClient({
 function App() {
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   const [selectedHit, setSelectedHit] = useState(null);
+  const [doReset, setDoReset] = useState(false);
+  const [docCount, setDocCount] = useState("");
+  const [darkMode, SetDarkMode] = useState(true);
+
+
+  useEffect(() => {
+    const getDocCount = async () => {
+      let response = await tsSearchClient.collections("zettleDocuments").retrieve()
+      console.log(response.num_documents)
+      setDocCount(response.num_documents)
+    }
+
+    void getDocCount();
+
+    if (darkMode) {
+      document.body.classList.add("dark")
+    } else {
+
+    }
+
+  }, []);
+
+
+  const escapekeyHandler = (): void => {
+
+    if (selectedHit) {
+      console.log("escape pressed - preview open")
+      setSelectedHit(null)
+    } else {
+      console.log("escape pressed - no preview open")
+      setDoReset(true);
+    }
+  }
+  useKeyboardShortcut(["Escape"], escapekeyHandler, { overrideSystem: false })
+
+  useEffect(() => {
+    return () => {
+      setDoReset(false)
+    }
+    //console.log("Behavior before the component is added to the DOM");\\\\\\
+  });
+
+  const backtickKeyHandler = (): void => {
+
+    if (darkMode) {
+      SetDarkMode(false)
+      document.body.classList.remove("dark")
+    } else {
+      SetDarkMode(true);
+      document.body.classList.add("dark")
+    }
+  }
+  useKeyboardShortcut(["`"], backtickKeyHandler, { overrideSystem: false })
+
+
+
+
   return (
     <Router>
-      <div onKeyPress={(e) =>
-        console.log(e.key)
-      }>
-        <Search typesenseClient={tsSearchClient} placeholderText={undefined} autoFocus={true} results={setSearchRes}>
-          <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
-        </Search>
-      </div>
+      <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
+        <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
+        <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+      </Search>
     </Router>
   );
 }
@@ -44,7 +100,7 @@ function App() {
 
 // A custom hook that builds on useLocation to parse
 // the query string params
-function useQuery():URLSearchParams {
+function useQuery(): URLSearchParams {
   return new URLSearchParams(useLocation().search);
 }
 
@@ -53,15 +109,46 @@ function useQuery():URLSearchParams {
 function Search(props: any) {
   const [resultCount, setResultCount] = useState(0);
   const [searchTime, setSearchTime] = useState(0);
-  let query = useQuery();
-  const q = query.get("q")
-  let q1
+  const [searchInputBoxValue, setSearchInputBoxValue] = useState("")
+  const searchInputBox = useRef<HTMLInputElement>(null);
 
-  if (resultCount==0 && q) {
-    q1 = q
-    console.log("==="+q1)
-    doSearch(props.typesenseClient, q1);
+  const backslashkeyHandler = (): void => {
+    console.log("backslash pressed")
   }
+
+  //useKeyboardShortcut(["Escape"], escapekeyHandler, { overrideSystem: false })
+  useKeyboardShortcut(["/"], backslashkeyHandler, { overrideSystem: false })
+
+
+  let query = useQuery();
+  // const q = query.get("q")
+
+  let q = query.get("q")
+
+  useEffect(() => {
+    searchInputBox.current && searchInputBox.current.focus();
+  });
+
+
+  useEffect(() => {
+    if (props.doReset) {
+      console.log("doReset")
+      clearSearch()
+    }
+    return () => {
+      // clean up here
+    }
+    //console.log("Behavior before the component is added to the DOM");
+  });
+
+  useEffect(() => {
+    if (q) {
+      console.log("===" + q)
+      setSearchInputBoxValue(q)
+      doSearch(props.typesenseClient, q);
+    }
+  }, []);
+
 
   function searchReq() {
     const search = {
@@ -81,6 +168,15 @@ function Search(props: any) {
       'query_by': 'content, tags, title, authors'
     }
     return searchParams;
+  }
+
+  function clearSearch() {
+    console.log("clearSearch()")
+    //history.push("")
+    props.results(null)
+    setResultCount(0)
+    setSearchTime(0)
+    setSearchInputBoxValue("")
   }
 
   async function doSearch(typesenseClient: any, queryInput: string | null | undefined) {
@@ -110,8 +206,8 @@ function Search(props: any) {
   return (
     <div>
       <div className="search-box">
-        <input
-          value = {q1}
+        <input ref={searchInputBox}
+          value={searchInputBoxValue}
           placeholder={props.placeholderText}
           autoFocus={props.autoFocus}
           className="search-box-input"
@@ -119,32 +215,28 @@ function Search(props: any) {
             let r: any = null;
             try {
               if (e.target.value && e.target.value.length > 0) {
-                await doSearch(props.typesenseClient, e.target.value);
-                //   if ('error' in r.results[0]) {
-                //     console.error("Typesense backend returned an error", r.results[0])
-                //     return
-                //   }
-                //   props.results(r);
-                //   setResultCount(r.results[0].found)
-                //   setSearchTime(r.results[0].search_time_ms)
-                //   //r.foreach((e:any) => console.log(e));
-                //   r.results.forEach((result: any) => (
-                //     result.hits.forEach((hit: any) => (
-                //       console.log(hit)
-                //     ))
-                //   ));
+                setSearchInputBoxValue(e.target.value)
+                await doSearch(props.typesenseClient, searchInputBoxValue);
               } else {
                 // reset when input box is cleared
-                props.results(null)
-                setResultCount(0)
-                setSearchTime(0)
+                console.log("input onChange() clear")
+                clearSearch()
               }
             } catch (e) {
               console.error(e)
             }
           }}
+          onKeyDown={
+            (e) => {
+              e.key == "Escape" ? clearSearch() : null
+            }
+          }
         />
-        <button title="Clear search" className="search-box-clear">
+        <button title="Clear search" className="search-box-clear"
+          onClick={async (e) => {
+            clearSearch()
+          }}
+        >
           ×
         </button>
       </div>
@@ -154,7 +246,7 @@ function Search(props: any) {
         </div>
       </div>
       <div>
-        {}
+
         {props.children}
       </div>
     </div>
@@ -165,13 +257,14 @@ function Results(props: any) {
   // const [selectedRowUI, setSelectedRowUI] = useState("");
   return (
     <div className="search-results">
-      {props.data &&
+      {props.data && props.data.results.length > 0 && props.data.results[0].hits.length > 0
+        ?
         <ol className="search-results-list">
           {
             props.data.results.map((result: any) => (
               result.hits.map((hit: any) => (
                 <li
-                  className={ (props.selectedHit && props.selectedHit.document.id==hit.document.id) ? "search-result selected" : "search-result" }
+                  className={(props.selectedHit && props.selectedHit.document.id == hit.document.id) ? "search-result selected" : "search-result"}
                   key={hit.document.id}
                   onClick={() => (
                     props.setSelectedHit(hit)
@@ -191,11 +284,14 @@ function Results(props: any) {
               ))
             ))
           }
-        </ol>}
+        </ol>
+        :
+        <div><Suggestions /></div>
+
+      }
     </div >
   )
 }
-
 
 function DocPreview(props: any) {
   function addHightlightMarkup(tsHitDataObj: any, fieldname: string): string {
@@ -260,47 +356,80 @@ function DocPreview(props: any) {
   )
 }
 
-// twitter embed API https://developer.twitter.com/en/docs/twitter-for-websites/embedded-tweets/overview
-// https://usehooks-typescript.com/react-hook/use-fetch
-
-
-interface TwitterEmbed {
-  url: string
-  author_name: string
-  author_url: string
-  html: string
-  width: number
-  height: number
-  type: string
-  cache_age: number
-  provider_name: string
-  provider_url: string
-  version: string
+function Suggestions() {
+  return (
+    <div className="search-results search-results-empty">
+      <h2 className="empty-state-heading">Suggestions</h2><div className="search-results-suggestions">
+        <button className="search-results-suggestion">PaaS</button></div>
+      <h2 className="empty-state-heading">Keybindings</h2><div className="keyboard-map">
+        <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">
+          <kbd className="">Tab</kbd></div><div className="keybinding-detail">Next search result</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Shift</kbd>
+            <kbd className="">Tab</kbd></div><div className="keybinding-detail">Previous search result</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Enter</kbd></div>
+            <div className="keybinding-detail">Show preview pane</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Escape</kbd></div><
+            div className="keybinding-detail">Hide preview pane, clear search</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">/</kbd></div>
+            <div className="keybinding-detail">Focus search box</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">`</kbd></div>
+            <div className="keybinding-detail">Switch light/dark color theme</div></li></ul></div>
+      <h2 className="empty-state-heading">About Osobisty</h2><div className="about">
+        <p className="">
+          Osobisty means <em>private</em> in Polish.</p>
+        <p>
+          Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="">Janaka</a>.
+          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a> <a href="https://github.com/thesephist/monocle" target="_blank">Monolce</a>, UI is a clone.
+          It's built with React, Typescript, and Typesenes for the full-text index and search engine in the backend. Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
+        </p>
+        <p>Read more about why I built Osobisty here.</p>
+      </div>
+      </div>
+      )
 }
 
 
-function EmbedTweet(props: any) {
+      // twitter embed API https://developer.twitter.com/en/docs/twitter-for-websites/embedded-tweets/overview
+      // https://usehooks-typescript.com/react-hook/use-fetch
+
+
+      interface TwitterEmbed {
+        url: string
+      author_name: string
+      author_url: string
+      html: string
+      width: number
+      height: number
+      type: string
+      cache_age: number
+      provider_name: string
+      provider_url: string
+      version: string
+}
+
+
+      function EmbedTweet(props: any) {
 
 
   const url = "https://publish.twitter.com/oembed?url=" + encodeURIComponent(props.tweetUrl)
 
 
-  const { data, error } = useFetch<TwitterEmbed[]>(url, {
-    mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers: {
-      'Content-Type': 'application/json',
+      const {data, error} = useFetch<TwitterEmbed[]>(url, {
+        mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers: {
+        'Content-Type': 'application/json',
       'Accept': '*/*',
       'Access-Control-Allow-Origin': '*'
     }
   })
 
-  if (error) return <p>There is an error. {console.error(error)}</p>
-  if (!data) return <p>Loading...</p>
-  return (
-    <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
-    </div>
-  )
+      if (error) return <p>There is an error. {console.error(error)}</p>
+      if (!data) return <p>Loading...</p>
+      return (
+      <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
+      </div>
+      )
 
 }
 
 
-export default App;
+      export default App;
