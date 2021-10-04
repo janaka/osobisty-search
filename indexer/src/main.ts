@@ -18,17 +18,24 @@ let typesense = new Typesense.Client({
 
 
 var myArgs = process.argv.slice(2);
+
+myArgs.forEach((arg) => {
+  console.log(arg)
+})
 switch (myArgs[0]) {
   case 'delete-collections':
     deleteCollection("zettleDocuments")
-    deleteCollection("kindleHighlights")
+    break;
+  case 'delete-by-type':
+    myArgs[1] && myArgs[1].length > 0 ? deleteDocsByType("zettleDocuments", myArgs[1]) : console.error("missing param doctype name")
     break;
   case 'recreate-collections':
     recreateCollections();
     break;
-  case 'index':
+  case 'indexAll':
     fullIndexKindleHighlights()
     fullIndexZettkeDocuments()
+    fullIndexTwitterBookmarks()
     break;
   case 'indexZettle':
     fullIndexZettkeDocuments()
@@ -43,7 +50,9 @@ switch (myArgs[0]) {
     t();
     break;
   default:
+    console.log(myArgs[0])
     console.log("`yarn start delete-collections` to drop all collections and recreate");
+    console.log("`yarn start delete-by-type <type_name>` only drop docs of `type`=<type_name>");
     console.log("`yarn start create-collections` to drop all collections and recreate");
     console.log("`yarn start index` to index content");
     console.log("`yarn start test` to test parse MD file");
@@ -88,6 +97,16 @@ async function deleteCollection(name: string) {
   }
 }
 
+async function deleteDocsByType(collectionName: string, typeName: string) {
+  try {
+    let r = await typesense.collections(collectionName).documents().delete({ filter_by: 'type:=' + typeName.trim() })
+    console.log("\x1b[36m%s\x1b[0m", r.num_deleted + " " + typeName + " docs deleted!");
+  } catch (err: any) {
+    console.error(err);
+  }
+}
+
+
 
 /* 
 *   Generic recursive file iterator.
@@ -97,7 +116,6 @@ async function deleteCollection(name: string) {
 */
 async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction: (path: string, filename: string) => void) {
   // loopthrough directories recursively and index all *.md files
-  //TODO: add support other file extentions
   fs.readdir(dir, { withFileTypes: true }, (err: any, files: fs.Dirent[]) => {
     if (err) {
       console.error(err);
@@ -162,7 +180,7 @@ async function indexZettleDoc(zettleDir: string, filename: string) {
     console.log("title:" + mdfile.data.title + " tags:" + mdfile.data.tags)
 
     let mddoc = {
-      type: mdfile.data.type ? "zettle-" + mdfile.data.type : "unknown",
+      type: mdfile.data.type ? "zettle-" + mdfile.data.type : "zettle-unknown",
       title: mdfile.data.title == null ? mdfile.data.title : filename,
       tags: mdfile.data.tags ? mdfile.data.tags : "",
       date: mdfile.data.date ? mdfile.data.date : "",
@@ -224,9 +242,6 @@ async function indexKindleHighlight(kindleHighlightsDir: string, filename: strin
 
 async function fullIndexTwitterBookmarks() {
 
-  
-
-
   //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
   fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks);
 }
@@ -253,10 +268,10 @@ async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename:
             const tweetRestId = entry.content.itemContent.tweet_results.result.rest_id
             // Tweet Link Ex.1 https://twitter.com/QuinnyPig/status/1091041507342086144?s=20
             // Ex.2 https://twitter.com/b0rk/status/1091554624711081985?s=20
-            const tweetLink = "https://twitter.com/" + screenName +"/status/" + tweetRestId + "?s=20"
+            const tweetLink = "https://twitter.com/" + screenName + "/status/" + tweetRestId + "?s=20"
             let twitterBookmark = {
               type: "Twitter-bm",
-              authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" +screenName+")",
+              authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" + screenName + ")",
               content: entry.content.itemContent.tweet_results.result.legacy.full_text,
               date: entry.content.itemContent.tweet_results.result.legacy.created_at,
               link: tweetLink,
@@ -265,7 +280,7 @@ async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename:
             await typesense.collections(schemaName).documents().create(twitterBookmark);
           } else {
             console.log(">>>>>>>>>> tweet_results is empty")
-          }          
+          }
         }
       })
     });
@@ -274,7 +289,6 @@ async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename:
     console.error(err);
   }
 }
-
 
 async function t() {
   try {

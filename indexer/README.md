@@ -21,9 +21,11 @@ mkdir /data/typesense-data
 
 export TYPESENSE_API_KEY=xyz
 
-docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/data typesense/typesense:0.21.0 \
-  --data-dir /data --api-key=$TYPESENSE_API_KEY
+docker run -p 8108:8108 -v/<fqdn_path>/osobisty-search/indexer/data/typesense-data:/data typesense/typesense:0.21.0 \
+  --data-dir /data --enable-cors --api-key=$TYPESENSE_API_KEY
 ```
+
+Check it's working
 
 ```shell
 curl http://localhost:8108/health
@@ -39,6 +41,7 @@ curl http://localhost:8108/health
 
 ```shell
 curl "http://localhost:8108/multi_search?query_by=title" \
+        -w json \
         -X POST \
         -H "Content-Type: application/json" \
         -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
@@ -46,7 +49,9 @@ curl "http://localhost:8108/multi_search?query_by=title" \
           "searches": [
             {
               "collection": "zettleDocuments",
-              "q": "paas"
+              "q": "paas",
+              "facet_by": "type, tags",
+              "include_fields": "id,type"
             }
           ]
         }'
