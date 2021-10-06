@@ -16,7 +16,6 @@ let typesense = new Typesense.Client({
 });
 
 
-
 var myArgs = process.argv.slice(2);
 
 myArgs.forEach((arg) => {
@@ -106,15 +105,13 @@ async function deleteDocsByType(collectionName: string, typeName: string) {
   }
 }
 
-
-
 /* 
 *   Generic recursive file iterator.
 *   Opens each file in `dir` and runs `indexerFunction` aginast the file
 *   indexerFunctions are doc type specific
 *   Only runs indexerFunction on files that match the `fileExtFilter`
 */
-async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction: (path: string, filename: string) => void) {
+async function fileIteractor(dir: string, fileExtFilter: string, baseDir: string, indexerFunction: (path: string, filename: string, basePath?: string,) => void) {
   // loopthrough directories recursively and index all *.md files
   fs.readdir(dir, { withFileTypes: true }, (err: any, files: fs.Dirent[]) => {
     if (err) {
@@ -127,12 +124,12 @@ async function fileIteractor(dir: string, fileExtFilter: string, indexerFunction
       if (file.isFile()) {
         if (file.name.endsWith(fileExtFilter)) {
           console.log("file:" + file.name)
-          indexerFunction(dir, file.name)
+          indexerFunction(dir, file.name, baseDir)
         }
       } else {
         console.log("dir:" + file.name)
         if (!file.name.startsWith(".")) {
-          fileIteractor(dir + file.name + "/", fileExtFilter, indexerFunction)
+          fileIteractor(dir + file.name + "/", fileExtFilter, baseDir, indexerFunction)
         }
       }
 
@@ -166,12 +163,11 @@ async function recreateCollections() {
 
 async function fullIndexZettkeDocuments() {
 
-
-  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", indexZettleDoc);
+  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", "/Users/janakaabeywardhana/code-projects/zettelkasten/", indexZettleDoc);
 }
 
 // Index a single Zettle document
-async function indexZettleDoc(zettleDir: string, filename: string) {
+async function indexZettleDoc(zettleDir: string, filename: string, zettleBaseDir = "") {
   let mdfile = null;
   const schemaName = "zettleDocuments";
 
@@ -179,12 +175,15 @@ async function indexZettleDoc(zettleDir: string, filename: string) {
     mdfile = matter.read(zettleDir + filename);
     console.log("title:" + mdfile.data.title + " tags:" + mdfile.data.tags)
 
+    let relDir = zettleDir.replace(zettleBaseDir, "") + filename
+
     let mddoc = {
       type: mdfile.data.type ? "zettle-" + mdfile.data.type : "zettle-unknown",
       title: mdfile.data.title == null ? mdfile.data.title : filename,
       tags: mdfile.data.tags ? mdfile.data.tags : "",
       date: mdfile.data.date ? mdfile.data.date : "",
       content: mdfile.content ? mdfile.content : "",
+      link: relDir,
       rank: 1
     }
     await typesense.collections(schemaName).documents().create(mddoc);
@@ -243,7 +242,7 @@ async function indexKindleHighlight(kindleHighlightsDir: string, filename: strin
 async function fullIndexTwitterBookmarks() {
 
   //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
-  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks);
+  fileIteractor("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", "/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", indexTwitterBookmarks);
 }
 
 async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename: string) {
