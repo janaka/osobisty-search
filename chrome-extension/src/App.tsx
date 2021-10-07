@@ -41,9 +41,9 @@ function App() {
       <ul className="SEOForm">
         <li className="SEOValidation">
           <div className="SEOValidationField">
-            <span className="SEOValidationFieldTitle">Title</span>
+            <span className="SEOValidationFieldTitle">Title:</span>
             <span className={`SEOValidationFieldStatus ${title.length < 30 || title.length > 65 ? 'Error' : 'Ok'}`}>
-              {title.length} Characters
+              &nbsp;{title.length}&nbsp;Characters
             </span>
           </div>
           <div className="SEOVAlidationFieldValue">
@@ -53,9 +53,9 @@ function App() {
 
         <li className="SEOValidation">
           <div className="SEOValidationField">
-            <span className="SEOValidationFieldTitle">Main Heading</span>
+            <span className="SEOValidationFieldTitle">Main Heading:</span>
             <span className={`SEOValidationFieldStatus ${headlines.length !== 1 ? 'Error' : 'Ok'}`}>
-              {headlines.length}
+              &nbsp;{headlines.length}
             </span>
           </div>
           <div className="SEOVAlidationFieldValue">
