@@ -304,6 +304,9 @@ async function t() {
 }
 
 
+function sum(a:number , b:number ) {
+  return a + b;
+}
 
 //t();
-export { };
+export {sum};
