@@ -18,7 +18,12 @@ docker pull typesense/typesense:0.21.0
 
 ```shell
 mkdir /data/typesense-data
+```
 
+`yarn run typesenseServer`
+
+
+```shell
 export TYPESENSE_API_KEY=xyz
 
 docker run -p 8108:8108 -v/<fqdn_path>/osobisty-search/indexer/data/typesense-data:/data typesense/typesense:0.21.0 \

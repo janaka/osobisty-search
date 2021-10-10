@@ -1,24 +1,25 @@
 {
   "name": "osobisty-search",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "main": "index.js",
   "repository": "https://github.com/janaka/osobisty-search.git",
   "author": "Janaka Abeywardhana <contact@janaka.co.uk>",
   "license": "MIT",
-  "type": "module",
+  "type": "module", 
   "devDependencies": {
     "@types/node": "^16.7.13",
     "typescript": "^4.4.2"
   },
   "dependencies": {
-    "@babel/runtime": "^7.15.4",
+    "@babel/runtime": "^7.14.6",
     "gray-matter": "^4.0.3",
-    "typesense": "^0.14.0"
+    "typesense": "^1.0.0-2"
   },
   "scripts": {
     "watch": "npx tsc -w",
     "build": "npx tsc",
     "start": "node ./build/main.js",
+    "test": "jest",
     "typesenseServer": "docker run -p 8108:8108 -v`pwd`/data/typesense-data:/data typesense/typesense:0.21.0 --data-dir /data --api-key=xyz --enable-cors"
   }
 }

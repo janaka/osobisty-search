@@ -165,7 +165,8 @@ function Search(props: any) {
     console.log(query)
     let searchParams = {
       'q': query,
-      'query_by': 'content, tags, title, authors'
+      'query_by': 'content, tags, title, authors, type',
+      'facet_by': 'type, tags'
     }
     return searchParams;
   }
@@ -272,14 +273,11 @@ function Results(props: any) {
                   }
                 >
                   {hit.document.type
-                    ? <span className="search-result-module">{hit.document.type}</span>
+                    ? <span className="search-result-module" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "type") }}></span>
                     : <span className="search-result-module">none</span>
                   }
                   {hit.document.title && <span className="search-result-title">{hit.document.title}</span>}
-                  {hit.highlights.length > 0
-                    && <span className="search-result-content" dangerouslySetInnerHTML={{ __html: hit.highlights[0].snippet }}></span>
-                  }
-                  <span className="search-result-content">{hit.document.content}</span>
+                  <span className="search-result-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "content") }}></span>
                 </li>
               ))
             ))
@@ -293,19 +291,20 @@ function Results(props: any) {
   )
 }
 
-function DocPreview(props: any) {
-  function addHightlightMarkup(tsHitDataObj: any, fieldname: string): string {
-    let fieldvalue: string = tsHitDataObj.document[fieldname];
-    tsHitDataObj.highlights.map((highlight: any) => {
-      if (highlight.field == fieldname) {
-        highlight.matched_tokens.map((match_token: string) => (
-          fieldvalue = tsHitDataObj.document[fieldname].replaceAll(match_token, "<mark>" + match_token + "</mark>")
-        ))
-      }
-    })
-    return fieldvalue
-  }
 
+function addHightlightMarkup(tsHitDataObj: any, fieldname: string): string {
+  let fieldvalue: string = tsHitDataObj.document[fieldname];
+  tsHitDataObj.highlights.map((highlight: any) => {
+    if (highlight.field == fieldname) {
+      highlight.matched_tokens.map((match_token: string) => (
+        fieldvalue = tsHitDataObj.document[fieldname].replaceAll(match_token, "<mark>" + match_token + "</mark>")
+      ))
+    }
+  })
+  return fieldvalue
+}
+
+function DocPreview(props: any) {
   function addHtmlFormatting(content: string): string {
     let _content = content;
 
@@ -379,59 +378,59 @@ function Suggestions() {
           Osobisty means <em>private</em> in Polish.</p>
         <p>
           Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="">Janaka</a>.
-          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a> 
+          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a>
           <a href="https://github.com/thesephist/monocle" target="_blank">Monolce</a>, the UI design is a clone.
-          It's built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend. 
+          It's built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend.
           Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
         </p>
         <p>Read more about why I built Osobisty here.</p>
       </div>
-      </div>
-      )
+    </div>
+  )
 }
 
 
-      // twitter embed API https://developer.twitter.com/en/docs/twitter-for-websites/embedded-tweets/overview
-      // https://usehooks-typescript.com/react-hook/use-fetch
+// twitter embed API https://developer.twitter.com/en/docs/twitter-for-websites/embedded-tweets/overview
+// https://usehooks-typescript.com/react-hook/use-fetch
 
 
-      interface TwitterEmbed {
-        url: string
-      author_name: string
-      author_url: string
-      html: string
-      width: number
-      height: number
-      type: string
-      cache_age: number
-      provider_name: string
-      provider_url: string
-      version: string
+interface TwitterEmbed {
+  url: string
+  author_name: string
+  author_url: string
+  html: string
+  width: number
+  height: number
+  type: string
+  cache_age: number
+  provider_name: string
+  provider_url: string
+  version: string
 }
 
 
-      function EmbedTweet(props: any) {
+function EmbedTweet(props: any) {
 
 
   const url = "https://publish.twitter.com/oembed?url=" + encodeURIComponent(props.tweetUrl)
 
 
-      const {data, error} = useFetch<TwitterEmbed[]>(url, {
-        mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers: {
-        'Content-Type': 'application/json',
+  const { data, error } = useFetch<TwitterEmbed[]>(url, {
+    mode: 'no-cors', referrerPolicy: 'same-origin', keepalive: true, headers: {
+      'Content-Type': 'application/json',
       'Accept': '*/*',
       'Access-Control-Allow-Origin': '*'
     }
   })
 
-      if (error) return <p>There is an error. {console.error(error)}</p>
-      if (!data) return <p>Loading...</p>
-      return (
-      <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
-      </div>
-      )
+  if (error) return <p>There is an error. {console.error(error)}</p>
+  if (!data) return <p>Loading...</p>
+  return (
+    <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
+    </div>
+  )
 
 }
 
 
-      export default App;
+export default App;
