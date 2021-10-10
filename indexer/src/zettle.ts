@@ -1,15 +1,14 @@
-import {fileIterator} from './fileIterator.js'
+import { fileIterator } from './fileIterator.js'
 import matter, { GrayMatterFile } from 'gray-matter';
 
 
-export async function fullIndexZettkeDocuments(typesenseClient:any) {
-
+export async function fullIndexZettkeDocuments(typesenseClient: any) {
 
   fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/", ".md", indexZettleDoc, typesenseClient);
 }
 
 // Index a single Zettle document
-export async function indexZettleDoc(zettleDir: string, filename: string, typesenseClient: any) {
+async function indexZettleDoc(zettleDir: string, filename: string, typesenseClient: any) {
   let mdfile: matter.GrayMatterFile<string> = matter("");
   const schemaName = "zettleDocuments";
 
@@ -28,11 +27,11 @@ export async function indexZettleDoc(zettleDir: string, filename: string, typese
   }
 }
 
-export function GreyMatterFileToTsZettleDoc(mdfile: matter.GrayMatterFile<string>, filename: string) {
+function GreyMatterFileToTsZettleDoc(mdfile: matter.GrayMatterFile<string>, filename: string) {
 
   let mddoc = {
     type: mdfile.data.type ? "zettle-" + mdfile.data.type : "zettle-unknown",
-    title: mdfile.data.title == null ? mdfile.data.title : filename,
+    title: mdfile.data.title != null || undefined ? mdfile.data.title : makeFilenameSearchFriendly(filename),
     tags: mdfile.data.tags ? mdfile.data.tags : "",
     date: mdfile.data.date ? mdfile.data.date : "",
     content: mdfile.content ? mdfile.content : "",
@@ -40,5 +39,14 @@ export function GreyMatterFileToTsZettleDoc(mdfile: matter.GrayMatterFile<string
   }
 
   return mddoc
+}
 
+function makeFilenameSearchFriendly(filename: string) {
+
+  filename = filename.replace(".md", "")
+
+  filename = filename.replace("-", " ")
+  filename = filename.replace("_", " ")
+  console.log("makesearch friendly" + filename)
+  return filename
 }

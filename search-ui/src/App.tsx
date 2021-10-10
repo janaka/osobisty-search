@@ -276,7 +276,7 @@ function Results(props: any) {
                     ? <span className="search-result-module" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "type") }}></span>
                     : <span className="search-result-module">none</span>
                   }
-                  {hit.document.title && <span className="search-result-title">{hit.document.title}</span>}
+                  {hit.document.title && <span className="search-result-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "title") }}></span>}
                   <span className="search-result-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "content") }}></span>
                 </li>
               ))
@@ -344,7 +344,7 @@ function DocPreview(props: any) {
             <div className="data-row"><span className="field-heading">Type:</span><span className="field-value">{props.hitData.document.type} </span></div>
             {props.hitData.document.authors && <div className="data-row"><span className="field-heading">Authors:</span><span className="field-value">{props.hitData.document.authors}</span></div>}
             <div className="data-row"><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
-            <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value">{props.hitData.document.tags}</span></div>
+            <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "tags") }}></span></div>
           </div>
           <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "content")) }}>
           </div>

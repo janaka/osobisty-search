@@ -5,6 +5,7 @@ import matter from 'gray-matter';
 import {fullIndexZettkeDocuments} from './zettle.js'
 import {fullIndexKindleHighlights} from './kindle.js'
 import {fullIndexTwitterBookmarks} from './twitter.js'
+import fs from 'fs';
 
 let typesense = new Typesense.Client({
   nodes: [
@@ -143,7 +144,16 @@ async function testTypesenseConnection() {
   
 }
 
+async function testFrontMatterWrite() {
 
+  // Check if MD file has an _Id_ field
+  // if not, generate an unique Id and insert the field
+
+  // fs.readFile the file content into string
+  // edit the content in mem 
+  // fs.writeFilr to overwrite
+  
+}
 
 
 //t();
