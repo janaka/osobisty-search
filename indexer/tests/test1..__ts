@@ -1,4 +1,4 @@
-import {sum} from '../src/main'
+import { sum } from '../src/test1'
 
 
 test('adds 1 + 2 to equal 3', () => {
