@@ -20,7 +20,6 @@ let typesense = new Typesense.Client({
 });
 
 
-
 var myArgs = process.argv.slice(2);
 
 myArgs.forEach((arg) => {
