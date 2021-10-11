@@ -6,6 +6,7 @@ import {fullIndexZettkeDocuments} from './zettle.js'
 import {fullIndexKindleHighlights} from './kindle.js'
 import {fullIndexTwitterBookmarks} from './twitter.js'
 import fs from 'fs';
+import os from 'os'
 
 let typesense = new Typesense.Client({
   nodes: [
@@ -49,8 +50,13 @@ switch (myArgs[0]) {
   case 'indexTwitter':
     fullIndexTwitterBookmarks(typesense)
     break;
-  case 'test':
+  case 'test1':
+    testFrontMatterWrite();
+    break;
+  case 'test2':
     testParseFrontMatter();
+    break;
+  case 'test3':
     testTypesenseConnection();
     break;
   default:
@@ -122,9 +128,10 @@ async function recreateCollections() {
 
 async function testParseFrontMatter() {
   try {
-    let mdfile = matter.read("/Users/janakaabeywardhana/code-projects/zettelkasten/projects/osobisty personal universal search engine.md");
+    let mdfile = matter.read(os.homedir + "/code-projects/zettelkasten/projects/osobisty personal universal search engine.md");
     console.log("title:" + mdfile.data.title)
     console.log("tags:" + mdfile.data.tags)
+    console.log("")
     //console.log("content:" + mdfile.content)
     //console.log("stringifydata:" + mdfile.stringify("data"))
 
@@ -151,6 +158,60 @@ async function testFrontMatterWrite() {
   // fs.readFile the file content into string
   // edit the content in mem 
   // fs.writeFilr to overwrite
+  //let fileContents: string
+
+ interface fmData { [key: string]: any }
+
+  const filepath = os.homedir + "/code-projects/zettelkasten/projects/osobisty personal universal search engine.md"
+
+  fs.readFile(filepath,"utf-8",(err:any, data:any) => {
+    if (err) throw err;
+    let dataStr:string = data;
+    let fmData:fmData = {}
+    const fmDelimiter = "---\n"
+    const fmOpenPosition = fmDelimiter.length
+    const fmClosePostion = dataStr.indexOf(fmDelimiter,fmOpenPosition) 
+    
+    const fmSection = dataStr.slice(fmOpenPosition, fmClosePostion - 1)
+    const contentSection = dataStr.slice(fmClosePostion + fmDelimiter.length)
+    console.log(fmSection)
+
+    const fmSectionArray = fmSection.split("\n")
+    console.log("# elements: " + fmSectionArray.length)
+    console.log("element 0: " + fmSectionArray[0])
+
+    fmSectionArray.forEach((e:string) =>{
+      //let fmField = e.split(":")
+      const key: string = e.slice(0, e.indexOf(":")).trim()
+      const value: string = e.slice(e.indexOf(":")+1, e.length).trim()      
+
+      fmData[key] = value
+    })
+    
+    console.log(fmData.title) 
+    console.log("id:"+ fmData.id)
+    fmData.id = "234234"
+    console.log("id:"+ fmData.id)
+
+    let t: string = fmDelimiter
+
+    for (const key in fmData) {
+      t += key + ": " + fmData[key] + "\n"
+    };
+
+    t += fmDelimiter
+    t += contentSection
+
+console.log("============")
+    console.log(t)
+
+    
+    fs.writeFile(filepath, t,"utf-8", (err:any) =>{
+      if (err) throw err
+    })
+
+
+  })
   
 }
 

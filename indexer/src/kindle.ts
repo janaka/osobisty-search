@@ -3,7 +3,7 @@ import fs from 'fs';
 
 export async function fullIndexKindleHighlights(typesenseClient:any) {
 
-  fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/literature/", ".json", indexKindleHighlight, typesenseClient);
+  fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/literature/","/Users/janakaabeywardhana/code-projects/zettelkasten/literature/", ".json", indexKindleHighlight, typesenseClient);
 }
 
 // Index Kindle highlights files exported using https://readwise.io/bookcision

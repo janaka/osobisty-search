@@ -3,7 +3,7 @@ import fs from 'fs';
 
 export async function fullIndexTwitterBookmarks(typesenseClient:any) {
   //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
-  fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks, typesenseClient);
+  fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/","/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks, typesenseClient);
 }
 
 async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename: string, typesenseClient:any) {
