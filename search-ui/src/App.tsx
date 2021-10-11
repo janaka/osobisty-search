@@ -329,8 +329,8 @@ function DocPreview(props: any) {
               ×
             </button>
             {props.hitData.document.link && <a
-              title="Open on new page"
-              href={props.hitData.document.link}
+              title="Open on new page" 
+              href={props.hitData.document.type.startsWith("zettle-") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}
               // eslint-disable-next-line react/jsx-no-target-blank
               target="_blank"
               className="button doc-preview-open"
@@ -345,6 +345,7 @@ function DocPreview(props: any) {
             {props.hitData.document.authors && <div className="data-row"><span className="field-heading">Authors:</span><span className="field-value">{props.hitData.document.authors}</span></div>}
             <div className="data-row"><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
             <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "tags") }}></span></div>
+            {props.hitData.document.link && <div className="data-row"><span className="field-heading">Link:</span><span className="field-value">{props.hitData.document.type.toString().startsWith("zettle") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}</span></div>}
           </div>
           <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "content")) }}>
           </div>
