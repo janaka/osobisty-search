@@ -7,13 +7,13 @@ export async function fullIndexKindleHighlights(typesenseClient:any) {
 }
 
 // Index Kindle highlights files exported using https://readwise.io/bookcision
-async function indexKindleHighlight(kindleHighlightsDir: string, filename: string, typesenseClient:any) {
+async function indexKindleHighlight(kindleHighlightsRootDir: string, fileDir:string, filename: string, typesenseClient:any) {
   const schemaName = "zettleDocuments";
   let highlights = null;
 
   try {
 
-    fs.readFile(kindleHighlightsDir + filename, 'utf-8', (err: any, data: string) => {
+    fs.readFile(fileDir + filename, 'utf-8', (err: any, data: string) => {
       if (err) throw err;
 
       let highlights = JSON.parse(data);

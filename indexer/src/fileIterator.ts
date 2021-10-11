@@ -25,8 +25,8 @@ export async function fileIterator(rootDir: string, fileDir:string, fileExtFilte
       } else {
         console.log("dir:" + file.name)
         if (!file.name.startsWith(".")) {
-          fileDir = fileDir + file.name + "/"
-          fileIterator(rootDir, fileDir, fileExtFilter, indexerFunction, typesenseClient)
+          
+          fileIterator(rootDir, fileDir + file.name + "/", fileExtFilter, indexerFunction, typesenseClient)
         }
       }
 

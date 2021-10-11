@@ -6,11 +6,11 @@ export async function fullIndexTwitterBookmarks(typesenseClient:any) {
   fileIterator("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/","/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/", ".json", indexTwitterBookmarks, typesenseClient);
 }
 
-async function indexTwitterBookmarks(twitterBookmarksJsonFile: string, filename: string, typesenseClient:any) {
+async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:string, filename: string, typesenseClient:any) {
   const schemaName = "zettleDocuments";
   let c = 0;
   try {
-    fs.readFile(twitterBookmarksJsonFile + filename, 'utf-8', (err: any, data: string) => {
+    fs.readFile(fileDir + filename, 'utf-8', (err: any, data: string) => {
       if (err) throw err;
       let twitterBookmarks = JSON.parse(data);
 

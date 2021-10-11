@@ -113,7 +113,7 @@ async function recreateCollections() {
       { name: 'title', type: 'string', facet: false, optional: true },
       { name: 'authors', type: 'string', facet: false, optional: true },
       { name: 'tags', type: 'string', facet: true, optional: true },
-      { name: 'link', type: 'string', facet: false, optional: true },
+      //{ name: 'link', type: 'string', facet: false, optional: true }, // we don't need to index this field, just persist in the database
       { name: 'date', type: 'string', facet: true, optional: true },
       { name: 'rank', type: 'int32', facet: false },
     ],

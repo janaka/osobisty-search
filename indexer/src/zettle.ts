@@ -9,7 +9,7 @@ export async function fullIndexZettkeDocuments(typesenseClient: any) {
 
 // Index a single Zettle document
 async function indexZettleDoc(zettleRootDir: string, fileDir:string, filename: string, typesenseClient: any) {
-  let mdfile: matter.GrayMatterFile<string> = matter("");
+  let mdfile:matter.GrayMatterFile<string> = matter("");
   const schemaName = "zettleDocuments";
 
   try {
@@ -22,8 +22,8 @@ async function indexZettleDoc(zettleRootDir: string, fileDir:string, filename: s
     await typesenseClient.collections(schemaName).documents().create(mddoc);
 
   } catch (err: any) {
-    console.error("issue with doc: ", filename);
-    mdfile ? console.error(mdfile.stringify("data")) : console.error("gray-matter failed to load mdfile.")
+    console.error("issue with doc: `" + fileDir + filename + "`");
+    mdfile ? console.error(JSON.stringify(mdfile.data)) : console.error("gray-matter failed to load mdfile.")
     console.error(err);
   }
 }
