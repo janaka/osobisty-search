@@ -1,5 +1,15 @@
 import { DOMMessage, DOMMessageResponse } from '../types';
- 
+
+document.addEventListener('mouseup',function(event)
+{
+    var sel = window.getSelection.toString();
+window.alert(sel)
+    // if(sel.length)
+    //     chrome.extension.sendRequest({'message':'setText','data': sel},function(response){})
+})
+
+console.log("hjg j")
+
 // Function called when a new message is received
 const messagesFromReactAppListener = (
    msg: DOMMessage,
@@ -26,7 +36,7 @@ chrome.browserAction.onClicked.addListener(function(tab) {
     });
   });
   
-  function sendServiceRequest(selectedText) {
+  function sendServiceRequest(selectedText:any) {
     var serviceCall = 'http://www.google.com/search?q=' + selectedText;
     chrome.tabs.create({url: serviceCall});
   }
