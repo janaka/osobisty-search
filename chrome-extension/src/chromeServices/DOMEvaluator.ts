@@ -2,8 +2,49 @@ import { DOMMessage, DOMMessageResponse } from '../types';
 
 document.addEventListener('mouseup',function(event)
 {
-    var sel = window.getSelection.toString();
-window.alert(sel)
+    
+    let sel = window.getSelection()
+    //window.alert(sel)
+    console.log("mouseup event: " + sel?.toString())
+
+    if (sel != null && sel.toString().length > 0) {
+        const highlight:string  = sel != null ? sel.toString() : ""
+        let pTags:HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+
+        
+        for (let i = 0; i < pTags.length; i++) {
+            const pTag:HTMLParagraphElement = pTags[i];
+            const t:number = pTag.innerText.search(highlight)
+            console.log("highlight found " + t)
+            if(t>-1) {
+                
+                for (let j = 0; j < pTag.children.length; j++) {
+                    const child:Element = pTag.children[j];
+                    console.log(child.tagName + ": " + child.innerHTML)    
+                }
+                
+
+
+
+                const s = pTag.innerHTML //= pTag.innerText.replace(highlight, "<mark>"+highlight+"</mark>")
+
+                const highlightStartPosition = s.indexOf(highlight)
+
+                const textBefore = s.substr(0, highlightStartPosition)
+                const textAfter = s.substring(highlightStartPosition+highlight.length, s.length)
+                pTag.innerHTML = textBefore
+                //pTag.insertAdjacentText("beforeend", textBefore)
+                pTag.insertAdjacentHTML("beforeend","<mark>"+highlight+"</mark>")
+                pTag.insertAdjacentText("beforeend", textAfter)
+            }
+        }
+    
+    }
+    
+
+    // chrome.runtime.sendMessage({highlightedText: sel, greeting: "hello"}, function(response) {
+    //     console.log(response.farewell);
+    //   });
     // if(sel.length)
     //     chrome.extension.sendRequest({'message':'setText','data': sel},function(response){})
 })
@@ -30,16 +71,16 @@ const messagesFromReactAppListener = (
    sendResponse(response);
 }
  
-chrome.browserAction.onClicked.addListener(function(tab) {
-    chrome.tabs.sendRequest(tab.id, {method: "getSelection"}, function(response){
-       sendServiceRequest(response.data);
-    });
-  });
+// chrome.browserAction.onClicked.addListener(function(tab) {
+//     chrome.tabs.sendRequest(tab.id, {method: "getSelection"}, function(response){
+//        sendServiceRequest(response.data);
+//     });
+//   });
   
-  function sendServiceRequest(selectedText:any) {
-    var serviceCall = 'http://www.google.com/search?q=' + selectedText;
-    chrome.tabs.create({url: serviceCall});
-  }
+//   function sendServiceRequest(selectedText:any) {
+//     var serviceCall = 'http://www.google.com/search?q=' + selectedText;
+//     chrome.tabs.create({url: serviceCall});
+//   }
 
 
 /**
