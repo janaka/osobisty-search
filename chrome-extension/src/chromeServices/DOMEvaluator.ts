@@ -1,9 +1,10 @@
+
 import { DOMMessage, DOMMessageResponse } from '../types';
 
 // const doHighlight2 = function (event: MouseEvent) {
 
 //     let sel = window.getSelection()
-    
+
 //     console.log("mouseup event: " + sel?.toString())
 //     console.log("anchor node type: "+sel?.anchorNode?.nodeType+sel?.anchorNode?.nodeName +  ", anchor offset: " + sel?.anchorOffset)
 
@@ -15,81 +16,97 @@ import { DOMMessage, DOMMessageResponse } from '../types';
 const doHighlight = function (event: MouseEvent) {
 
     let sel = window.getSelection()
-    
+
     console.log("mouseup event: " + sel?.toString())
-
-
-    
 
     if (sel != null && sel.toString().length > 0) {
         let highlight: string = sel != null ? sel.toString() : ""
         //TODO: this regex special char are getting in the way. Escape or something to handle
         //highlight = highlight.replace(/[([\]]/g, '\\$&')
         console.log("mouseup event: " + sel?.toString() + " " + highlight)
-        let pTags: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+        let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        console.log("selection object: " +sel.focusNode )
+        const te: Element = topElementWithHighlightText(bodyEl, highlight)
 
-        //TODO: try getting the context node from the selection object
+        //const p: number = te.innerHTML.indexOf(highlight)
 
-        for (let i = 0; i < pTags.length; i++) {
-            const pTag: HTMLParagraphElement = pTags[i];
-            const p: number = pTag.innerText.indexOf(highlight)
-            console.log("highlight found at pos " + p)
-            if (p > -1) {
-                console.log("child node count " + pTag.childNodes.length) // includes text and commnet nodes
-                console.log("child count " + pTag.children.length) // exludes text and commnet nodes
-                console.log(pTag.innerHTML)
+        console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
+        console.log("child count " + te.children.length) // exludes text and commnet nodes
+        console.log(te.innerHTML)
 
-                const s = pTag.innerHTML 
+        const s = te.innerHTML
 
-                const q: number = pTag.innerHTML.indexOf(highlight)
+        const q: number = te.innerHTML.indexOf(highlight)
 
-                if (q === -1) {
-                    // finding the highlight text in the innerText but not the innerHTML means
-                    // the highlight is across a child HTML element
-                    // so include the child node HTML in the highligh text so it matches in innerHTML
+        if (q === -1) {
+            // finding the highlight text in the innerText but not the innerHTML means
+            // the highlight is across a child HTML element
+            // so include the child node HTML in the highligh text so it matches in innerHTML
 
-                    for (let j = 0; j < pTag.children.length; j++) {
-                        const child: Element = pTag.children[j];
-                        console.log(child.nodeName)
-                        if (child.nodeName === "MARK") {
-                            console.log("already highlighted. remove and rehighlight")
-                            return
-                        }
-                        const t = highlight.indexOf(child.innerHTML)
-                        if (t > -1) { // crosses this element
+            highlight = spaningHighlightText(bodyEl, highlight)
 
-                            const highlighttextBeforeNode = highlight.substr(0, t)
-                            const highlighttextAfterNode = highlight.substring(t + child.innerHTML.length, highlight.length)
-                            highlight = highlighttextBeforeNode + child.outerHTML + highlighttextAfterNode
-                        }
-                    }
-
-                }
-
-                const t = highlightWithinChild(pTag, highlight)
-                if (t === "MARK") { console.log("already highlighted."); return }
-
-                const highlightStartPosition = s.indexOf(highlight)
-                const textBefore = s.substr(0, highlightStartPosition)
-                const highlightEndPosition = highlightStartPosition + highlight.length
-                const textAfter = s.substring(highlightEndPosition, s.length)
-                console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
-                pTag.innerHTML = textBefore
-                //pTag.insertAdjacentText("beforeend", textBefore)
-                pTag.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
-                pTag.insertAdjacentHTML("beforeend", textAfter)
-
-
-            }
         }
+
+        const t = highlightWithinChild(bodyEl, highlight)
+        if (t === "MARK") { console.log("already highlighted."); return }
+
+        const highlightStartPosition = s.indexOf(highlight)
+        const textBefore = s.substr(0, highlightStartPosition)
+        const highlightEndPosition = highlightStartPosition + highlight.length
+        const textAfter = s.substring(highlightEndPosition, s.length)
+        console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
+        bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
+        //pTag.insertAdjacentText("beforeend", textBefore)
+        //bodyEl.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
+        //bodyEl.insertAdjacentHTML("beforeend", textAfter)
+
+
+
 
     }
 }
 
-const undoHighlight = function(event:MouseEvent) {
+const undoHighlight = function (event: MouseEvent) {
     //console.log(event.)
+}
+
+function topElementWithHighlightText(El: Element, highlight: string): Element {
+    let te: Element = new Element()
+    for (let k = 0; k < El.children.length; k++) {
+        const e: Element = El.children[k];
+        console.log("nodename : " + e.nodeName + ", type:" + e.nodeType)
+        if (e.nodeName !== "SCRIPT") {
+            const p: number = e.innerHTML.indexOf(highlight)
+            if (p > -1) {
+                console.log("highlight found at pos " + p)
+                te = e
+            }
+        }
+    }
+    // for (let k = 0; k < El.children.length; k++) {
+    //     const e = El.children[k];
+    //     console.log("nodename : "+e.nodeName + ", type:" + e.nodeType)
+    // }
+    return te
+}
+
+function spaningHighlightText(El: Element, highlight: string): string {
+    for (let j = 0; j < El.children.length; j++) {
+        const child: Element = El.children[j];
+        console.log(child.nodeName)
+        if (child.nodeName === "MARK") {
+            console.log("already highlighted. remove and rehighlight")
+            return ""
+        }
+        const t = highlight.indexOf(child.innerHTML)
+        if (t > -1) { // crosses this element
+
+            const highlighttextBeforeNode = highlight.substr(0, t)
+            const highlighttextAfterNode = highlight.substring(t + child.innerHTML.length, highlight.length)
+            highlight = highlighttextBeforeNode + child.outerHTML + highlighttextAfterNode
+        }
+    }
+    return highlight
 }
 
 function highlightWithinChild(tag: Element, highlightText: string) {
