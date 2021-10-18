@@ -1,21 +1,40 @@
 import { DOMMessage, DOMMessageResponse } from '../types';
 
+// const doHighlight2 = function (event: MouseEvent) {
 
+//     let sel = window.getSelection()
+    
+//     console.log("mouseup event: " + sel?.toString())
+//     console.log("anchor node type: "+sel?.anchorNode?.nodeType+sel?.anchorNode?.nodeName +  ", anchor offset: " + sel?.anchorOffset)
+
+//     console.log("focus node type: "+sel?.focusNode?.nodeType + sel?.focusNode?.nodeName + ", focus offset: " + sel?.focusOffset)
+
+
+// }
 
 const doHighlight = function (event: MouseEvent) {
 
     let sel = window.getSelection()
-    //window.alert(sel)
+    
     console.log("mouseup event: " + sel?.toString())
+
+
+    
 
     if (sel != null && sel.toString().length > 0) {
         let highlight: string = sel != null ? sel.toString() : ""
+        //TODO: this regex special char are getting in the way. Escape or something to handle
+        //highlight = highlight.replace(/[([\]]/g, '\\$&')
+        console.log("mouseup event: " + sel?.toString() + " " + highlight)
         let pTags: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
 
+        console.log("selection object: " +sel.focusNode )
+
+        //TODO: try getting the context node from the selection object
 
         for (let i = 0; i < pTags.length; i++) {
             const pTag: HTMLParagraphElement = pTags[i];
-            const p: number = pTag.innerText.search(highlight)
+            const p: number = pTag.innerText.indexOf(highlight)
             console.log("highlight found at pos " + p)
             if (p > -1) {
                 console.log("child node count " + pTag.childNodes.length) // includes text and commnet nodes
@@ -24,7 +43,7 @@ const doHighlight = function (event: MouseEvent) {
 
                 const s = pTag.innerHTML 
 
-                const q: number = pTag.innerHTML.search(highlight)
+                const q: number = pTag.innerHTML.indexOf(highlight)
 
                 if (q === -1) {
                     // finding the highlight text in the innerText but not the innerHTML means
@@ -38,7 +57,7 @@ const doHighlight = function (event: MouseEvent) {
                             console.log("already highlighted. remove and rehighlight")
                             return
                         }
-                        const t = highlight.search(child.innerHTML)
+                        const t = highlight.indexOf(child.innerHTML)
                         if (t > -1) { // crosses this element
 
                             const highlighttextBeforeNode = highlight.substr(0, t)
@@ -70,7 +89,7 @@ const doHighlight = function (event: MouseEvent) {
 }
 
 const undoHighlight = function(event:MouseEvent) {
-    console.log(event.)
+    //console.log(event.)
 }
 
 function highlightWithinChild(tag: Element, highlightText: string) {
@@ -79,7 +98,7 @@ function highlightWithinChild(tag: Element, highlightText: string) {
 
     for (let i = 0; i < tag.children.length; i++) {
         const e = tag.children[i];
-        const p: number = e.innerHTML.search(highlightText)
+        const p: number = e.innerHTML.indexOf(highlightText)
 
         if (p > -1) {
             found = e.nodeName
