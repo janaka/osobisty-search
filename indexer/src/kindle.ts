@@ -24,8 +24,8 @@ async function indexKindleHighlight(kindleHighlightsRootDir: string, fileDir:str
       console.log("TITLE:" + booktitle + " AUTHORS: " + bookauthors + " HIGHLIGHT COUNT: " + highlights.highlights.length);
 
       highlights.highlights.forEach(async (highlight: any) => {
-        let content = highlight.text ? "<quote>" + highlight.text + "</quote>" : ""
-        content = highlight.note ? content + "<br />Note: " + highlight.note : ""
+        let content = highlight.text ? "<blockquote>" + highlight.text + "</blockquote>" : ""
+        if (highlight.note) {content += '<br /><br />Note: <br />' + highlight.note}
         let kindleHighlight = {
           type: "Kindle",
           title: booktitle,
