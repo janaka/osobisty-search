@@ -7,6 +7,7 @@ import { SearchClient as TypesenseSearchClient } from "typesense";
 function App() {
   const [title, setTitle] = React.useState('');
   const [headlines, setHeadlines] = React.useState<string[]>([]);
+  const [selectedHit, setSelectedHit] = useState(null);
 
   useEffect(() => {
     /**
@@ -31,6 +32,7 @@ function App() {
           setTitle(response.title);
           setHeadlines(response.headlines);
         });
+        console.log("Fired - chrome.tabs.sendMessage()")
     });
   },[]);
   return (
@@ -65,10 +67,9 @@ function App() {
           </div>
         </li>
       </ul>
-      <div><textarea></textarea></div>
       <div>
 
-        <OsobistyResults searchContext={title} />
+        <OsobistyResults searchContext={title} selectedHit={selectedHit} setSelectedHit={setSelectedHit}/>
       </div>
     </div>
   );
@@ -88,53 +89,53 @@ function OsobistyResults(props: any) {
     connectionTimeoutSeconds: 2,
   });
 
-
-
-  async function doSearch(queryInput: string | null | undefined) {
-
-
-    const search = {
-      searches: [
-        {
-          'collection': 'zettleDocuments',
-        }
-      ]
-    }
-
-    let searchParams = {
-      'q': queryInput,
-      'query_by': 'content, tags, title, authors',
-    }
-
-
-    console.log("doSearch():")
-    console.log("query input text: " + queryInput)
-    if (queryInput == null || undefined) return
-    let response = await tsSearchClient.multiSearch.perform(search, searchParams);
-    console.log(response);
-    if ('error' in response.results[0]) {
-      console.error("Typesense backend returned an error", response.results[0])
-      return
-    }
-    setSearchResults(response);
-    //setResultCount(response.results[0].found)
-    //setSearchTime(response.results[0].search_time_ms)
-    //r.foreach((e:any) => console.log(e));
-    // response.results.forEach((result: any) => (
-    //   result.hits.forEach((hit: any) => (
-    //     console.log(hit)
-    //   ))
-    // ));
-
-    return response;
-  }
+  console.log("<OsobistyResults> reloaded")
 
   useEffect(() => {
+    async function doSearch(queryInput: string | null | undefined) {
+
+
+      const search = {
+        searches: [
+          {
+            'collection': 'zettleDocuments',
+          }
+        ]
+      }
+  
+      let searchParams = {
+        'q': queryInput,
+        'query_by': 'content, tags, title, authors',
+      }
+  
+  
+      console.log("doSearch():")
+      console.log("query input text: " + queryInput)
+      if (queryInput == null || undefined) return
+      let response = await tsSearchClient.multiSearch.perform(search, searchParams);
+      console.log(response);
+      if ('error' in response.results[0]) {
+        console.error("Typesense backend returned an error", response.results[0])
+        return
+      }
+      setSearchResults(response);
+      //setResultCount(response.results[0].found)
+      //setSearchTime(response.results[0].search_time_ms)
+      //r.foreach((e:any) => console.log(e));
+      // response.results.forEach((result: any) => (
+      //   result.hits.forEach((hit: any) => (
+      //     console.log(hit)
+      //   ))
+      // ));
+  
+      return response;
+    }
+
     doSearch(props.searchContext)
-  })
+  }, [props.searchContext, tsSearchClient.multiSearch])
 
   return (
-    <div>
+    <div className="search-results">
       {searchResults && searchResults.results.length > 0 && searchResults.results[0].hits.length > 0
         ?
         <ol className="search-results-list">

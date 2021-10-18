@@ -40,3 +40,69 @@
     transform: rotate(360deg);
   }
 }
+
+.search-results ol.search-results-list {
+  padding-left: 0;
+  margin: 0;
+}
+
+.search-results .search-results-list:empty::before {
+  content: '¯\\_(ツ)_/¯';
+  display: block;
+  padding: 12px;
+  color: var(--secondary-text);
+}
+
+li.search-result {
+  list-style: none;
+  cursor: pointer;
+  font-weight: normal;
+  padding: 6px 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border-left: 3px solid transparent;
+}
+
+.search-result:hover,
+.search-result.selected {
+  background: var(--primary-bg);
+}
+
+.search-result.selected {
+  border-left: 3px solid var(--secondary-text);
+}
+
+.search-result .search-result-module {
+  display: inline-block;
+  width: 130px;
+}
+
+.search-result .search-result-title {
+overflow: hidden;
+line-height: 1.4em;
+color: var(--primary-text);
+margin-right: 12px;
+}
+
+.search-result .search-result-content {
+  overflow: hidden;
+  line-height: 1.4em;
+  color: var(--secondary-text);
+}
+
+.search-results-show-all {
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  color: var(--secondary-text);
+  padding: 6px 12px;
+}
+
+.search-results-show-all:hover {
+  text-decoration: underline;
+}
+
+.search-results-bottom-padding {
+  height: 6em;
+}
