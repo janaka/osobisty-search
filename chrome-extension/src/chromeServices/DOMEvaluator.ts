@@ -26,41 +26,43 @@ const doHighlight = function (event: MouseEvent) {
         console.log("mouseup event: " + sel?.toString() + " " + highlight)
         let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        const te: Element = topElementWithHighlightText(bodyEl, highlight)
+        const te: Element | null = topElementWithHighlightText(bodyEl, highlight)
 
         //const p: number = te.innerHTML.indexOf(highlight)
 
-        console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
-        console.log("child count " + te.children.length) // exludes text and commnet nodes
-        console.log(te.innerHTML)
 
-        const s = te.innerHTML
+        if (te !== null) {
+            console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
+            console.log("child count " + te.children.length) // exludes text and commnet nodes
+            console.log(te.innerHTML)
 
-        const q: number = te.innerHTML.indexOf(highlight)
+            const s = te.innerHTML
 
-        if (q === -1) {
-            // finding the highlight text in the innerText but not the innerHTML means
-            // the highlight is across a child HTML element
-            // so include the child node HTML in the highligh text so it matches in innerHTML
+            const q: number = te.innerHTML.indexOf(highlight)
 
-            highlight = spaningHighlightText(bodyEl, highlight)
+            if (q === -1) {
+                // finding the highlight text in the innerText but not the innerHTML means
+                // the highlight is across a child HTML element
+                // so include the child node HTML in the highligh text so it matches in innerHTML
+
+                highlight = spaningHighlightText(bodyEl, highlight)
+
+            }
+
+            const t = highlightWithinChild(bodyEl, highlight)
+            if (t === "MARK") { console.log("already highlighted."); return }
+
+            const highlightStartPosition = s.indexOf(highlight)
+            const textBefore = s.substr(0, highlightStartPosition)
+            const highlightEndPosition = highlightStartPosition + highlight.length
+            const textAfter = s.substring(highlightEndPosition, s.length)
+            console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
+            bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
+            //pTag.insertAdjacentText("beforeend", textBefore)
+            //bodyEl.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
+            //bodyEl.insertAdjacentHTML("beforeend", textAfter)
 
         }
-
-        const t = highlightWithinChild(bodyEl, highlight)
-        if (t === "MARK") { console.log("already highlighted."); return }
-
-        const highlightStartPosition = s.indexOf(highlight)
-        const textBefore = s.substr(0, highlightStartPosition)
-        const highlightEndPosition = highlightStartPosition + highlight.length
-        const textAfter = s.substring(highlightEndPosition, s.length)
-        console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
-        bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
-        //pTag.insertAdjacentText("beforeend", textBefore)
-        //bodyEl.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
-        //bodyEl.insertAdjacentHTML("beforeend", textAfter)
-
-
 
 
     }
@@ -70,12 +72,13 @@ const undoHighlight = function (event: MouseEvent) {
     //console.log(event.)
 }
 
-function topElementWithHighlightText(El: Element, highlight: string): Element {
-    let te: Element = new Element()
+function topElementWithHighlightText(El: Element, highlight: string): Element | null {
+    let te = null
     for (let k = 0; k < El.children.length; k++) {
         const e: Element = El.children[k];
         console.log("nodename : " + e.nodeName + ", type:" + e.nodeType)
         if (e.nodeName !== "SCRIPT") {
+            console.log(e.nodeValue)
             const p: number = e.innerHTML.indexOf(highlight)
             if (p > -1) {
                 console.log("highlight found at pos " + p)
