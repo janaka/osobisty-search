@@ -106,6 +106,8 @@ function topElementWithHighlightText(El: Element, highlight: string): {element: 
 }
 // \s?<?\/?[a-zA-Z]*>?\s?
 //\(aka\s?<?\/?.*?>?\s?The\s?<?\/?.*?>?\s?Sephist\s?<?\/?.*?>?\s?\)
+
+//aka\s?<?.*?>?\s??The\s?<?.*?>?\s??Sephist\s?<?.*?>\s??the
 function spaningHighlightText(El: Element, highlight: string): string {
     for (let j = 0; j < El.children.length; j++) {
         const child: Element = El.children[j];
