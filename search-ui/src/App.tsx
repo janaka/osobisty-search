@@ -165,8 +165,10 @@ function Search(props: any) {
     console.log(query)
     let searchParams = {
       'q': query,
-      'query_by': 'content, tags, title, authors, type',
-      'facet_by': 'type, tags'
+      'query_by': 'title, tags, content, authors, type',
+      'facet_by': 'type, tags',
+      'prioritize_exact_match': true,
+      'per_page':'20'
     }
     return searchParams;
   }

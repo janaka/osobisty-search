@@ -1,4 +1,5 @@
 
+import { doesNotReject } from 'assert';
 import { DOMMessage, DOMMessageResponse } from '../types';
 
 // const doHighlight2 = function (event: MouseEvent) {
@@ -26,11 +27,12 @@ const doHighlight = function (event: MouseEvent) {
         console.log("mouseup event: " + sel?.toString() + " " + highlight)
         let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        const te: Element | null = topElementWithHighlightText(bodyEl, highlight)
+        const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
 
         //const p: number = te.innerHTML.indexOf(highlight)
 
 
+    
         if (te !== null) {
             console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
             console.log("child count " + te.children.length) // exludes text and commnet nodes
@@ -72,17 +74,27 @@ const undoHighlight = function (event: MouseEvent) {
     //console.log(event.)
 }
 
-function topElementWithHighlightText(El: Element, highlight: string): Element | null {
-    let te = null
+function topElementWithHighlightText(El: Element, highlight: string): {element: Element, position: number, hasChildren: boolean, spansElements:boolean} | null {
+    // let te = null
+    // const p: number
+
+    let highlightElement: {element: any, position: number, hasChildren: boolean, spansElements:boolean} = {element: null, position: -1, hasChildren:false, spansElements:false}
+
     for (let k = 0; k < El.children.length; k++) {
-        const e: Element = El.children[k];
+        const e: any = El.children[k];
         console.log("nodename : " + e.nodeName + ", type:" + e.nodeType)
         if (e.nodeName !== "SCRIPT") {
-            console.log(e.nodeValue)
-            const p: number = e.innerHTML.indexOf(highlight)
-            if (p > -1) {
-                console.log("highlight found at pos " + p)
-                te = e
+            console.log(e.innerText)
+            console.log(e.innerHTML)
+            const p1  = e.innerText.indexOf(highlight)
+            if (p1 > -1) { // highlight is in this node
+                console.log("highlight found at pos " + p1)
+                const p2  = e.innerText.indexHTML(highlight)
+                if (p2>-1) { // doesn't span elements
+                    // add highligh markup
+                } else {
+
+                }
             }
         }
     }
@@ -90,9 +102,10 @@ function topElementWithHighlightText(El: Element, highlight: string): Element | 
     //     const e = El.children[k];
     //     console.log("nodename : "+e.nodeName + ", type:" + e.nodeType)
     // }
-    return te
+    return highlightElement
 }
-
+// \s?<?\/?[a-zA-Z]*>?\s?
+//\(aka\s?<?\/?.*?>?\s?The\s?<?\/?.*?>?\s?Sephist\s?<?\/?.*?>?\s?\)
 function spaningHighlightText(El: Element, highlight: string): string {
     for (let j = 0; j < El.children.length; j++) {
         const child: Element = El.children[j];
