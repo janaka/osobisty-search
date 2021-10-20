@@ -21,50 +21,56 @@ const doHighlight = function (event: MouseEvent) {
     console.log("mouseup event: " + sel?.toString())
 
     if (sel != null && sel.toString().length > 0) {
-        let highlight: string = sel != null ? sel.toString() : ""
+        let highlightText: string = sel != null ? sel.toString() : ""
         //TODO: this regex special char are getting in the way. Escape or something to handle
         //highlight = highlight.replace(/[([\]]/g, '\\$&')
-        console.log("mouseup event: " + sel?.toString() + " " + highlight)
+        console.log("mouseup event: " + sel?.toString() + " " + highlightText)
         let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
+        highlightText = highlightText.replace(new RegExp('\\[|\\(|\\?|\\)', 'g'), '\\$&') // escape regex special char in text
+        const searchRegex = '(?:<.*?>)?'+highlightText.replaceAll(" ", '\\s?(?:<.*?>)?\\s?')+'(?:<\\/.*?>)?'
+        const regExpObj = new RegExp(searchRegex, 'g')
+        const highlightedHtml = bodyEl.innerHTML.replace(regExpObj, '<mark>$&</mark>')
+        bodyEl.innerHTML = highlightedHtml
+        console.log(regExpObj)
+        //const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
 
         //const p: number = te.innerHTML.indexOf(highlight)
 
 
     
-        if (te !== null) {
-            console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
-            console.log("child count " + te.children.length) // exludes text and commnet nodes
-            console.log(te.innerHTML)
+        // if (te !== null) {
+        //     console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
+        //     console.log("child count " + te.children.length) // exludes text and commnet nodes
+        //     console.log(te.innerHTML)
 
-            const s = te.innerHTML
+        //     const s = te.innerHTML
 
-            const q: number = te.innerHTML.indexOf(highlight)
+        //     const q: number = te.innerHTML.indexOf(highlight)
 
-            if (q === -1) {
-                // finding the highlight text in the innerText but not the innerHTML means
-                // the highlight is across a child HTML element
-                // so include the child node HTML in the highligh text so it matches in innerHTML
+        //     if (q === -1) {
+        //         // finding the highlight text in the innerText but not the innerHTML means
+        //         // the highlight is across a child HTML element
+        //         // so include the child node HTML in the highligh text so it matches in innerHTML
 
-                highlight = spaningHighlightText(bodyEl, highlight)
+        //         highlight = spaningHighlightText(bodyEl, highlight)
 
-            }
+        //     }
 
-            const t = highlightWithinChild(bodyEl, highlight)
-            if (t === "MARK") { console.log("already highlighted."); return }
+        //     const t = highlightWithinChild(bodyEl, highlight)
+        //     if (t === "MARK") { console.log("already highlighted."); return }
 
-            const highlightStartPosition = s.indexOf(highlight)
-            const textBefore = s.substr(0, highlightStartPosition)
-            const highlightEndPosition = highlightStartPosition + highlight.length
-            const textAfter = s.substring(highlightEndPosition, s.length)
-            console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
-            bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
+        //     const highlightStartPosition = s.indexOf(highlight)
+        //     const textBefore = s.substr(0, highlightStartPosition)
+        //     const highlightEndPosition = highlightStartPosition + highlight.length
+        //     const textAfter = s.substring(highlightEndPosition, s.length)
+        //     console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
+        //     bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
             //pTag.insertAdjacentText("beforeend", textBefore)
             //bodyEl.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
             //bodyEl.insertAdjacentHTML("beforeend", textAfter)
 
-        }
+        //}
 
 
     }
