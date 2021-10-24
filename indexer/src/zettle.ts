@@ -1,6 +1,6 @@
 import { fileIterator } from './fileIterator.js'
 import matter, { GrayMatterFile } from 'gray-matter';
-
+import {dateTimeNowUtc} from './utils'
 
 export async function fullIndexZettkeDocuments(typesenseClient: any) {
 
@@ -37,6 +37,7 @@ function GreyMatterFileToTsZettleDoc(mdfile: matter.GrayMatterFile<string>, relD
     date: mdfile.data.date ? mdfile.data.date : "",
     link: relDir + filename, 
     content: mdfile.content ? mdfile.content : "",
+    index_date: dateTimeNowUtc(),
     rank: 1
   }
 
@@ -47,8 +48,9 @@ function makeFilenameSearchFriendly(filename: string) {
 
   filename = filename.replace(".md", "")
 
-  filename = filename.replace("-", " ")
-  filename = filename.replace("_", " ")
+  filename = filename.replaceAll("-", " ")
+  filename = filename.replaceAll("_", " ")
+
   console.log("makesearch friendly" + filename)
   return filename
 }

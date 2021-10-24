@@ -1,5 +1,6 @@
 import {fileIterator} from './fileIterator.js'
 import fs from 'fs';
+import {dateTimeNowUtc} from './utils'
 
 export async function fullIndexKindleHighlights(typesenseClient:any) {
 
@@ -30,8 +31,10 @@ async function indexKindleHighlight(kindleHighlightsRootDir: string, fileDir:str
           type: "Kindle",
           title: booktitle,
           authors: bookauthors,
-          content: content,
+          content: highlight.note,
+          source_content: highlight.text,          
           link: highlight.location.url,
+          index_date: dateTimeNowUtc(),
           rank: 1
         }
         await typesenseClient.collections(schemaName).documents().create(kindleHighlight);

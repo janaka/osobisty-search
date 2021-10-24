@@ -109,13 +109,15 @@ async function recreateCollections() {
     fields: [
       { name: 'id', type: 'string', facet: false },
       { name: 'type', type: 'string', facet: true },
-      { name: 'content', type: 'string', facet: false },
+      { name: 'content', type: 'string', facet: false }, //TODO: refactor `content` -> `notes_content`
+      { name: 'source_content', type: 'string', facet: false, optional:true},
       { name: 'title', type: 'string', facet: false, optional: true },
       { name: 'authors', type: 'string', facet: false, optional: true },
-      { name: 'tags', type: 'string', facet: true, optional: true },
-      //{ name: 'link', type: 'string', facet: false, optional: true }, // we don't need to index this field, just persist in the database
+      { name: 'tags', type: 'string', facet: true, optional: true },      
       { name: 'date', type: 'string', facet: true, optional: true },
       { name: 'rank', type: 'int32', facet: false },
+      //{ name: 'link', type: 'string'}, // we don't need to index this field, just persist in the database
+      //{ name: 'index_date', type: 'string'}, // we don't need to index this field, just persist in the database
     ],
     default_sorting_field: 'rank',
   };
