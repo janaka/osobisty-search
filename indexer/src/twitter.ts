@@ -1,5 +1,6 @@
 import {fileIterator} from './fileIterator.js'
 import fs from 'fs';
+import {dateTimeNowUtc} from './utils'
 
 export async function fullIndexTwitterBookmarks(typesenseClient:any) {
   //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
@@ -32,9 +33,10 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
             let twitterBookmark = {
               type: "Twitter-bm",
               authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" + screenName + ")",
-              content: entry.content.itemContent.tweet_results.result.legacy.full_text,
+              source_content: entry.content.itemContent.tweet_results.result.legacy.full_text,
               date: entry.content.itemContent.tweet_results.result.legacy.created_at,
               link: tweetLink,
+              index_date: dateTimeNowUtc(),
               rank: 1
             }
             await typesenseClient.collections(schemaName).documents().create(twitterBookmark);
