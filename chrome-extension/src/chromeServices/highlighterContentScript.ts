@@ -1,6 +1,5 @@
-
-import { exit } from 'process';
 import { DOMMessage, DOMMessageResponse } from '../types';
+import {generateHighlightMarkup} from './utils'
 
 // const doHighlight2 = function (event: MouseEvent) {
 
@@ -22,9 +21,9 @@ const doHighlight = function (event: MouseEvent) {
 
     if (sel != null && sel.toString().length > 0) {
         let highlightText: string = sel != null ? sel.toString() : ""
-        //highlight = highlight.replace(/[([\]]/g, '\\$&')
+        
         console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
-        //let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
+        //TODO: split on linebreak to match across paragraphs
 
         let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
         let highlightNotFound: boolean = true;
@@ -35,7 +34,7 @@ const doHighlight = function (event: MouseEvent) {
             
             const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML)
             
-            if (highlightObj.highlightFound) {
+            if (highlightObj.highlightMatchFound) {
                 highlightNotFound = false;
                 pEl.innerHTML = highlightObj.highlightedHtml
                 break
@@ -43,73 +42,16 @@ const doHighlight = function (event: MouseEvent) {
             lastHightlightObj = highlightObj
         }
 
-
         if (highlightNotFound) {
             console.log("highlight match didn't work, not found")
             console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
             console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
             console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
         }
-        //const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
-
-        //const p: number = te.innerHTML.indexOf(highlight)
-
-       // /(?:<.*?>)?The\s?(?:<.*?>)?\s?penny(?:<\/.*?>)?/g
-    
-        // if (te !== null) {
-        //     console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
-        //     console.log("child count " + te.children.length) // exludes text and commnet nodes
-        //     console.log(te.innerHTML)
-
-        //     const s = te.innerHTML
-
-        //     const q: number = te.innerHTML.indexOf(highlight)
-
-        //     if (q === -1) {
-        //         // finding the highlight text in the innerText but not the innerHTML means
-        //         // the highlight is across a child HTML element
-        //         // so include the child node HTML in the highligh text so it matches in innerHTML
-
-        //         highlight = spaningHighlightText(bodyEl, highlight)
-
-        //     }
-
-        //     const t = highlightWithinChild(bodyEl, highlight)
-        //     if (t === "MARK") { console.log("already highlighted."); return }
-
-        //     const highlightStartPosition = s.indexOf(highlight)
-        //     const textBefore = s.substr(0, highlightStartPosition)
-        //     const highlightEndPosition = highlightStartPosition + highlight.length
-        //     const textAfter = s.substring(highlightEndPosition, s.length)
-        //     console.log("highlight with html: " + highlight + ", highlightStartPosition=" + highlightStartPosition + ", highlightEndPosition=" + highlightEndPosition)
-        //     bodyEl.innerHTML = textBefore + "<mark>" + highlight + "</mark>" + textAfter
-            //pTag.insertAdjacentText("beforeend", textBefore)
-            //bodyEl.insertAdjacentHTML("beforeend", "<mark>" + highlight + "</mark>")
-            //bodyEl.insertAdjacentHTML("beforeend", textAfter)
-
-        //}
-
-
     }
 }
 
-export function generateHighlightMarkup(highlightRawText: string, innerHTML: string) {
-    let highlightFound:boolean = false;
-    let matchedHtml:string | null = null;
-    const highlightTextEscaped = highlightRawText.replace(new RegExp('\\{|\\[|\\(|\\?|\\.|\\+|\\*|\\)', 'g'), '\\$&') // escape regex special char in text
-    //console.log("escaped: " + highlightRawText)
-    const searchRegex = '(?:<.*?>)?' + highlightTextEscaped.replaceAll(" ", '\\s?(?:<.*?>)?\\s?') + '(?:<\\/.*?>)?'
-    const regExpObj = new RegExp(searchRegex, 'g')
-    const match: RegExpMatchArray | null = innerHTML.match(regExpObj)
-    
-    if (match != null) { 
-        highlightFound = true;
-        matchedHtml = match[0].toString();
-    }
-    const highlightedHtml = innerHTML.replace(regExpObj, '<mark>$&</mark>')
 
-    return {'highlightedHtml': highlightedHtml, 'highlightRegExObj': regExpObj, 'highlightTextEscaped': highlightTextEscaped, 'highlightFound': highlightFound, 'highlightMatchHtml': matchedHtml}
-}
 
 
 const undoHighlight = function (event: MouseEvent) {
