@@ -26,21 +26,30 @@ const doHighlight = function (event: MouseEvent) {
         console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
         //let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        //TODO: only support inside <p> for now. change the below to a function. loop through <p>, highlight and exit on first match.
-
         let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+        let highlightNotFound: boolean = true;
+        let lastHightlightObj: any;
 
         for (let i = 0; i < pElCollection.length; i++) {
             const pEl = pElCollection[i];
+            
             const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML)
+            
             if (highlightObj.highlightFound) {
+                highlightNotFound = false;
                 pEl.innerHTML = highlightObj.highlightedHtml
-                console.log(highlightObj.highlightMatchHtml)
                 break
             }
+            lastHightlightObj = highlightObj
         }
 
 
+        if (highlightNotFound) {
+            console.log("highlight match didn't work, not found")
+            console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
+            console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
+            console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
+        }
         //const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
 
         //const p: number = te.innerHTML.indexOf(highlight)
