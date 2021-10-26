@@ -1,5 +1,5 @@
 
-import { doesNotReject } from 'assert';
+import { exit } from 'process';
 import { DOMMessage, DOMMessageResponse } from '../types';
 
 // const doHighlight2 = function (event: MouseEvent) {
@@ -22,22 +22,30 @@ const doHighlight = function (event: MouseEvent) {
 
     if (sel != null && sel.toString().length > 0) {
         let highlightText: string = sel != null ? sel.toString() : ""
-        //TODO: this regex special char are getting in the way. Escape or something to handle
         //highlight = highlight.replace(/[([\]]/g, '\\$&')
-        console.log("mouseup event: " + sel?.toString() + " " + highlightText)
-        let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
+        console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
+        //let bodyEl: HTMLBodyElement = document.getElementsByTagName<"body">("body")[0]
 
-        highlightText = highlightText.replace(new RegExp('\\[|\\(|\\?|\\)', 'g'), '\\$&') // escape regex special char in text
-        const searchRegex = '(?:<.*?>)?'+highlightText.replaceAll(" ", '\\s?(?:<.*?>)?\\s?')+'(?:<\\/.*?>)?'
-        const regExpObj = new RegExp(searchRegex, 'g')
-        const highlightedHtml = bodyEl.innerHTML.replace(regExpObj, '<mark>$&</mark>')
-        bodyEl.innerHTML = highlightedHtml
-        console.log(regExpObj)
+        //TODO: only support inside <p> for now. change the below to a function. loop through <p>, highlight and exit on first match.
+
+        let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+
+        for (let i = 0; i < pElCollection.length; i++) {
+            const pEl = pElCollection[i];
+            const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML)
+            if (highlightObj.highlightFound) {
+                pEl.innerHTML = highlightObj.highlightedHtml
+                console.log(highlightObj.highlightMatchHtml)
+                break
+            }
+        }
+
+
         //const te: any | null = topElementWithHighlightText(bodyEl, highlight)?.element
 
         //const p: number = te.innerHTML.indexOf(highlight)
 
-
+       // /(?:<.*?>)?The\s?(?:<.*?>)?\s?penny(?:<\/.*?>)?/g
     
         // if (te !== null) {
         //     console.log("child node count " + te.childNodes.length) // includes text and commnet nodes
@@ -75,6 +83,25 @@ const doHighlight = function (event: MouseEvent) {
 
     }
 }
+
+export function generateHighlightMarkup(highlightRawText: string, innerHTML: string) {
+    let highlightFound:boolean = false;
+    let matchedHtml:string | null = null;
+    const highlightTextEscaped = highlightRawText.replace(new RegExp('\\{|\\[|\\(|\\?|\\.|\\+|\\*|\\)', 'g'), '\\$&') // escape regex special char in text
+    //console.log("escaped: " + highlightRawText)
+    const searchRegex = '(?:<.*?>)?' + highlightTextEscaped.replaceAll(" ", '\\s?(?:<.*?>)?\\s?') + '(?:<\\/.*?>)?'
+    const regExpObj = new RegExp(searchRegex, 'g')
+    const match: RegExpMatchArray | null = innerHTML.match(regExpObj)
+    
+    if (match != null) { 
+        highlightFound = true;
+        matchedHtml = match[0].toString();
+    }
+    const highlightedHtml = innerHTML.replace(regExpObj, '<mark>$&</mark>')
+
+    return {'highlightedHtml': highlightedHtml, 'highlightRegExObj': regExpObj, 'highlightTextEscaped': highlightTextEscaped, 'highlightFound': highlightFound, 'highlightMatchHtml': matchedHtml}
+}
+
 
 const undoHighlight = function (event: MouseEvent) {
     //console.log(event.)
@@ -183,7 +210,12 @@ const messagesFromReactAppListener = (
 //   }
 
 
-document.addEventListener('mouseup', doHighlight);
+const highlightHandler  = (event: MouseEvent) => {
+    doHighlight(event);
+
+}
+
+document.addEventListener('mouseup', highlightHandler);
 document.addEventListener('click', undoHighlight);
 
 /**
