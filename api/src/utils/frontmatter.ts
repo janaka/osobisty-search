@@ -1,14 +1,14 @@
 import fs from 'fs'
 
 
-interface frontMatterFieldCollection { [key: string]: any }
+export interface frontMatterFieldCollection { [key: string]: any }
 
 /**
  * string to a frontMatterFieldCollection
  * @param frontMatterSectionRaw raw FrontMatter header including the delimiters 
  * @returns frontMatterFieldCollection
  */
-function deserialiseFrontMatter(frontMatterSectionRaw: string): frontMatterFieldCollection {
+export function deserialiseFrontMatter(frontMatterSectionRaw: string): frontMatterFieldCollection {
   let fmFields: frontMatterFieldCollection = {}
   const fmDelimiter = "---\n"
   const fmOpenDelimiterStartPosition = frontMatterSectionRaw.indexOf(fmDelimiter, 0)
@@ -36,7 +36,7 @@ function deserialiseFrontMatter(frontMatterSectionRaw: string): frontMatterField
  * @param frontMatterFieldCollection 
  * @returns serialised frontMatterChunk as a string
  */
-function serialiseFrontMatter(frontMatterFieldCollection: frontMatterFieldCollection): string {
+export function serialiseFrontMatter(frontMatterFieldCollection: frontMatterFieldCollection): string {
   const fmDelimiter = "---\n"
   
   let t: string = fmDelimiter
@@ -49,23 +49,6 @@ function serialiseFrontMatter(frontMatterFieldCollection: frontMatterFieldCollec
   
   return t
 }
-
-
-/**
- * 
- * @param fqFilePath 
- */
-export async function createMarkdownFile(fqFilePath: string, content: string, frontMatterFields: frontMatterFieldCollection) {
-
-  const fmSection:string = serialiseFrontMatter(frontMatterFields)
-  const t:string  = fmSection + content 
-
-  fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
-    if (err) throw err
-  })
-}
-
-
 
 
 

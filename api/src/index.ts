@@ -1,11 +1,13 @@
-import Hapi, {Server, Request} from '@hapi/hapi';
+import Hapi, { Server, Request } from '@hapi/hapi';
 import morgan from 'morgan';
 import cors from 'cors';
+import openapi from 'hapi-openapi'
 
 import dotenv from 'dotenv';
-import https from 'https'
-import { isConstTypeReference } from 'typescript';
-import { cp } from 'fs';
+import fs, { cp } from 'fs';
+import os from 'os';
+import Path from 'path';
+import { frontMatterFieldCollection, serialiseFrontMatter } from './utils/frontmatter'
 
 dotenv.config();
 
@@ -26,55 +28,79 @@ var corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
-let server: Server;
+let server: Server = Hapi.server({
+  port: PORT,
+  host: HOST
+});
 
 //app.use(cors(corsOptions));
 // Logging
 //app.use(morgan('dev'));
 const init = async () => {
-
-  server = Hapi.server({
-    port: PORT,
-    host: HOST
-  });
-
-  server.route({
-    method: 'GET',
-    path: '/hello',
-    handler: async (request:Request, h:any) => {
-
-      return 'Hello World!!!';
+  await server.register({
+    plugin: openapi,
+    options: {      
+        api: '/Users/janakaabeywardhana/code-projects/osobisty-search/api/openapi.yaml', //Path.join(os.homedir.toString(), './osobisty-search/api/openapi.yaml'),
+        handlers: '/Users/janakaabeywardhana/code-projects/osobisty-search/api/src/handlers' //Path.join(os.homedir.toString(), './osobisty-search/api/src/handlers')
     }
   });
-
-  //catch all 404
-  server.route({
-    method: '*',
-    path: '/{any*}',
-    handler: function (request, h) {
-
-        return h.response('404 Page Not Found!').code(404);
-    }
-})
-
-  server.route({
-    method: 'POST',
-    path: '/zettle/document',
-    handler: postZettleDocument
-  });
-
   await server.start();
   console.log('Server running on %s', server.info.uri);
+  console.log('%s', server.table);
 };
 
 
-const postZettleDocument = async (request:Request, h: any) => {
-  
-  const reqBody = request.payload
-  console.log(reqBody)
-  return h.response('created').code(201)
-}
 
+
+// //catch all 404
+// server.route({
+//   method: '*',
+//   path: '/{any*}',
+//   handler: function (request, h) {
+
+//     return h.response('404 Page Not Found!').code(404);
+//   }
+// })
+
+
+
+
+// const postWebClipping = async (request: Request, h: any) => {
+
+//   const reqPayload = request.payload
+//   console.log(reqPayload)
+
+
+//   await saveWebClipping(reqPayload)
+
+//   return h.response('created').code(201)
+// }
+
+// server.route({
+//   method: 'POST',
+//   path: '/webclipping',
+//   handler: postWebClipping
+// });
+
+
+
+/**
+ * 
+ * @param fqFilePath 
+ */
+export async function saveWebClipping(content: any) {
+
+  const hashPageUrl = "sdhfsufosdufosuds453sfs"
+  const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
+  let t: string = JSON.stringify(content)
+  //const fmSection:string = serialiseFrontMatter(frontMatterFields)
+  //const t:string  = fmSection + content 
+
+  fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
+    if (err) throw err
+  })
+
+}
 
 process.on('unhandledRejection', (error) => {
   console.log(error);

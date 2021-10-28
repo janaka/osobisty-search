@@ -1,0 +1,106 @@
+openapi: 3.0.0
+servers:
+  - description: SwaggerHub API Auto Mocking
+    url: https://localhost:3002/
+info:
+  version: 0.1.0
+  title: Osobisty API
+  description: >-
+    Web API for Osobisty. Uses OAuth2 Implicit Flow to describe security to your
+    API.
+security:
+  - implicit:
+      - read
+      - write
+paths:
+  # /webclippings/{id}:
+  #   get:
+  #     summary: Get a webclipping
+  #     description: Get a webclipping
+  #     operationId: gsdflsjdf09834kjsfdh983724
+  #     parameters:
+  #     - name: id
+  #       in: path
+  #       required: true
+  #       schema:
+  #         $ref: "#/components/schemas/id"
+  #     responses:
+  #       '200':
+  #         description: OK
+  #         content:
+  #           application/json:
+  #             examples:
+  #               200Ok:
+  #                 value: >-
+  #                   {id: hskf984734kh34597345,
+  #                   source_content: "This is some text that was clipped from the
+  #                   web page",
+  #                   content: "(Optional) my notes about the source_content",
+  #                   date: "UTC date source_content was clipped",
+  #                   link: "http://www.sdfsdf.com/link-to-source-webpage"}
+  #       '404':
+  #         description: Error - Document not found
+  #         content:
+  #           application/json:
+  #             examples:
+  #               404Error:
+  #                 value: >-
+  #                   {errorCode: "404",
+  #                     errorDescription: "Document not found."
+  #                   }
+  # /webclippings:          
+  #   put:
+  #     summary: Update or add new webclipping
+  #     description: Update or add new webclipping
+  #     operationId: sdlfjsdf7876asfkhsdw323
+  #     requestBody:
+  #       description: Optional description in *Markdown* here
+  #       required: true
+  #       content:
+  #         application/json:
+  #           schema:
+  #             $ref: '#/components/schemas/webClipping'
+  #     responses:
+  #       '200':
+  #         description: OK
+  /ping:
+    get:
+      summary: Server heartbeat operation
+      description: >-
+        This operation shows how to override the global security defined above,
+        as we want to open it up for all users.
+      security: []
+      responses:
+        '200':
+          description: OK
+components:
+  schemas:
+    id:
+      type: integer
+      format: int64
+    webClipping:
+      type: object
+      properties: 
+        id: 
+          type: integer
+          format: int64
+        source_content: 
+          type: string
+        content: 
+          type: string
+        date:
+          type: string
+        link:
+          type: string
+      required:
+        - source_content
+        - link
+  securitySchemes:
+    implicit:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: http://example.com/oauth/auth
+          scopes:
+            write: allows modifying resources
+            read: allows reading resources
