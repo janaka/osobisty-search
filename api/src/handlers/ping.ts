@@ -1,16 +1,15 @@
-import { Request } from '@hapi/hapi';
+import { Request, ResponseObject } from '@hapi/hapi';
 
-module.exports = {
-  get: function (req:Request, h:any) { 
-    return "hello world!"
+
+export namespace ping {
+  export const getRouteConfig: any = {
+    method: 'GET',
+    path: '/ping',
+    handler: (req: Request, h: any) => {
+      const res: ResponseObject = h.response({ message: "hello world!" })
+      res.code(200)
+      return res
+    }
   }
+
 }
-
-// server.route({
-//   method: 'GET',
-//   path: '/hello',
-//   handler: async (request: Request, h: any) => {
-
-//     return 'Hello World!!!';
-//   }
-// });

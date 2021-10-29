@@ -1,13 +1,18 @@
 import Hapi, { Server, Request } from '@hapi/hapi';
-import morgan from 'morgan';
+import * as HapiSwagger from 'hapi-swagger';
+import Inert from '@hapi/inert'
+import Vision from '@hapi/vision'
+
 import cors from 'cors';
-import openapi from 'hapi-openapi'
 
 import dotenv from 'dotenv';
 import fs, { cp } from 'fs';
 import os from 'os';
 import Path from 'path';
-import { frontMatterFieldCollection, serialiseFrontMatter } from './utils/frontmatter'
+import { frontMatterFieldCollection, serialiseFrontMatter } from './utils/frontmatter.js'
+
+import { ping } from './handlers/ping.js'
+import { webclippings } from './handlers/webclipping.js';
 
 dotenv.config();
 
@@ -30,26 +35,50 @@ var corsOptions = {
 
 let server: Server = Hapi.server({
   port: PORT,
-  host: HOST
+  host: HOST,
+  debug: { request: ['error'] }
 });
 
 //app.use(cors(corsOptions));
 // Logging
 //app.use(morgan('dev'));
-const init = async () => {
-  await server.register({
-    plugin: openapi,
-    options: {      
-        api: '/Users/janakaabeywardhana/code-projects/osobisty-search/api/openapi.yaml', //Path.join(os.homedir.toString(), './osobisty-search/api/openapi.yaml'),
-        handlers: '/Users/janakaabeywardhana/code-projects/osobisty-search/api/src/handlers' //Path.join(os.homedir.toString(), './osobisty-search/api/src/handlers')
-    }
-  });
-  await server.start();
-  console.log('Server running on %s', server.info.uri);
-  console.log('%s', server.table);
+const swaggerOptions: HapiSwagger.RegisterOptions = {
+  info: {
+      title: 'Osobisty API'
+  }
 };
 
+const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
+  {
+      plugin: Inert
+  },
+  {
+      plugin: Vision
+  },
+  {
+      plugin: HapiSwagger,
+      options: swaggerOptions
+  }
+];
 
+await server.register(plugins);
+
+const init = async () => {
+
+  await server.start();
+  console.log('Server running on %s', server.info.uri);
+  
+  server.table().forEach((route) => {
+    console.log(route.path);
+  });
+  
+
+  
+};
+
+server.route(ping.getRouteConfig);
+
+server.route(webclippings.postRouteConfig);
 
 
 // //catch all 404
@@ -84,23 +113,23 @@ const init = async () => {
 
 
 
-/**
- * 
- * @param fqFilePath 
- */
-export async function saveWebClipping(content: any) {
+// /**
+//  * 
+//  * @param fqFilePath 
+//  */
+// export async function saveWebClipping(content: any) {
 
-  const hashPageUrl = "sdhfsufosdufosuds453sfs"
-  const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
-  let t: string = JSON.stringify(content)
-  //const fmSection:string = serialiseFrontMatter(frontMatterFields)
-  //const t:string  = fmSection + content 
+//   const hashPageUrl = "sdhfsufosdufosuds453sfs"
+//   const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
+//   let t: string = JSON.stringify(content)
+//   //const fmSection:string = serialiseFrontMatter(frontMatterFields)
+//   //const t:string  = fmSection + content 
 
-  fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
-    if (err) throw err
-  })
+//   fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
+//     if (err) throw err
+//   })
 
-}
+// }
 
 process.on('unhandledRejection', (error) => {
   console.log(error);
