@@ -13,6 +13,7 @@ import { frontMatterFieldCollection, serialiseFrontMatter } from './utils/frontm
 
 import { ping } from './handlers/ping.js'
 import { webclippings } from './handlers/webclipping.js';
+import routes from './handlers/index.js'
 
 dotenv.config();
 
@@ -76,10 +77,11 @@ const init = async () => {
   
 };
 
-server.route(ping.getRouteConfig);
+// server.route(ping.getRouteConfig);
 
-server.route(webclippings.postRouteConfig);
+// server.route(webclippings.postRouteConfig);
 
+server.route(routes)
 
 // //catch all 404
 // server.route({
