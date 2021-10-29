@@ -1,10 +1,11 @@
 {
   "name": "Osobisty Chrome Extension",
   "description": "Companion to Osobisty, the Universal personal search engine",
-  "version": "0.2.26",
+  "version": "0.3.2",
   "manifest_version": 3,
   "permissions": [
-    "activeTab"
+    "activeTab",
+    "scripting"
  ],
   "action": {
       "default_popup": "index.html",
@@ -16,6 +17,10 @@
         "js": ["./static/js/content.js"]
     }
  ],
+ "background": {
+  "service_worker": "./static/js/background.js",
+  "type": "module"
+},
   "icons": {
       "16": "logo192.png",
       "48": "logo192.png",

@@ -21,18 +21,19 @@ export namespace webclippings {
           throw err;
         }
       },
+
       response:{
         schema: joi.object({
-          message: joi.string(),
-          data: joi.object({
-            id: joi.string().guid()
+          message: joi.string().pattern(new RegExp('^created$')).example('created'),
+          webClippingData: joi.object({
+            id: joi.string().guid().example('aba37142-384f-11ec-8d3d-0242ac130003')
           })
-        }).label('response')
+        }).label('webClippingResponse')
       }
     },
 
     handler: (req: Request, h: ResponseToolkit) => {
-      const res: ResponseObject = h.response({ message: "created", data: { id: 'aba37142-384f-11ec-8d3d-0242ac130003' } })
+      const res: ResponseObject = h.response({ message: "created", webClippingData: { id: 'aba37142-384f-11ec-8d3d-0242ac130003' } })
       console.log(req.payload)
 
 

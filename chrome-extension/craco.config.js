@@ -6,6 +6,7 @@ module.exports = {
               entry: {
                   main: [env === 'development' && require.resolve('react-dev-utils/webpackHotDevClient'),paths.appIndexJs].filter(Boolean),
                   content: './src/chromeServices/highlighterContentScript.ts',
+                  background: './src/background.ts',
               },
               output: {
                   ...webpackConfig.output,
@@ -14,6 +15,11 @@ module.exports = {
               optimization: {
                   ...webpackConfig.optimization,
                   runtimeChunk: false,
+                  splitChunks: {
+                    chunks(chunk) {
+                      return false
+                    },
+                  },
               }
           }
       },

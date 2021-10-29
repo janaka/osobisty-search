@@ -1,7 +1,10 @@
 import { DOMMessage, DOMMessageResponse } from '../types';
-import {generateHighlightMarkup} from './utils'
+import { generateHighlightMarkup } from './utils'
 
-const doHighlight = function (event: MouseEvent) {
+
+
+
+const doHighlight = async function (event: MouseEvent) {
 
     let sel = window.getSelection()
 
@@ -9,7 +12,7 @@ const doHighlight = function (event: MouseEvent) {
 
     if (sel != null && sel.toString().length > 0) {
         let highlightText: string = sel != null ? sel.toString() : ""
-        
+
         console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
         //TODO: split on linebreak to match across paragraphs
 
@@ -19,9 +22,9 @@ const doHighlight = function (event: MouseEvent) {
 
         for (let i = 0; i < pElCollection.length; i++) {
             const pEl = pElCollection[i];
-            
+
             const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML)
-            
+
             if (highlightObj.highlightMatchFound) {
                 highlightNotFound = false;
                 pEl.innerHTML = highlightObj.highlightedHtml
@@ -35,7 +38,20 @@ const doHighlight = function (event: MouseEvent) {
             console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
             console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
             console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
+        } else {
+            //save highlight
+
+
+
+            chrome.runtime.sendMessage(
+                {
+                    messageName: "postWebClipping",
+                    messageData: highlightText
+                }, (response) => {
+                    console.log(response)
+                });
         }
+
     }
 }
 
@@ -80,7 +96,8 @@ const messagesFromReactAppListener = (
 //   }
 
 
-const highlightHandler  = (event: MouseEvent) => {
+const highlightHandler = (event: MouseEvent) => {
+    console.log("sfsf")
     doHighlight(event);
 
 }
@@ -92,3 +109,4 @@ document.addEventListener('click', undoHighlight);
 * Fired when a message is sent from either an extension process or a content script.
 */
 chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
+
