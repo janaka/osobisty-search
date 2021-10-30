@@ -4,7 +4,7 @@ import { generateHighlightMarkup } from './utils'
 
 
 
-const doHighlight = async function (selectedText: string ) {
+const doHighlight = async function (selectedText: string, webclippingId?:string) {
 
     const sel = selectedText //window.getSelection()
 
@@ -23,7 +23,7 @@ const doHighlight = async function (selectedText: string ) {
         for (let i = 0; i < pElCollection.length; i++) {
             const pEl = pElCollection[i];
 
-            const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML)
+            const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
 
             if (highlightObj.highlightMatchFound) {
                 highlightNotFound = false;
@@ -61,26 +61,6 @@ const undoHighlight = function (event: MouseEvent) {
 
 
 
-// Function called when a new message is received
-// const messagesFromReactAppListener = (
-//     msg: DOMMessage,
-//     sender: chrome.runtime.MessageSender,
-//     sendResponse: (response: DOMMessageResponse) => void) => {
-
-//     console.log('[content.js]. Message received', msg);
-
-//     const headlines = Array.from(document.getElementsByTagName<"h1">("h1"))
-//         .map(h1 => h1.innerText);
-
-//     // Prepare the response object with information about the site
-//     const response: DOMMessageResponse = {
-//         title: document.title,
-//         headlines
-//     };
-
-//     sendResponse(response);
-// }
-
 const onReceiveMesssage = (
     msg: any,
     sender: chrome.runtime.MessageSender,
@@ -89,7 +69,9 @@ const onReceiveMesssage = (
     if (msg.command === "highlightSelection") {
         const sel = window.getSelection()?.toString();
         if (sel) {
-            doHighlight(sel);
+            console.log(msg)
+            console.log(msg.data.id)
+            doHighlight(sel, msg.data.id);
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
@@ -98,7 +80,6 @@ const onReceiveMesssage = (
     if (msg.command === "clipSelection") {
         const sel = window.getSelection()?.toString();
         if (sel) {
-            //TODO: grab url of current tab
             sendResponse({selectedText: sel, link: window.location.href.toString()})
         } else {
             console.error("There's no selection. Selected text is empty!")

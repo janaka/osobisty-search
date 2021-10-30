@@ -26,7 +26,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
 
 const onClickContextMenu = (onClickData: chrome.contextMenus.OnClickData, tab: any) => {
   if (onClickData.menuItemId === "987sfhissdf343534f") {
-    // tell content script to get the selescted text. Only content scripts have access to the page DOM
+    // tell content script to get the selected text because only content scripts have access to the page DOM
     chrome.tabs.sendMessage(tab.id, { command: "clipSelection" }, function (response) {
       console.log(response);
       const api = new Api()
@@ -40,7 +40,8 @@ const onClickContextMenu = (onClickData: chrome.contextMenus.OnClickData, tab: a
         .then(response => response.json())
         .then((data: WebClippingResponse) => {
           console.log(data.webClippingData)
-          chrome.tabs.sendMessage(tab.id, { command: "highlightSelection" }, function (response) {})
+          // once saved, tell the content script to highlight the selection
+          chrome.tabs.sendMessage(tab.id, { command: "highlightSelection", data: data.webClippingData}, (response) => {})
         })
         .catch((error) => { console.error(error) })
     });
