@@ -2,6 +2,27 @@ import { Json, Request, ResponseObject, ResponseToolkit, ServerRoute } from '@ha
 import joi from 'joi';
 import fs from 'fs';
 import { URL } from 'url';
+import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../utils/dbms'
+const { createHash } = await import('crypto');
+
+const dbConfig: DbmsConfig = {
+  dataRootPath: "/Users/janakaabeywardhana/code-projects/osobisty-search/api/data",
+  metaDataRootPath: "/Users/janakaabeywardhana/code-projects/osobisty-search/api/metadata"
+}
+const db: Dbms = new Dbms(dbConfig);
+
+
+
+interface WebClipDbSchema {
+  source_content: string,
+  notes_content: string,
+  source_html: string,
+}
+interface WebClipPageDbSchema {
+  id: string,
+  page_url: string,
+  clippings: [WebClipDbSchema]
+}
 
 const schemaWebclipping = joi.object({
   type: joi.string().pattern(new RegExp('^highlight$')).example('highlight'),
@@ -25,7 +46,7 @@ export namespace webclippings {
         }
       },
 
-      response:{
+      response: {
         schema: joi.object({
           message: joi.string().pattern(new RegExp('^created$')).example('created'),
           webClippingData: joi.object({
@@ -36,10 +57,11 @@ export namespace webclippings {
     },
 
     handler: (req: Request, h: ResponseToolkit) => {
-      
+
       const res: ResponseObject = h.response({ message: "created", webClippingData: { id: 'aba37142-384f-11ec-8d3d-0242ac130003' } })
       console.log(req.payload)
 
+      const reqPayload = JSON.parse(req.payload.toString())
       //const hashPageUrl = "sdhfsufosdufosuds453sfs"
       //const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
       //let t: string = JSON.stringify(content)
@@ -56,11 +78,16 @@ export namespace webclippings {
       //    one json file per web page
       //    filename = domain + - + hash of URL
       //    {pageUrl: '',
-     //     clippings: []     
-    //      }
+      //     clippings: []     
+      //      }
       // else read the file as json
       //    add new clipping entry
       //    save file
+
+      const filename:string = generateClippingPageFilename(reqPayload.link)
+      const webclippagefile = new JsonFileAdaptor(filename)
+
+      db.Collections.push(new Collection(filename,db,webclippagefile))
 
 
       res.code(200)
@@ -69,17 +96,25 @@ export namespace webclippings {
   }
 }
 
-
-function generateClippingPageFilename(clippingPageUrl:string): string {
+/**
+ * 
+ * @param clippingPageUrl 
+ * @returns filename = domain + --- + hash of URL
+ */
+function generateClippingPageFilename(clippingPageUrl: string): string {
   let filename = "";
   //filename = domain + --- + hash of URL
   const url = new URL(clippingPageUrl)
 
-  filename = url.hostname + "---" + url.toString().hash
+  const hash = createHash('sha256')
+
+  hash.update(url.toString())
+
+  filename = url.hostname + "---" +  hash.digest('hex');
   return filename
 }
 
-function loadClippingPageDataFile(clippingPageUrl: string): object {
-  const pageData: object = {};
-  return pageData
-}
+// function loadClippingPageDataFile(clippingPageUrl: string): object {
+//   const pageData: object = {};
+//   return pageData
+// }
