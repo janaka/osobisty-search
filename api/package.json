@@ -2,7 +2,7 @@
   "name": "osobisty-api",
   "version": "0.1.0",
   "description": "Backend API for Osobisty",
-  "main": "index.js",
+  "main": "/build/index",
   "author": "Janaka A",
   "license": "MIT",
   "type": "module",

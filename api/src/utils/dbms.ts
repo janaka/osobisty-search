@@ -1,7 +1,5 @@
-
 import fs from 'fs';
-import { object } from 'joi';
-
+import { threadId } from 'worker_threads';
 
 export interface DbmsConfig {
   dataRootPath: string;
@@ -12,19 +10,45 @@ export interface DbmsConfig {
  * Embedded Javascript database manager with persistence in any textfile based structure like JSON, YAML, MarkDown
  */
 export class Dbms {
+  private _collections: Array<Collection>;
+  private _collectionsFileAdaptor: JsonFileAdaptor;
 
   config: DbmsConfig;
-  private _collections: Array<Collection>;
-
 
   constructor(dbmsConfig: DbmsConfig) {
     this.config = dbmsConfig; // TODO: if paths don't exist then create them
     this._collections = []
+    this.Collections.push = (item:any):number => {
+      Array.prototype.push.call(this._collections, item)
+      this.saveCollectionsIndexToDisk()
+      return this._collections.length
+    }
 
+    this._collectionsFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath + "/collections-index.json")
+    
+    if (!this._collectionsFileAdaptor.dirExists(this.config.dataRootPath)) {
+      fs.mkdir(this.config.dataRootPath, {recursive: true}, (error, path) => {
+        if (error) {
+          throw error
+        }
+      })
+    }
+
+    if (!this._collectionsFileAdaptor.dirExists(this.config.metaDataRootPath)) {
+      fs.mkdir(this.config.metaDataRootPath, {recursive: true}, (error, path) => {
+        if (error) {
+          throw error
+        }
+      })
+    }
   }
 
+  private saveCollectionsIndexToDisk() {
+    console.log("saveCollectionsIndexToDisk")
+    this._collectionsFileAdaptor.saveToDisk(this._collections)
+  }
 
-  get Collections(): Collection[] {
+  get Collections(): Array<Collection> {
     if (this._collections === undefined) {
       this._collections = this.loadCollectionsIndex()
     }
@@ -40,6 +64,42 @@ export class Dbms {
 }
 
 
+export class Collection {
+  private _documents: Array<Document>;
+  private _documentsIndexFileAdaptor: JsonFileAdaptor;
+private _dbms: Dbms;
+  readonly name: string;
+
+  constructor(name:string, dbms:Dbms) {
+    this.name = name;
+    this._dbms = dbms;
+    this._documents = [];
+    this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath+ "/documents-index.json")
+    this.Documents.push = (item:any):number => {
+      Array.prototype.push.call(this._documents, item)
+      this.saveDocumentsIndexToDisk()
+      return this._documents.length
+    }
+  }
+
+  get Documents(): Array<Document> {
+    if (this._documents === undefined) {
+      this._documents = this.loadDocumentsIndex()
+    }
+    return this._documents
+  }
+
+  saveDocumentsIndexToDisk() {
+    console.log("saveDocumentsIndexToDisk")
+    this._documentsIndexFileAdaptor.saveToDisk(this._documents)
+  }
+
+  loadDocumentsIndex(): Array<Document> {
+    throw new Error('Method not implemented.');
+    return new Array<Document>();
+  }
+}
+
 
 /**
  * Collection is a container for a JS object.
@@ -47,29 +107,30 @@ export class Dbms {
  * But we aren't going to be oppinionated about the stucture.
  * Consumers will use standard functionality such as Array.push
  */
-export class Collection {
+export class Document {
   private _dbms: Dbms;
   _data: object;
-  _fileAdaptor: BaseFileAdaptor;
+  _documentFileAdaptor: BaseFileAdaptor;
 
   readonly name: string;
   //readonly filename: string;
 
-  constructor(name: string, dbms: Dbms, fileAdaptor: BaseFileAdaptor) {
+  constructor(name: string, dbms: Dbms, private fileAdaptor: BaseFileAdaptor) {
+    
     this.name = name;
     //this.filename = name + ".json";
     this._data = {}; //TODO: extend Object and figure out how to remove the data property
     this._dbms = dbms;
-    this._fileAdaptor = fileAdaptor;
+    this._documentFileAdaptor = fileAdaptor;
   }
 
-/**
- * Collection data
- */
+  /**
+   * Document data
+   */
   get data(): object {
     //TODO: figure out async
     if (this._data == undefined || this._data === null) {
-      this._data = this._fileAdaptor.loadFromDisk();
+      this._data = this._documentFileAdaptor.loadFromDisk();
     }
     return this._data;
   }
@@ -78,7 +139,7 @@ export class Collection {
    * Persist changes to fiel on disk
    */
   async save() {
-    this._fileAdaptor.saveToDisk(this._data)
+    this._documentFileAdaptor.saveToDisk(this._data)
   }
 
 }
@@ -90,34 +151,35 @@ export class Collection {
  */
 abstract class BaseFileAdaptor {
 
-  filename:string;
+  filename: string;
 
   /**
    * 
    * @param filename filename, with fully qualified path, to load/save on disk.
    */
-  constructor(filename:string) {
+  constructor(filename: string) {
     this.filename = filename
   }
 
   /**
-   * Json object to string. 
+   * Data Json object to string. 
    */
-  abstract serialize(collectionData: object): string
+  abstract serialize(data: object): string
 
   /**
-   * string to Json object
+   * Data string to Json object
    */
-  abstract deserialize(collectionData: string): object
-
+  abstract deserialize(data: string): object
 
   /**
    * Save data to disk is whatevery structure implemented in by the `serializer()`  method.
-   * @param collectionData `object`
+   * @param data as `object`
    */
-  async saveToDisk(collectionData: object) {
-    const s: string = this.serialize(collectionData);
-    
+  async saveToDisk(data: object) {
+    const s: string = this.serialize(data);
+    if (this.fileExists(this.filename)) {
+
+    }
     fs.writeFile(this.filename, s, 'utf-8', (error: any) => {
       if (error) throw error
     })
@@ -129,7 +191,7 @@ abstract class BaseFileAdaptor {
    * @returns deserialized file data as an `object`.
    */
   async loadFromDisk(): Promise<object> {
-    const s:string = "";
+    const s: string = "";
 
     let c: object = {};
     if (this.fileExists(this.filename)) {
@@ -141,7 +203,7 @@ abstract class BaseFileAdaptor {
       })
     }
     return c;
-    
+
   }
 
   /**
@@ -149,7 +211,7 @@ abstract class BaseFileAdaptor {
    * @param filename Check if the file exists without opening or modifiying
    * @returns `true` if exists else `false`
    */
-  private fileExists(filename: string): boolean {
+  fileExists(filename: string): boolean {
     let exists: boolean = false
     fs.access(filename, fs.constants.F_OK, (err) => {
       if (err) {
@@ -162,19 +224,29 @@ abstract class BaseFileAdaptor {
     return exists
   }
 
-
-
+  dirExists(directory: string): boolean {
+    let exists: boolean = false
+    fs.access(directory, fs.constants.F_OK, (err) => {
+      if (err) {
+        console.error(err)
+        exists = false;
+      } else {
+        exists = true;
+      }
+    })
+    return exists
+  }
 }
 
 /**
  * Persist objects as JSON string without modifying the structure.
  */
 export class JsonFileAdaptor extends BaseFileAdaptor {
-  serialize(collectionData: object): string {
-    return object.toString();
+  serialize(data: object): string {
+    return JSON.stringify(data);
   }
-  deserialize(collectionData: string): object {
-    return JSON.parse(collectionData);
+  deserialize(data: string): object {
+    return JSON.parse(data);
   }
 }
 
@@ -190,6 +262,17 @@ dbms.collection[sadfsd]:collection
 collection.data: object
 
 collection.save
+
+collections
+- collection : fileAdaptor
+-- documents
+---document : file
+
+documents.
+
+
+
+
  */
 
 

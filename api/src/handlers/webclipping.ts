@@ -1,4 +1,4 @@
-import { Json, Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
+import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import joi from 'joi';
 import fs from 'fs';
 import { URL } from 'url';
@@ -41,7 +41,7 @@ export namespace webclippings {
       tags: ['api'],
       validate: {
         payload: schemaWebclipping,
-        failAction: (request, h, err) => {
+        failAction: (request:any, h:any, err:any) => {
           throw err;
         }
       },
@@ -87,7 +87,7 @@ export namespace webclippings {
       const filename:string = generateClippingPageFilename(reqPayload.link)
       const webclippagefile = new JsonFileAdaptor(filename)
 
-      db.Collections.push(new Collection(filename,db,webclippagefile))
+      db.Collections.push(new Collection(filename, db))
 
 
       res.code(200)
