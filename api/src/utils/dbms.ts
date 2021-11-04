@@ -1,4 +1,5 @@
-import fs from 'fs';
+import fs, { cp } from 'fs';
+import { object } from 'joi';
 import { threadId } from 'worker_threads';
 
 export interface DbmsConfig {
@@ -11,58 +12,70 @@ export interface DbmsConfig {
  */
 export class Dbms {
   private _collections: Array<Collection>;
-  private _collectionsFileAdaptor: JsonFileAdaptor;
+  private _collectionsIndexFileAdaptor: JsonFileAdaptor;
+
+
 
   config: DbmsConfig;
 
   constructor(dbmsConfig: DbmsConfig) {
-    this.config = dbmsConfig; // TODO: if paths don't exist then create them
-    this._collections = []
-    this.Collections.push = (item:any):number => {
+    this.config = dbmsConfig;
+
+    this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "collections-index.json")
+
+
+    // if (!this._collectionsIndexFileAdaptor.dirExists()) {
+    //   throw new Error("MataDataRootath folder " + this.config.metaDataRootPath + " doesn't exist.")
+    // }
+
+    this._collections = new Array<Collection>();
+    this._collections.push = (item:any):number => {
       Array.prototype.push.call(this._collections, item)
       this.saveCollectionsIndexToDisk()
       return this._collections.length
-    }
-
-    this._collectionsFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath + "/collections-index.json")
-    
-    if (!this._collectionsFileAdaptor.dirExists(this.config.dataRootPath)) {
-      fs.mkdir(this.config.dataRootPath, {recursive: true}, (error, path) => {
-        if (error) {
-          throw error
-        }
-      })
-    }
-
-    if (!this._collectionsFileAdaptor.dirExists(this.config.metaDataRootPath)) {
-      fs.mkdir(this.config.metaDataRootPath, {recursive: true}, (error, path) => {
-        if (error) {
-          throw error
-        }
-      })
     }
   }
 
   private saveCollectionsIndexToDisk() {
     console.log("saveCollectionsIndexToDisk")
-    this._collectionsFileAdaptor.saveToDisk(this._collections)
+    //TODO: create a index object manually m
+
+    const collectionsIndexArray = new Array<CollectionPointer>();
+
+    this._collections.forEach((e: Collection) => {
+      collectionsIndexArray.push({name: e.name, dirname: e.name})
+    });
+
+    const collectionsIndex = {collectionsIndex: collectionsIndexArray}
+
+    this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndex)
   }
 
-  get Collections(): Array<Collection> {
+   get Collections(): Array<Collection> {
     if (this._collections === undefined) {
-      this._collections = this.loadCollectionsIndex()
+      const o = this.loadCollectionsIndex()
+      console.log(o)
+      //this._collections = 
     }
     return this._collections
   }
 
-  private loadCollectionsIndex(): Array<Collection> {
-    //TODO: implement collection index persistence
-    throw new Error('Method not implemented.');
-    return new Array<Collection>();
+  private loadCollectionsIndex() {
+    //TODO: implement loading collection index persistence
+    //const collectionsIndex:{collectionsIndex: CollectionPointer[]} = this._collectionsIndexFileAdaptor.loadFromDisk()
+    
+    //collectionsIndex.collectionsIndex.forEach((e:CollectionPointer) => {
+      
+    //});
   }
 
 }
 
+
+export interface CollectionPointer {
+  name: string,
+  dirname: string
+}
 
 export class Collection {
   private _documents: Array<Document>;
@@ -74,15 +87,15 @@ private _dbms: Dbms;
     this.name = name;
     this._dbms = dbms;
     this._documents = [];
-    this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath+ "/documents-index.json")
-    this.Documents.push = (item:any):number => {
+    this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "documents-index.json")
+    this._documents.push = (item:any):number => {
       Array.prototype.push.call(this._documents, item)
       this.saveDocumentsIndexToDisk()
       return this._documents.length
     }
   }
 
-  get Documents(): Array<Document> {
+  getDocuments(): Array<Document> {
     if (this._documents === undefined) {
       this._documents = this.loadDocumentsIndex()
     }
@@ -95,7 +108,7 @@ private _dbms: Dbms;
   }
 
   loadDocumentsIndex(): Array<Document> {
-    throw new Error('Method not implemented.');
+    //throw new Error('Method not implemented.');
     return new Array<Document>();
   }
 }
@@ -112,6 +125,9 @@ export class Document {
   _data: object;
   _documentFileAdaptor: BaseFileAdaptor;
 
+  /**
+   * Unique name of the document. Also the naming convention for the persisted file.
+   */
   readonly name: string;
   //readonly filename: string;
 
@@ -150,15 +166,23 @@ export class Document {
  * Collection instances use this to manage persistance.
  */
 abstract class BaseFileAdaptor {
+  _fqfilename: string;
 
-  filename: string;
+  filename:string;
+  path: string;
 
   /**
-   * 
-   * @param filename filename, with fully qualified path, to load/save on disk.
+   * @param path fully qualified path to where `filename` will be persisted. Include leading and trailing slash `/`
+   * @param filename filename to load/save on disk.
    */
-  constructor(filename: string) {
-    this.filename = filename
+  constructor(path: string, filename: string) {
+    this.path = path;
+    this.filename = filename;
+    this._fqfilename = path + filename
+
+    if (!this.dirExists()) {
+      throw new Error("DataRootath folder " + this.path + " doesn't exist. Please create the path.")
+    }
   }
 
   /**
@@ -177,7 +201,7 @@ abstract class BaseFileAdaptor {
    */
   async saveToDisk(data: object) {
     const s: string = this.serialize(data);
-    if (this.fileExists(this.filename)) {
+    if (this.fileExists(this._fqfilename)) {
 
     }
     fs.writeFile(this.filename, s, 'utf-8', (error: any) => {
@@ -190,10 +214,10 @@ abstract class BaseFileAdaptor {
    * Expects the file to be in UTF-8
    * @returns deserialized file data as an `object`.
    */
-  async loadFromDisk(): Promise<object> {
+  loadFromDisk(): object {
     const s: string = "";
 
-    let c: object = {};
+    let c: any;
     if (this.fileExists(this.filename)) {
       fs.readFile(this.filename, 'utf-8', (error: any, data: string) => {
         if (!error) throw new Error(error);
@@ -203,17 +227,16 @@ abstract class BaseFileAdaptor {
       })
     }
     return c;
-
   }
 
   /**
-   * 
+   * Check a file exists with the configured `path`
    * @param filename Check if the file exists without opening or modifiying
    * @returns `true` if exists else `false`
    */
-  fileExists(filename: string): boolean {
+  private fileExists(filename: string): boolean {
     let exists: boolean = false
-    fs.access(filename, fs.constants.F_OK, (err) => {
+    fs.access(this.path+filename, fs.constants.F_OK, (err) => {
       if (err) {
         console.error(err)
         exists = false;
@@ -224,9 +247,13 @@ abstract class BaseFileAdaptor {
     return exists
   }
 
-  dirExists(directory: string): boolean {
+  /**
+   * Check if the configrued adaptor `path` exits
+   * @returns `true` if the directory exists, else `false`
+   */
+  private dirExists(): boolean {
     let exists: boolean = false
-    fs.access(directory, fs.constants.F_OK, (err) => {
+    fs.access(this.path, fs.constants.F_OK, (err) => {
       if (err) {
         console.error(err)
         exists = false;
@@ -241,14 +268,34 @@ abstract class BaseFileAdaptor {
 /**
  * Persist objects as JSON string without modifying the structure.
  */
-export class JsonFileAdaptor extends BaseFileAdaptor {
+export class JsonFileAdaptor<T> extends BaseFileAdaptor {
   serialize(data: object): string {
-    return JSON.stringify(data);
+    return JSON.stringify(data);Í
   }
-  deserialize(data: string): object {
-    return JSON.parse(data);
+  deserialize(data: string): any {
+    const result = safeJsonParse<T>(data)
+    if result.
+    return 
+  }
+
+  private isMyType(o: any): o is T {
+    return "name" in o && "description" in o
   }
 }
+
+
+const safeJsonParse = <T>(guard: (o: any) => o is T) => 
+  (data: string): ParseResult<T> => {
+    const parsed = JSON.parse(data)
+    return guard(parsed) ? { parsed, hasError: false } : { hasError: true }
+  }
+
+type ParseResult<T> =
+  | { parsed: T; hasError: false; error?: undefined }
+  | { parsed?: undefined; hasError: true; error?: unknown }
+
+
+
 
 /**
  * config
@@ -263,9 +310,9 @@ collection.data: object
 
 collection.save
 
-collections
-- collection : fileAdaptor
--- documents
+collections : index 
+-collection : folder : fileAdaptor
+--documents : index
 ---document : file
 
 documents.
