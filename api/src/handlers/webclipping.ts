@@ -85,7 +85,7 @@ export namespace webclippings {
       //    save file
 
       const filename:string = generateClippingPageFilename(reqPayload.link)
-      const webclippagefile = new JsonFileAdaptor(filename)
+      const webclippagefile = new JsonFileAdaptor("ewe",filename)
 
       db.Collections.push(new Collection(filename, db))
 

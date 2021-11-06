@@ -12,8 +12,7 @@ export interface DbmsConfig {
  */
 export class Dbms {
   private _collections: Array<Collection>;
-  private _collectionsIndexFileAdaptor: JsonFileAdaptor;
-
+  private _collectionsIndexFileAdaptor: JsonFileAdaptor<Array<CollectionPointer>>;
 
 
   config: DbmsConfig;
@@ -36,6 +35,15 @@ export class Dbms {
     }
   }
 
+  get Collections(): Array<Collection> {
+    if (this._collections === undefined) {
+      const o = this.loadCollectionsIndex()
+      console.log(o)
+      //this._collections = 
+    }
+    return this._collections
+  }
+
   private saveCollectionsIndexToDisk() {
     console.log("saveCollectionsIndexToDisk")
     //TODO: create a index object manually m
@@ -46,18 +54,7 @@ export class Dbms {
       collectionsIndexArray.push({name: e.name, dirname: e.name})
     });
 
-    const collectionsIndex = {collectionsIndex: collectionsIndexArray}
-
-    this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndex)
-  }
-
-   get Collections(): Array<Collection> {
-    if (this._collections === undefined) {
-      const o = this.loadCollectionsIndex()
-      console.log(o)
-      //this._collections = 
-    }
-    return this._collections
+    this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndexArray)
   }
 
   private loadCollectionsIndex() {
@@ -79,7 +76,7 @@ export interface CollectionPointer {
 
 export class Collection {
   private _documents: Array<Document>;
-  private _documentsIndexFileAdaptor: JsonFileAdaptor;
+  private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<Document>>;
 private _dbms: Dbms;
   readonly name: string;
 
@@ -95,7 +92,7 @@ private _dbms: Dbms;
     }
   }
 
-  getDocuments(): Array<Document> {
+  get Documents(): Array<Document> {
     if (this._documents === undefined) {
       this._documents = this.loadDocumentsIndex()
     }
@@ -123,7 +120,7 @@ private _dbms: Dbms;
 export class Document {
   private _dbms: Dbms;
   _data: object;
-  _documentFileAdaptor: BaseFileAdaptor;
+  _documentFileAdaptor: BaseFileAdaptor<object>;
 
   /**
    * Unique name of the document. Also the naming convention for the persisted file.
@@ -131,7 +128,7 @@ export class Document {
   readonly name: string;
   //readonly filename: string;
 
-  constructor(name: string, dbms: Dbms, private fileAdaptor: BaseFileAdaptor) {
+  constructor(name: string, dbms: Dbms, private fileAdaptor: BaseFileAdaptor<object>) {
     
     this.name = name;
     //this.filename = name + ".json";
@@ -152,7 +149,7 @@ export class Document {
   }
 
   /**
-   * Persist changes to fiel on disk
+   * Persist changes to file on disk
    */
   async save() {
     this._documentFileAdaptor.saveToDisk(this._data)
@@ -165,7 +162,7 @@ export class Document {
  * Inherit to implement file format specific adaptor classes. Example: json or yaml or Markdown + FrontMatter. 
  * Collection instances use this to manage persistance.
  */
-abstract class BaseFileAdaptor {
+abstract class BaseFileAdaptor<T> {
   _fqfilename: string;
 
   filename:string;
@@ -181,25 +178,25 @@ abstract class BaseFileAdaptor {
     this._fqfilename = path + filename
 
     if (!this.dirExists()) {
-      throw new Error("DataRootath folder " + this.path + " doesn't exist. Please create the path.")
+      throw new Error("DataRootpath folder " + this.path + " doesn't exist. Please create the path.")
     }
   }
 
   /**
    * Data Json object to string. 
    */
-  abstract serialize(data: object): string
+  abstract serialize(data: T): string
 
   /**
    * Data string to Json object
    */
-  abstract deserialize(data: string): object
+  abstract deserialize(data: string): T
 
   /**
    * Save data to disk is whatevery structure implemented in by the `serializer()`  method.
    * @param data as `object`
    */
-  async saveToDisk(data: object) {
+  async saveToDisk(data: T) {
     const s: string = this.serialize(data);
     if (this.fileExists(this._fqfilename)) {
 
@@ -214,7 +211,7 @@ abstract class BaseFileAdaptor {
    * Expects the file to be in UTF-8
    * @returns deserialized file data as an `object`.
    */
-  loadFromDisk(): object {
+  loadFromDisk(): T {
     const s: string = "";
 
     let c: any;
@@ -268,18 +265,13 @@ abstract class BaseFileAdaptor {
 /**
  * Persist objects as JSON string without modifying the structure.
  */
-export class JsonFileAdaptor<T> extends BaseFileAdaptor {
-  serialize(data: object): string {
-    return JSON.stringify(data);Í
+export class JsonFileAdaptor<T> extends BaseFileAdaptor<T> {
+  serialize(data: T): string {
+    return JSON.stringify(data);
   }
-  deserialize(data: string): any {
-    const result = safeJsonParse<T>(data)
-    if result.
-    return 
-  }
-
-  private isMyType(o: any): o is T {
-    return "name" in o && "description" in o
+  deserialize(data: string): T {
+    const result:T = JSON.parse(data)
+    return result
   }
 }
 
@@ -293,9 +285,6 @@ const safeJsonParse = <T>(guard: (o: any) => o is T) =>
 type ParseResult<T> =
   | { parsed: T; hasError: false; error?: undefined }
   | { parsed?: undefined; hasError: true; error?: unknown }
-
-
-
 
 /**
  * config
