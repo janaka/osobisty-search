@@ -1,6 +1,4 @@
 import fs, { cp } from 'fs';
-import { object } from 'joi';
-import { threadId } from 'worker_threads';
 
 export interface DbmsConfig {
   dataRootPath: string;
@@ -28,52 +26,56 @@ export class Dbms {
     // }
 
     this._collections = new Array<Collection>();
-    this._collections.push = (item:any):number => {
+    this._collections.push = (item:Collection):number => {
       Array.prototype.push.call(this._collections, item)
-      this.saveCollectionsIndexToDisk()
+      this.saveCollectionsIndexToDisk(this._collections)
       return this._collections.length
     }
   }
 
   get Collections(): Array<Collection> {
-    if (this._collections === undefined) {
-      const o = this.loadCollectionsIndex()
-      console.log(o)
-      //this._collections = 
+    if (this._collections.length === 0) {
+      console.log("Collections() cache miss.")
+      const o = this.loadCollectionsIndexFromDisk()
+      const c = new Array<Collection>();
+      o.forEach((e:CollectionPointer) => {
+        c.push(new Collection(e.name, this))
+      });
+      this._collections = c;
     }
     return this._collections
   }
 
-  private saveCollectionsIndexToDisk() {
+  private saveCollectionsIndexToDisk(collections: Array<Collection>) {
     console.log("saveCollectionsIndexToDisk")
-    //TODO: create a index object manually m
 
     const collectionsIndexArray = new Array<CollectionPointer>();
 
-    this._collections.forEach((e: Collection) => {
+    collections.forEach((e: Collection) => {
       collectionsIndexArray.push({name: e.name, dirname: e.name})
     });
 
     this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndexArray)
   }
 
-  private loadCollectionsIndex() {
-    //TODO: implement loading collection index persistence
-    //const collectionsIndex:{collectionsIndex: CollectionPointer[]} = this._collectionsIndexFileAdaptor.loadFromDisk()
-    
-    //collectionsIndex.collectionsIndex.forEach((e:CollectionPointer) => {
-      
-    //});
+  private loadCollectionsIndexFromDisk(): Array<CollectionPointer> {
+    const t = this._collectionsIndexFileAdaptor.loadFromDisk()
+    if (t === undefined) throw new Error("Collection index data load from fisk failed!")
+
+    return t
   }
 
 }
 
 
 export interface CollectionPointer {
+  [index: string]: string,
   name: string,
   dirname: string
 }
 
+
+//TODO: type collections to a particular document format like json, yaml, or text so we don't have to pass the fileadapter to each document instance
 export class Collection {
   private _documents: Array<Document>;
   private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<Document>>;
@@ -85,7 +87,7 @@ private _dbms: Dbms;
     this._dbms = dbms;
     this._documents = [];
     this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "documents-index.json")
-    this._documents.push = (item:any):number => {
+    this._documents.push = (item:Document):number => {
       Array.prototype.push.call(this._documents, item)
       this.saveDocumentsIndexToDisk()
       return this._documents.length
@@ -110,6 +112,12 @@ private _dbms: Dbms;
   }
 }
 
+export interface DocumentPointer {
+  [index: string]: string,
+  name: string,
+  dirname: string,
+  filename: string
+}
 
 /**
  * Collection is a container for a JS object.
@@ -119,7 +127,7 @@ private _dbms: Dbms;
  */
 export class Document {
   private _dbms: Dbms;
-  _data: object;
+  _data: object | undefined;
   _documentFileAdaptor: BaseFileAdaptor<object>;
 
   /**
@@ -140,7 +148,7 @@ export class Document {
   /**
    * Document data
    */
-  get data(): object {
+  get data(): object | undefined {
     //TODO: figure out async
     if (this._data == undefined || this._data === null) {
       this._data = this._documentFileAdaptor.loadFromDisk();
@@ -152,7 +160,9 @@ export class Document {
    * Persist changes to file on disk
    */
   async save() {
-    this._documentFileAdaptor.saveToDisk(this._data)
+    if (this._data != undefined) {
+      this._documentFileAdaptor.saveToDisk(this._data)
+    }
   }
 
 }
@@ -178,7 +188,7 @@ abstract class BaseFileAdaptor<T> {
     this._fqfilename = path + filename
 
     if (!this.dirExists()) {
-      throw new Error("DataRootpath folder " + this.path + " doesn't exist. Please create the path.")
+      throw new Error("`path`:" + this.path + " doesn't exist. Please make sure the path exists.")
     }
   }
 
@@ -193,37 +203,45 @@ abstract class BaseFileAdaptor<T> {
   abstract deserialize(data: string): T
 
   /**
-   * Save data to disk is whatevery structure implemented in by the `serializer()`  method.
+   * Save data of type `T` to disk at what ever structure implemented in by the `serializer()` method.
    * @param data as `object`
    */
   async saveToDisk(data: T) {
     const s: string = this.serialize(data);
-    if (this.fileExists(this._fqfilename)) {
+    //TODO: do we need to control append vs replace content?
+    //console.log("1:"+this._fqfilename)
+    // if (this.fileExists(this._fqfilename)) {
 
-    }
-    fs.writeFile(this.filename, s, 'utf-8', (error: any) => {
-      if (error) throw error
+    // }
+    fs.writeFile(this._fqfilename, s, 'utf-8', (error: any) => {
+      if (error) throw new Error("Saving failed. File: "+ this._fqfilename + "error: "+ error) 
     })
   }
 
   /**
    * Load data from disk and deserialize using the implementation specific deserializer.
    * Expects the file to be in UTF-8
-   * @returns deserialized file data as an `object`.
+   * @returns deserialized file data as a type `T` using the concreate deserializer() method.
    */
-  loadFromDisk(): T {
-    const s: string = "";
-
-    let c: any;
-    if (this.fileExists(this.filename)) {
-      fs.readFile(this.filename, 'utf-8', (error: any, data: string) => {
-        if (!error) throw new Error(error);
-        if (data) {
-          c = this.deserialize(data);
-        }
-      })
+  loadFromDisk(): T | undefined {
+    try {
+      const s: string = fs.readFileSync(this._fqfilename, "utf-8")
+      let c: T | undefined = this.deserialize(s);
+      return c;      
+    } catch (error) {
+      throw new Error("loadFromDisk() failed. Error: "+ error)
     }
-    return c;
+
+      // fs.readFileSync(this._fqfilename, 'utf-8', (error: any, data: string) => {
+      //   if (!error) throw new Error("loadFromDisk() failed. Error: "+ error);
+      //   if (data) {
+      //     console.log("raw data:"+data)
+      //     c = this.deserialize(data);
+      //   }
+      // })
+
+      
+    
   }
 
   /**
@@ -249,16 +267,7 @@ abstract class BaseFileAdaptor<T> {
    * @returns `true` if the directory exists, else `false`
    */
   private dirExists(): boolean {
-    let exists: boolean = false
-    fs.access(this.path, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error(err)
-        exists = false;
-      } else {
-        exists = true;
-      }
-    })
-    return exists
+    return fs.existsSync(this.path)
   }
 }
 
@@ -276,15 +285,15 @@ export class JsonFileAdaptor<T> extends BaseFileAdaptor<T> {
 }
 
 
-const safeJsonParse = <T>(guard: (o: any) => o is T) => 
-  (data: string): ParseResult<T> => {
-    const parsed = JSON.parse(data)
-    return guard(parsed) ? { parsed, hasError: false } : { hasError: true }
-  }
+// const safeJsonParse = <T>(guard: (o: any) => o is T) => 
+//   (data: string): ParseResult<T> => {
+//     const parsed = JSON.parse(data)
+//     return guard(parsed) ? { parsed, hasError: false } : { hasError: true }
+//   }
 
-type ParseResult<T> =
-  | { parsed: T; hasError: false; error?: undefined }
-  | { parsed?: undefined; hasError: true; error?: unknown }
+// type ParseResult<T> =
+//   | { parsed: T; hasError: false; error?: undefined }
+//   | { parsed?: undefined; hasError: true; error?: unknown }
 
 /**
  * config
