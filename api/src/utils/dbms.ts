@@ -9,7 +9,7 @@ export interface DbmsConfig {
  * Embedded Javascript database manager with persistence in any textfile based structure like JSON, YAML, MarkDown
  */
 export class Dbms {
-  private _collections: Array<Collection>;
+  private _collections: Array<{[key: string | number]: Collection}>;
   private _collectionsIndexFileAdaptor: JsonFileAdaptor<Array<CollectionPointer>>;
 
 
@@ -20,7 +20,7 @@ export class Dbms {
 
     this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "/collections-index.json")
 
-    this._collections = new Array<Collection>();
+    this._collections = new Array<{[key: string | number]: Collection}>();
     
   
     this._collections.push = (item:Collection):number => {
@@ -30,7 +30,7 @@ export class Dbms {
     }
   }
 
-  get Collections(): Array<Collection> {
+  get Collections(): Array<{[key: string | number]: Collection}> {
     if (this._collections.length === 0 && this._collectionsIndexFileAdaptor.fileExists()) {
       console.log("Collections() cache miss.")
       const ci = this.loadCollectionsIndexFromDisk()
