@@ -18,14 +18,11 @@ export class Dbms {
   constructor(dbmsConfig: DbmsConfig) {
     this.config = dbmsConfig;
 
-    this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "collections-index.json")
-
-
-    // if (!this._collectionsIndexFileAdaptor.dirExists()) {
-    //   throw new Error("MataDataRootath folder " + this.config.metaDataRootPath + " doesn't exist.")
-    // }
+    this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "/collections-index.json")
 
     this._collections = new Array<Collection>();
+    
+  
     this._collections.push = (item:Collection):number => {
       Array.prototype.push.call(this._collections, item)
       this.saveCollectionsIndexToDisk(this._collections)
@@ -34,11 +31,11 @@ export class Dbms {
   }
 
   get Collections(): Array<Collection> {
-    if (this._collections.length === 0) {
+    if (this._collections.length === 0 && this._collectionsIndexFileAdaptor.fileExists()) {
       console.log("Collections() cache miss.")
-      const o = this.loadCollectionsIndexFromDisk()
+      const ci = this.loadCollectionsIndexFromDisk()
       const c = new Array<Collection>();
-      o.forEach((e:CollectionPointer) => {
+      ci.forEach((e:CollectionPointer) => {
         c.push(new Collection(e.name, this))
       });
       this._collections = c;
@@ -52,17 +49,17 @@ export class Dbms {
     const collectionsIndexArray = new Array<CollectionPointer>();
 
     collections.forEach((e: Collection) => {
-      collectionsIndexArray.push({name: e.name, dirname: e.name})
+      collectionsIndexArray.push({name: e.name, reldirname: e.reldirname})
     });
 
     this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndexArray)
   }
 
   private loadCollectionsIndexFromDisk(): Array<CollectionPointer> {
-    const t = this._collectionsIndexFileAdaptor.loadFromDisk()
-    if (t === undefined) throw new Error("Collection index data load from fisk failed!")
+    const cp = this._collectionsIndexFileAdaptor.loadFromDisk()
+    if (cp === undefined) throw new Error("Collection index data load from fisk failed!")
 
-    return t
+    return cp
   }
 
 }
@@ -71,51 +68,79 @@ export class Dbms {
 export interface CollectionPointer {
   [index: string]: string,
   name: string,
-  dirname: string
+  reldirname: string
 }
 
 
 //TODO: type collections to a particular document format like json, yaml, or text so we don't have to pass the fileadapter to each document instance
 export class Collection {
   private _documents: Array<Document>;
-  private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<Document>>;
-private _dbms: Dbms;
+  private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<DocumentPointer>>;
+  private _dbms: Dbms;
+  private _fqpath:string;
   readonly name: string;
+  readonly reldirname: string; 
 
   constructor(name:string, dbms:Dbms) {
-    this.name = name;
     this._dbms = dbms;
-    this._documents = [];
-    this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "documents-index.json")
+    this.name = name;
+    this.reldirname = "/"+name;
+    this._fqpath = this._dbms.config.dataRootPath + this.reldirname
+
+    this._documents = new Array<Document>();
+    this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "/" + this.name + "-documents-index.json")
     this._documents.push = (item:Document):number => {
       Array.prototype.push.call(this._documents, item)
-      this.saveDocumentsIndexToDisk()
+      this.saveDocumentsIndexToDisk(this._documents)
       return this._documents.length
     }
+    
+    if (!fs.existsSync(this._fqpath)) {
+      fs.mkdir(this._fqpath,(error)=> {
+        if (error) throw new Error("Collection dir creation failed. Error:" + error)
+      })
+    }
+
   }
 
   get Documents(): Array<Document> {
-    if (this._documents === undefined) {
-      this._documents = this.loadDocumentsIndex()
+    if (this._documents.length === 0 && this._documentsIndexFileAdaptor.fileExists()) {
+      console.log("Dcouments() cache miss.")
+      const ci = this.loadDocumentsIndexFromDisk()
+      const c = new Array<Document>();
+      ci.forEach((e:DocumentPointer) => {
+        c.push(new Document(e.name, this._dbms, e.reldirname))
+      });
+      this._documents = c;
     }
     return this._documents
   }
 
-  saveDocumentsIndexToDisk() {
+  private saveDocumentsIndexToDisk(documents: Array<Document>) {
     console.log("saveDocumentsIndexToDisk")
-    this._documentsIndexFileAdaptor.saveToDisk(this._documents)
+
+    const documentsIndexArray = new Array<DocumentPointer>();
+
+    documents.forEach((e: Document) => {
+      documentsIndexArray.push({name: e.name, reldirname: this.reldirname, filename: e.filename})
+    });
+
+    this._documentsIndexFileAdaptor.saveToDisk(documentsIndexArray)
   }
 
-  loadDocumentsIndex(): Array<Document> {
-    //throw new Error('Method not implemented.');
-    return new Array<Document>();
+  private loadDocumentsIndexFromDisk(): Array<DocumentPointer> {
+    const cp = this._documentsIndexFileAdaptor.loadFromDisk()
+    if (cp === undefined) throw new Error("Collection index data load from fisk failed!")
+
+    return cp
   }
+
 }
 
 export interface DocumentPointer {
   [index: string]: string,
   name: string,
-  dirname: string,
+  reldirname: string,
   filename: string
 }
 
@@ -127,22 +152,28 @@ export interface DocumentPointer {
  */
 export class Document {
   private _dbms: Dbms;
-  _data: object | undefined;
-  _documentFileAdaptor: BaseFileAdaptor<object>;
+  private _data: object | undefined;
+  private _documentFileAdaptor: BaseFileAdaptor<object>;
+  private _fqpath: string;
+  private _reldirname: string;
 
   /**
    * Unique name of the document. Also the naming convention for the persisted file.
    */
   readonly name: string;
-  //readonly filename: string;
+  readonly filename: string;
 
-  constructor(name: string, dbms: Dbms, private fileAdaptor: BaseFileAdaptor<object>) {
-    
-    this.name = name;
-    //this.filename = name + ".json";
-    this._data = {}; //TODO: extend Object and figure out how to remove the data property
+  constructor(name: string, dbms: Dbms, reldirname: string) {
     this._dbms = dbms;
-    this._documentFileAdaptor = fileAdaptor;
+    this.name = name;
+    this._reldirname = reldirname
+    this.filename = "/" + name + ".json";
+    this._fqpath = this._dbms.config.dataRootPath + this._reldirname
+    this._data = {}; 
+  
+    //console.log("2: "+ this._fqpath)
+
+    this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
   }
 
   /**
@@ -154,6 +185,10 @@ export class Document {
       this._data = this._documentFileAdaptor.loadFromDisk();
     }
     return this._data;
+  }
+
+  set data(data: object | undefined) {
+    this._data = data
   }
 
   /**
@@ -168,6 +203,7 @@ export class Document {
 }
 
 
+
 /**
  * Inherit to implement file format specific adaptor classes. Example: json or yaml or Markdown + FrontMatter. 
  * Collection instances use this to manage persistance.
@@ -179,7 +215,7 @@ abstract class BaseFileAdaptor<T> {
   path: string;
 
   /**
-   * @param path fully qualified path to where `filename` will be persisted. Include leading and trailing slash `/`
+   * @param path fully qualified path to where `filename` will be persisted. Include leading slash
    * @param filename filename to load/save on disk.
    */
   constructor(path: string, filename: string) {
@@ -209,7 +245,7 @@ abstract class BaseFileAdaptor<T> {
   async saveToDisk(data: T) {
     const s: string = this.serialize(data);
     //TODO: do we need to control append vs replace content?
-    //console.log("1:"+this._fqfilename)
+    console.log("1:"+this._fqfilename)
     // if (this.fileExists(this._fqfilename)) {
 
     // }
@@ -249,17 +285,16 @@ abstract class BaseFileAdaptor<T> {
    * @param filename Check if the file exists without opening or modifiying
    * @returns `true` if exists else `false`
    */
-  private fileExists(filename: string): boolean {
-    let exists: boolean = false
-    fs.access(this.path+filename, fs.constants.F_OK, (err) => {
-      if (err) {
-        console.error(err)
-        exists = false;
-      } else {
-        exists = true;
-      }
-    })
-    return exists
+  fileExists(): boolean {
+    try {
+      fs.accessSync(this._fqfilename, fs.constants.F_OK)
+      return true;  
+    } catch (error) {
+      return false;  
+    }
+    
+    
+    
   }
 
   /**
