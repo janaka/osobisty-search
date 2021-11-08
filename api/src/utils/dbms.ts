@@ -9,7 +9,7 @@ export interface DbmsConfig {
  * Embedded Javascript database manager with persistence in any textfile based structure like JSON, YAML, MarkDown
  */
 export class Dbms {
-  private _collections: Array<{[key: string | number]: Collection}>;
+  private _collections: Map<string, Collection>;
   private _collectionsIndexFileAdaptor: JsonFileAdaptor<Array<CollectionPointer>>;
 
 
@@ -20,36 +20,36 @@ export class Dbms {
 
     this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "/collections-index.json")
 
-    this._collections = new Array<{[key: string | number]: Collection}>();
+    this._collections = new Map()
     
   
-    this._collections.push = (item:Collection):number => {
-      Array.prototype.push.call(this._collections, item)
+    this._collections.set = (key: string, value: Collection):Map<string, Collection> => {
+      this._collections = Map.prototype.set.call(this._collections, key, value)
       this.saveCollectionsIndexToDisk(this._collections)
-      return this._collections.length
+      return this._collections
     }
   }
 
-  get Collections(): Array<{[key: string | number]: Collection}> {
-    if (this._collections.length === 0 && this._collectionsIndexFileAdaptor.fileExists()) {
+  get Collections(): Map<string, Collection> {
+    if (this._collections.size === 0 && this._collectionsIndexFileAdaptor.fileExists()) {
       console.log("Collections() cache miss.")
       const ci = this.loadCollectionsIndexFromDisk()
-      const c = new Array<Collection>();
+      const c = new Map<string, Collection>();
       ci.forEach((e:CollectionPointer) => {
-        c.push(new Collection(e.name, this))
+        c.set(e.name, new Collection(e.name, this))
       });
       this._collections = c;
     }
     return this._collections
   }
 
-  private saveCollectionsIndexToDisk(collections: Array<Collection>) {
+  private saveCollectionsIndexToDisk(collections: Map<string, Collection>) {
     console.log("saveCollectionsIndexToDisk")
 
     const collectionsIndexArray = new Array<CollectionPointer>();
 
-    collections.forEach((e: Collection) => {
-      collectionsIndexArray.push({name: e.name, reldirname: e.reldirname})
+    collections.forEach((value: Collection, key: string) => {
+      collectionsIndexArray.push({name: value.name, reldirname: value.reldirname})
     });
 
     this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndexArray)
