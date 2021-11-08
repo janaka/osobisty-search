@@ -22,12 +22,20 @@ export class Dbms {
 
     this._collections = new Map()
     
-  
-    this._collections.set = (key: string, value: Collection):Map<string, Collection> => {
-      this._collections = Map.prototype.set.call(this._collections, key, value)
+    /**
+     * adds or updates an element with a specified key and a value
+     * @param key unique key
+     */
+    this.Collections.set = (key: string, value: Collection):Map<string, Collection> => {
+      console.log("_c="+this._collections.size)
+      const cc  = Map.prototype.set.call(this._collections, key, value)
+      console.log("cc="+cc.size)
+      this._collections = cc;
       this.saveCollectionsIndexToDisk(this._collections)
       return this._collections
     }
+
+    //TODO: override clear() and delete() to deal with persistence
   }
 
   get Collections(): Map<string, Collection> {
@@ -48,6 +56,7 @@ export class Dbms {
 
     const collectionsIndexArray = new Array<CollectionPointer>();
 
+    
     collections.forEach((value: Collection, key: string) => {
       collectionsIndexArray.push({name: value.name, reldirname: value.reldirname})
     });
