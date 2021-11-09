@@ -1,17 +1,18 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import joi from 'joi';
 import fs from 'fs';
+import os from 'os';
 import { URL } from 'url';
-import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../utils/dbms'
+import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../dbms/dbms'
+import { cachedDataVersionTag } from 'v8';
 const { createHash } = await import('crypto');
 
 const dbConfig: DbmsConfig = {
-  dataRootPath: "/Users/janakaabeywardhana/code-projects/osobisty-search/api/data",
-  metaDataRootPath: "/Users/janakaabeywardhana/code-projects/osobisty-search/api/metadata"
+  dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
+  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
 }
+
 const db: Dbms = new Dbms(dbConfig);
-
-
 
 interface WebClipDbSchema {
   source_content: string,
@@ -41,7 +42,7 @@ export namespace webclippings {
       tags: ['api'],
       validate: {
         payload: schemaWebclipping,
-        failAction: (request:any, h:any, err:any) => {
+        failAction: (request: any, h: any, err: any) => {
           throw err;
         }
       },
@@ -84,11 +85,22 @@ export namespace webclippings {
       //    add new clipping entry
       //    save file
 
-      const filename:string = generateClippingPageFilename(reqPayload.link)
-      const webclippagefile = new JsonFileAdaptor("ewe",filename)
+      const filename: string = generateClippingPageFilename(reqPayload.link)
 
-      db.Collections.set(filename, new Collection(filename, db))
 
+      const c = db.Collections.has("webclippings") ? db.Collections.get("webclippings") : db.Collections.add("webclippings")
+
+      let d;
+      let w: WebClipPageDbSchema | undefined;
+      if (c?.Documents.has(filename)) {
+        d = c.Documents.get(filename)
+        Object.assign(w, d?.data)
+        Object.setPrototypeOf(d?.data, w.prototype)
+      } else {
+        d = c?.Documents.add(filename)
+      }  
+        
+}
 
       res.code(200)
       return res
@@ -110,7 +122,7 @@ function generateClippingPageFilename(clippingPageUrl: string): string {
 
   hash.update(url.toString())
 
-  filename = url.hostname + "---" +  hash.digest('hex');
+  filename = url.hostname + "---" + hash.digest('hex');
   return filename
 }
 

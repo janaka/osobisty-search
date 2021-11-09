@@ -21,29 +21,36 @@ export class Dbms {
     this._collectionsIndexFileAdaptor = new JsonFileAdaptor(this.config.metaDataRootPath, "/collections-index.json")
 
     this._collections = new Map()
-    
+
     /**
-     * adds or updates an element with a specified key and a value
-     * @param key unique key
+     * Adds or updates an element with a specified key and a value
+     * @param key unique alphamumeric value. 
      */
-    this.Collections.set = (key: string, value: Collection):Map<string, Collection> => {
-      console.log("_c="+this._collections.size)
-      const cc  = Map.prototype.set.call(this._collections, key, value)
-      console.log("cc="+cc.size)
+    this.Collections.set = (key: string, value: Collection): Map<string, Collection> => {
+      if (key !== value.name) throw new Error("`key` and `Collection.name` must be the same");
+      const cc = Map.prototype.set.call(this._collections, key, value);
       this._collections = cc;
-      this.saveCollectionsIndexToDisk(this._collections)
-      return this._collections
+      this.saveCollectionsIndexToDisk(this._collections);
+      return this._collections;
     }
 
     //TODO: override clear() and delete() to deal with persistence
+
+
+    this.Collections.add = (name: string, data?: object): Collection => {
+      const c = new Collection(name, this);
+      this.Collections.set(c.name, c);
+      return c;
+    }
   }
+
 
   get Collections(): Map<string, Collection> {
     if (this._collections.size === 0 && this._collectionsIndexFileAdaptor.fileExists()) {
       console.log("Collections() cache miss.")
       const ci = this.loadCollectionsIndexFromDisk()
       const c = new Map<string, Collection>();
-      ci.forEach((e:CollectionPointer) => {
+      ci.forEach((e: CollectionPointer) => {
         c.set(e.name, new Collection(e.name, this))
       });
       this._collections = c;
@@ -56,9 +63,9 @@ export class Dbms {
 
     const collectionsIndexArray = new Array<CollectionPointer>();
 
-    
+
     collections.forEach((value: Collection, key: string) => {
-      collectionsIndexArray.push({name: value.name, reldirname: value.reldirname})
+      collectionsIndexArray.push({ name: value.name, reldirname: value.reldirname })
     });
 
     this._collectionsIndexFileAdaptor.saveToDisk(collectionsIndexArray)
@@ -86,33 +93,45 @@ export class Collection {
   private _documents: Map<string, Document>;
   private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<DocumentPointer>>;
   private _dbms: Dbms;
-  private _fqpath:string;
+  private _fqpath: string;
   readonly name: string;
-  readonly reldirname: string; 
+  readonly reldirname: string;
 
-  constructor(name:string, dbms:Dbms) {
+  constructor(name: string, dbms: Dbms) {
     this._dbms = dbms;
     this.name = name;
-    this.reldirname = "/"+name;
+    this.reldirname = "/" + name;
     this._fqpath = this._dbms.config.dataRootPath + this.reldirname
 
     this._documents = new Map();
     this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "/" + this.name + "-documents-index.json")
 
-    this.Documents.set = (key: string, value: Document):Map<string, Document> => {
-      const dd  = Map.prototype.set.call(this._documents, key, value)
+    /**
+     * Adds or updates an element with a specified key and a value
+     * @param key unique alphamumeric value. 
+     */
+    this.Documents.set = (key: string, value: Document): Map<string, Document> => {
+      if (key !== value.name) throw new Error("`key` and `Document.name` must be the same")
+      const dd = Map.prototype.set.call(this._documents, key, value)
       this._documents = dd;
+      value.save(); // persist the document
+      this.saveDocumentsIndexToDisk(this._documents);
       return this._documents
     }
 
-    // this._documents.push = (item:Document):number => {
-    //   Array.prototype.push.call(this._documents, item)
-    //   this.saveDocumentsIndexToDisk(this._documents)
-    //   return this._documents.length
+    // this.Documents.add = (document: Document): Document => {
+    //   this.Documents.set(document.name, document);
+    //   return document;
     // }
-    
+    this.Documents.add = (name: string, data?: object): Document => {
+      const d = new Document(name, this._dbms, this.reldirname);
+      if (data) d.data = data; 
+      this.Documents.set(d.name, d);
+      return d
+    }
+
     if (!fs.existsSync(this._fqpath)) {
-      fs.mkdir(this._fqpath,(error)=> {
+      fs.mkdir(this._fqpath, (error) => {
         if (error) throw new Error("Collection dir creation failed. Error:" + error)
       })
     }
@@ -124,7 +143,7 @@ export class Collection {
       console.log("Documents() cache miss.")
       const ci = this.loadDocumentsIndexFromDisk()
       const c = new Map<string, Document>();
-      ci.forEach((e:DocumentPointer) => {
+      ci.forEach((e: DocumentPointer) => {
         c.set(e.name, new Document(e.name, this._dbms, e.reldirname))
       });
       this._documents = c;
@@ -138,7 +157,7 @@ export class Collection {
     const documentsIndexArray = new Array<DocumentPointer>();
 
     documents.forEach((value: Document, key: string) => {
-      documentsIndexArray.push({name: value.name, reldirname: this.reldirname, filename: value.filename})
+      documentsIndexArray.push({ name: value.name, reldirname: this.reldirname, filename: value.filename })
     });
 
     this._documentsIndexFileAdaptor.saveToDisk(documentsIndexArray)
@@ -185,8 +204,8 @@ export class Document {
     this._reldirname = reldirname
     this.filename = "/" + name + ".json";
     this._fqpath = this._dbms.config.dataRootPath + this._reldirname
-    this._data = {}; 
-  
+    //this._data;
+
     //console.log("2: "+ this._fqpath)
 
     this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
@@ -227,7 +246,7 @@ export class Document {
 abstract class BaseFileAdaptor<T> {
   _fqfilename: string;
 
-  filename:string;
+  filename: string;
   path: string;
 
   /**
@@ -261,12 +280,12 @@ abstract class BaseFileAdaptor<T> {
   async saveToDisk(data: T) {
     const s: string = this.serialize(data);
     //TODO: do we need to control append vs replace content?
-    console.log("1:"+this._fqfilename)
+    console.log("1:" + this._fqfilename)
     // if (this.fileExists(this._fqfilename)) {
 
     // }
     fs.writeFile(this._fqfilename, s, 'utf-8', (error: any) => {
-      if (error) throw new Error("Saving failed. File: "+ this._fqfilename + "error: "+ error) 
+      if (error) throw new Error("Saving failed. File: " + this._fqfilename + "error: " + error)
     })
   }
 
@@ -279,21 +298,21 @@ abstract class BaseFileAdaptor<T> {
     try {
       const s: string = fs.readFileSync(this._fqfilename, "utf-8")
       let c: T | undefined = this.deserialize(s);
-      return c;      
+      return c;
     } catch (error) {
-      throw new Error("loadFromDisk() failed. Error: "+ error)
+      throw new Error("loadFromDisk() failed. Error: " + error)
     }
 
-      // fs.readFileSync(this._fqfilename, 'utf-8', (error: any, data: string) => {
-      //   if (!error) throw new Error("loadFromDisk() failed. Error: "+ error);
-      //   if (data) {
-      //     console.log("raw data:"+data)
-      //     c = this.deserialize(data);
-      //   }
-      // })
+    // fs.readFileSync(this._fqfilename, 'utf-8', (error: any, data: string) => {
+    //   if (!error) throw new Error("loadFromDisk() failed. Error: "+ error);
+    //   if (data) {
+    //     console.log("raw data:"+data)
+    //     c = this.deserialize(data);
+    //   }
+    // })
 
-      
-    
+
+
   }
 
   /**
@@ -304,13 +323,13 @@ abstract class BaseFileAdaptor<T> {
   fileExists(): boolean {
     try {
       fs.accessSync(this._fqfilename, fs.constants.F_OK)
-      return true;  
+      return true;
     } catch (error) {
-      return false;  
+      return false;
     }
-    
-    
-    
+
+
+
   }
 
   /**
@@ -330,10 +349,12 @@ export class JsonFileAdaptor<T> extends BaseFileAdaptor<T> {
     return JSON.stringify(data);
   }
   deserialize(data: string): T {
-    const result:T = JSON.parse(data)
+    const result: T = JSON.parse(data)
     return result
   }
 }
+
+
 
 
 // const safeJsonParse = <T>(guard: (o: any) => o is T) => 
@@ -359,7 +380,7 @@ collection.data: object
 
 collection.save
 
-collections : index 
+collections : index
 -collection : folder : fileAdaptor
 --documents : index
 ---document : file

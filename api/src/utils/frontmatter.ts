@@ -1,5 +1,7 @@
 import fs from 'fs'
 
+//TODO: makes sense to turn this into a class that handles a MD doc with FrontMatter yaml
+//TODO: create and use a fileAdaptor class to handle persistence
 
 export interface frontMatterFieldCollection { [key: string]: any }
 
