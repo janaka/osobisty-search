@@ -83,7 +83,7 @@ export interface CollectionPointer {
 
 //TODO: type collections to a particular document format like json, yaml, or text so we don't have to pass the fileadapter to each document instance
 export class Collection {
-  private _documents: Array<Document>;
+  private _documents: Map<string, Document>;
   private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<DocumentPointer>>;
   private _dbms: Dbms;
   private _fqpath:string;
@@ -96,13 +96,20 @@ export class Collection {
     this.reldirname = "/"+name;
     this._fqpath = this._dbms.config.dataRootPath + this.reldirname
 
-    this._documents = new Array<Document>();
+    this._documents = new Map();
     this._documentsIndexFileAdaptor = new JsonFileAdaptor(this._dbms.config.metaDataRootPath, "/" + this.name + "-documents-index.json")
-    this._documents.push = (item:Document):number => {
-      Array.prototype.push.call(this._documents, item)
-      this.saveDocumentsIndexToDisk(this._documents)
-      return this._documents.length
+
+    this.Documents.set = (key: string, value: Document):Map<string, Document> => {
+      const dd  = Map.prototype.set.call(this._documents, key, value)
+      this._documents = dd;
+      return this._documents
     }
+
+    // this._documents.push = (item:Document):number => {
+    //   Array.prototype.push.call(this._documents, item)
+    //   this.saveDocumentsIndexToDisk(this._documents)
+    //   return this._documents.length
+    // }
     
     if (!fs.existsSync(this._fqpath)) {
       fs.mkdir(this._fqpath,(error)=> {
@@ -112,26 +119,26 @@ export class Collection {
 
   }
 
-  get Documents(): Array<Document> {
-    if (this._documents.length === 0 && this._documentsIndexFileAdaptor.fileExists()) {
-      console.log("Dcouments() cache miss.")
+  get Documents(): Map<string, Document> {
+    if (this._documents.size === 0 && this._documentsIndexFileAdaptor.fileExists()) {
+      console.log("Documents() cache miss.")
       const ci = this.loadDocumentsIndexFromDisk()
-      const c = new Array<Document>();
+      const c = new Map<string, Document>();
       ci.forEach((e:DocumentPointer) => {
-        c.push(new Document(e.name, this._dbms, e.reldirname))
+        c.set(e.name, new Document(e.name, this._dbms, e.reldirname))
       });
       this._documents = c;
     }
     return this._documents
   }
 
-  private saveDocumentsIndexToDisk(documents: Array<Document>) {
+  private saveDocumentsIndexToDisk(documents: Map<string, Document>) {
     console.log("saveDocumentsIndexToDisk")
 
     const documentsIndexArray = new Array<DocumentPointer>();
 
-    documents.forEach((e: Document) => {
-      documentsIndexArray.push({name: e.name, reldirname: this.reldirname, filename: e.filename})
+    documents.forEach((value: Document, key: string) => {
+      documentsIndexArray.push({name: value.name, reldirname: this.reldirname, filename: value.filename})
     });
 
     this._documentsIndexFileAdaptor.saveToDisk(documentsIndexArray)
