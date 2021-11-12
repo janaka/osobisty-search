@@ -30,15 +30,6 @@ var corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
-let server: Server = Hapi.server({
-  port: PORT,
-  host: HOST,
-  debug: { request: ['error'] }
-});
-
-//app.use(cors(corsOptions));
-// Logging
-//app.use(morgan('dev'));
 const swaggerOptions: HapiSwagger.RegisterOptions = {
   info: {
       title: 'Osobisty API'
@@ -59,10 +50,23 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
 ];
 
 
+let server: Server = Hapi.server({
+  port: PORT,
+  host: HOST,
+  // debug: { request: ['error'] }
+});
+
+//app.use(cors(corsOptions));
+// Logging
+//app.use(morgan('dev'));
+
+server.route(routes)
+
 export const start = async () => {
+  
   await server.register(plugins);
-  server.route(routes)
   await server.start();
+
   console.log('Server running on %s', server.info.uri);
   
   server.table().forEach((route) => {
@@ -82,6 +86,6 @@ export const init = async () => {
 // server.route(webclippings.postRouteConfig);
 
 process.on('unhandledRejection', (error) => {
-  console.log(error);
+  console.log("unhandledRejection:"+error);
   process.exit(1);
 });

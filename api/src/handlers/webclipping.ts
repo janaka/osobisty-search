@@ -1,19 +1,19 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
-import joi from 'joi';
+import joi, { object } from 'joi';
 import fs from 'fs';
 import os from 'os';
 import { URL } from 'url';
-import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../dbms/dbms'
-import { cachedDataVersionTag } from 'v8';
-const { createHash } = await import('crypto');
-import fletcher16 from '../libs/flecher16';
+import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../dbms/dbms.js'
+
+//const { createHash } = await import('crypto');
+import fletcher16 from '../libs/flecher16.js';
 
 const dbConfig: DbmsConfig = {
   dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
   metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
 }
 
-const db: Dbms = new Dbms(dbConfig);
+
 
 interface WebClipDbSchema {
   source_content: string,
@@ -26,7 +26,15 @@ interface WebClipPageDbSchema {
   clippings: [WebClipDbSchema]
 }
 
-const schemaWebclipping = joi.object({
+interface reqSchema {
+  type: string,
+  source_content: string,
+  content: string, 
+  matched_html: string,
+  link: string 
+}
+
+const schemaWebclipping = joi.object<reqSchema>({
   type: joi.string().pattern(new RegExp('^highlight$')).example('highlight'),
   source_content: joi.string().required().description('Clipped text').example('Some text clipped from a website.'),
   content: joi.string().description('Notes related to the clipped text in `source_content`').example('Some nottes about the clipped text'),
@@ -61,10 +69,14 @@ export namespace webclippings {
     handler: (req: Request, h: ResponseToolkit) => {
 
       let res: ResponseObject;
-      console.log(req.payload)
+      
 
       try {
-        const reqPayload = JSON.parse(req.payload.toString())
+
+        const db: Dbms = new Dbms(dbConfig); // TODO: this needs to be a singleton. Move intantiation to api-server.ts
+        console.log(req.payload)
+        const reqPayload:reqSchema = req.payload as reqSchema
+        
         //const hashPageUrl = "sdhfsufosdufosuds453sfs"
         //const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
         //let t: string = JSON.stringify(content)
@@ -101,7 +113,10 @@ export namespace webclippings {
         } else {
           d = c?.Documents.add(filename)
         }
+      
         const id: string = generateClipId(reqPayload.source_content);
+//TODO: save the clippings 
+        //if (d !== undefined) {d.data = {page: , clippings: } }
         res = h.response({ message: "created", webClippingData: { id:  id} })
         res.code(200)
 
@@ -155,3 +170,5 @@ function generateClipId(clipText: string): string {
 //   const pageData: object = {};
 //   return pageData
 // }
+
+export {}

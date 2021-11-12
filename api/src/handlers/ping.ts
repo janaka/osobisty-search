@@ -11,5 +11,4 @@ export namespace ping {
       return res
     }
   }
-
 }

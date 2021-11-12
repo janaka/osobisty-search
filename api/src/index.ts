@@ -1,4 +1,4 @@
-import { start } from './libs/api-server'
+import { start } from './libs/api-server.js'
 
 
 start();
