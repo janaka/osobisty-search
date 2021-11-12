@@ -6,6 +6,7 @@ import { URL } from 'url';
 import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../dbms/dbms'
 import { cachedDataVersionTag } from 'v8';
 const { createHash } = await import('crypto');
+import fletcher16 from '../libs/flecher16';
 
 const dbConfig: DbmsConfig = {
   dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
@@ -51,7 +52,7 @@ export namespace webclippings {
         schema: joi.object({
           message: joi.string().pattern(new RegExp('^created$')).example('created'),
           webClippingData: joi.object({
-            id: joi.string().guid().example('aba37142-384f-11ec-8d3d-0242ac130003')
+            id: joi.string().example('08234939')
           })
         }).label('webClippingResponse')
       }
@@ -59,50 +60,56 @@ export namespace webclippings {
 
     handler: (req: Request, h: ResponseToolkit) => {
 
-      const res: ResponseObject = h.response({ message: "created", webClippingData: { id: 'aba37142-384f-11ec-8d3d-0242ac130003' } })
+      let res: ResponseObject;
       console.log(req.payload)
 
-      const reqPayload = JSON.parse(req.payload.toString())
-      //const hashPageUrl = "sdhfsufosdufosuds453sfs"
-      //const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
-      //let t: string = JSON.stringify(content)
-      //const fmSection:string = serialiseFrontMatter(frontMatterFields)
-      //const t:string  = fmSection + content 
+      try {
+        const reqPayload = JSON.parse(req.payload.toString())
+        //const hashPageUrl = "sdhfsufosdufosuds453sfs"
+        //const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
+        //let t: string = JSON.stringify(content)
+        //const fmSection:string = serialiseFrontMatter(frontMatterFields)
+        //const t:string  = fmSection + content 
 
-      // fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
-      //   if (err) throw err
-      // })
+        // fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
+        //   if (err) throw err
+        // })
 
-      // if file for URL doesn't exit 
-      //    filename = domain + - + hash of URL
-      // create json file 
-      //    one json file per web page
-      //    filename = domain + - + hash of URL
-      //    {pageUrl: '',
-      //     clippings: []     
-      //      }
-      // else read the file as json
-      //    add new clipping entry
-      //    save file
+        // if file for URL doesn't exit 
+        //    filename = domain + - + hash of URL
+        // create json file 
+        //    one json file per web page
+        //    filename = domain + - + hash of URL
+        //    {pageUrl: '',
+        //     clippings: []     
+        //      }
+        // else read the file as json
+        //    add new clipping entry
+        //    save file
 
-      const filename: string = generateClippingPageFilename(reqPayload.link)
+        const filename: string = generateClippingPageFilename(reqPayload.link)
 
 
-      const c = db.Collections.has("webclippings") ? db.Collections.get("webclippings") : db.Collections.add("webclippings")
+        const c = db.Collections.has("webclippings") ? db.Collections.get("webclippings") : db.Collections.add("webclippings")
 
-      let d;
-      let w: WebClipPageDbSchema | undefined;
-      if (c?.Documents.has(filename)) {
-        d = c.Documents.get(filename)
-        Object.assign(w, d?.data)
-        Object.setPrototypeOf(d?.data, w.prototype)
-      } else {
-        d = c?.Documents.add(filename)
-      }  
-        
-}
+        let d;
+        let w: WebClipPageDbSchema | undefined;
+        if (c?.Documents.has(filename)) {
+          d = c.Documents.get(filename)
+          Object.assign(w, d?.data)
+          //Object.setPrototypeOf(d?.data, w.prototype)
+        } else {
+          d = c?.Documents.add(filename)
+        }
+        const id: string = generateClipId(reqPayload.source_content);
+        res = h.response({ message: "created", webClippingData: { id:  id} })
+        res.code(200)
 
-      res.code(200)
+      } catch (error) {
+        console.error(error)
+        res = h.response({ message: "error"})
+        res.code(500)
+      }
       return res
     }
   }
@@ -118,12 +125,30 @@ function generateClippingPageFilename(clippingPageUrl: string): string {
   //filename = domain + --- + hash of URL
   const url = new URL(clippingPageUrl)
 
-  const hash = createHash('sha256')
+  //const hash = createHash('sha256')
+  //hash.update(url.toString())
+  const b: Buffer = Buffer.from(url.toString(), 'utf-8')
 
-  hash.update(url.toString())
+  const hash = fletcher16(b)
 
-  filename = url.hostname + "---" + hash.digest('hex');
+  filename = url.hostname + "---" + hash.toString();
   return filename
+}
+
+/**
+ * 
+ * @param clipText 
+ * @returns clipId generated using the Flecher16 checksum algo
+ */
+function generateClipId(clipText: string): string {
+  const b: Buffer = Buffer.from(clipText, 'utf-8')
+
+  const id = fletcher16(b)
+  //const hash = createHash('sha256');
+
+  //hash.update(clipText)
+  //const id: string = hash.digest('hex');
+  return id.toString();
 }
 
 // function loadClippingPageDataFile(clippingPageUrl: string): object {
