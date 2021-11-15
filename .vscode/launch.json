@@ -1,0 +1,39 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "pwa-node",
+      "request": "launch",
+      "name": "Launch Program",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "program": "${workspaceFolder}/api/tests/routes/webclippings.test.ts",
+      "outFiles": [
+        "${workspaceFolder}/**/*.js"
+      ]
+    },
+    {
+      "name": "Debug Jest Tests",
+      "type": "node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/api",
+      "env": {"NODE_OPTIONS":"--experimental-vm-modules"},
+      "runtimeArgs": [
+        "--inspect-brk",
+        "${workspaceRoot}/api/node_modules/.bin/jest",
+        "--runInBand"
+      ],
+      "program": "${workspaceFolder}/api/tests/routes/webclippings.test.ts",
+      "outFiles": [
+        "${workspaceFolder}/api/build/**/*.js"
+      ],
+      "console": "integratedTerminal",
+      "internalConsoleOptions": "neverOpen",
+      "port": 9229
+    }
+  ]
+}
