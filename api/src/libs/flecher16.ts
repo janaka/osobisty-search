@@ -18,17 +18,33 @@ IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 // https://github.com/jb55/fletcher
+// https://en.wikipedia.org/wiki/Fletcher%27s_checksum
 
-export default function fletcher16(buf: Buffer) {
+/**
+ * Fletcher-16 checksum algo. https://en.wikipedia.org/wiki/Fletcher%27s_checksum
+ * @param {Buffer} data - data to generate the checksum against. E.g. chunk of text converted to a buffer.
+ * @returns {number} checksum
+ * 
+ * ```
+ * function generateIdFromText(text: string): string {
+      const b: Buffer = Buffer.from(text, 'utf-8')
+
+      const id = fletcher16(b)
+
+      return id.toString();
+  }
+  ```
+ */
+export default function fletcher16(data: Buffer): number {
   var sum1 = 0xff, sum2 = 0xff;
   var i = 0;
-  var len = buf.length;
+  var len = data.length;
 
   while (len) {
     var tlen = len > 20 ? 20 : len;
     len -= tlen;
     do {
-      sum2 += sum1 += buf[i++];
+      sum2 += sum1 += data[i++];
     } while (--tlen);
     sum1 = (sum1 & 0xff) + (sum1 >> 8);
     sum2 = (sum2 & 0xff) + (sum2 >> 8);
@@ -37,5 +53,4 @@ export default function fletcher16(buf: Buffer) {
   sum1 = (sum1 & 0xff) + (sum1 >> 8);
   sum2 = (sum2 & 0xff) + (sum2 >> 8);
   return sum2 << 8 | sum1;
-
 }
