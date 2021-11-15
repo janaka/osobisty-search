@@ -1,5 +1,6 @@
 import { init } from '../../src/libs/api-server'
 import Hapi, { ServerInjectResponse } from '@hapi/hapi';
+import { ServerResponse } from 'http';
 
 describe('POST/webclipping handler', () => {
 
@@ -20,17 +21,20 @@ describe('POST/webclipping handler', () => {
       url: '/webclippings',
       payload: {
         source_content: "some selected text",
-        link: "http://www.somelegiturl.com/blablapage"
+        page_url: "http://www.somelegiturl.com/blablapage"
       }
     };
 
     Server.inject(options).then((response: ServerInjectResponse) => {
-
+      
       try {
         expect(response.statusCode).toBe(200);
-        expect(response.result).toBeInstanceOf(Object);
+
+        type restype = { message: "created", webClippingData: { clipId: string, clipPageId: string }}  
+        expect(response.result).toMatchObject<restype>({ message: "created", webClippingData: { clipId: "37897", clipPageId: "57004" }} );
         done();
       } catch (error) {
+        //console.error(error);
         done(error);
       }
     })

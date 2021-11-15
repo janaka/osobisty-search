@@ -1,4 +1,5 @@
 import fs, { cp } from 'fs';
+import { getNodeMajorVersion } from 'typescript';
 
 export interface DbmsConfig {
   dataRootPath: string;
@@ -230,8 +231,11 @@ export class Document {
    * Persist changes to file on disk
    */
   async save() {
-    if (this._data != undefined) {
+    if (this._data !== undefined) {
       this._documentFileAdaptor.saveToDisk(this._data)
+      console.log("`Document.save() fired`")
+    } else {
+      console.log("`data` property is `undefined` so nothing saved to disk")
     }
   }
 
@@ -280,13 +284,14 @@ abstract class BaseFileAdaptor<T> {
   async saveToDisk(data: T) {
     const s: string = this.serialize(data);
     //TODO: do we need to control append vs replace content?
-    console.log("1:" + this._fqfilename)
+    
     // if (this.fileExists(this._fqfilename)) {
 
     // }
     fs.writeFile(this._fqfilename, s, 'utf-8', (error: any) => {
-      if (error) throw new Error("Saving failed. File: " + this._fqfilename + "error: " + error)
+      if (error) throw new Error("BaseFileAdaptor.saveToDisk() saving failed. Filename: " + this._fqfilename + " " + error)
     })
+    console.log("BaseFileAdaptor.saveToDisk() saved successfully. Filename: " + this._fqfilename)
   }
 
   /**
@@ -300,7 +305,13 @@ abstract class BaseFileAdaptor<T> {
       let c: T | undefined = this.deserialize(s);
       return c;
     } catch (error) {
-      throw new Error("loadFromDisk() failed. Error: " + error)
+      const e = error as NodeJS.ErrnoException
+      if (e.code==="ENOENT") { 
+        console.log("BaseFileAdaptor.loadFromDisk() file doesn't exist so returning `undefined`. Likely legit. " + error)
+        return undefined
+      } else {
+        throw new Error("BaseFileAdaptor.loadFromDisk() failed. " + error)
+      }
     }
 
     // fs.readFileSync(this._fqfilename, 'utf-8', (error: any, data: string) => {

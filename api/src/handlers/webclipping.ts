@@ -3,43 +3,48 @@ import joi, { object } from 'joi';
 import fs from 'fs';
 import os from 'os';
 import { URL } from 'url';
-import { Dbms, DbmsConfig, Collection, JsonFileAdaptor } from '../dbms/dbms.js'
+import { Dbms, DbmsConfig, Collection, Document, JsonFileAdaptor } from '../dbms/dbms.js'
 
 //const { createHash } = await import('crypto');
 import fletcher16 from '../libs/flecher16.js';
+import { O_DSYNC } from 'constants';
+
 
 const dbConfig: DbmsConfig = {
+  // TODO: move these paths into  config / .env
   dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
   metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
 }
 
 
 
-interface WebClipDbSchema {
-  source_content: string,
-  notes_content: string,
-  source_html: string,
-}
+//TODO: repository layer - move DB schema out when used by a second handler
+
 interface WebClipPageDbSchema {
   id: string,
   page_url: string,
-  clippings: [WebClipDbSchema]
+  clippings: Array<WebClipDbSchema>
+}
+
+interface WebClipDbSchema {
+  id: string,
+  source_content: string, // plain text
+  notes_content: string,
+  source_content_html: string,
 }
 
 interface reqSchema {
-  type: string,
   source_content: string,
-  content: string, 
+  notes_content: string,
   matched_html: string,
-  link: string 
+  page_url: string
 }
 
 const schemaWebclipping = joi.object<reqSchema>({
-  type: joi.string().pattern(new RegExp('^highlight$')).example('highlight'),
   source_content: joi.string().required().description('Clipped text').example('Some text clipped from a website.'),
-  content: joi.string().description('Notes related to the clipped text in `source_content`').example('Some nottes about the clipped text'),
+  notes_content: joi.string().description('Notes related to the clipped text in `source_content`').example('Some nottes about the clipped text'),
   matched_html: joi.string().base64().description('The clipped `source_content` including any innerHTML base64 encoded. Makes highlighting easier on next page viist'),
-  link: joi.string().uri({ scheme: ['http', 'https', 'kindle'] }).required().description('URi of the page the text was clipped from').example('https://www.google.com')
+  page_url: joi.string().uri({ scheme: ['http', 'https', 'kindle'] }).required().description('URi of the page the text was clipped from').example('https://www.google.com')
 }).label('webclipping')
 
 export namespace webclippings {
@@ -52,7 +57,8 @@ export namespace webclippings {
       validate: {
         payload: schemaWebclipping,
         failAction: (request: any, h: any, err: any) => {
-          throw err;
+          console.error(err);
+          throw new Error(err);
         }
       },
 
@@ -60,7 +66,8 @@ export namespace webclippings {
         schema: joi.object({
           message: joi.string().pattern(new RegExp('^created$')).example('created'),
           webClippingData: joi.object({
-            id: joi.string().example('08234939')
+            clipId: joi.string().description("Unique ID for the page generated using the clip text").example('08234939'),
+            clipPageId: joi.string().description("Unique ID for the page generated using the page URL").example('29384748')
           })
         }).label('webClippingResponse')
       }
@@ -69,60 +76,60 @@ export namespace webclippings {
     handler: (req: Request, h: ResponseToolkit) => {
 
       let res: ResponseObject;
-      
 
       try {
 
         const db: Dbms = new Dbms(dbConfig); // TODO: this needs to be a singleton. Move intantiation to api-server.ts
         console.log(req.payload)
-        const reqPayload:reqSchema = req.payload as reqSchema
-        
-        //const hashPageUrl = "sdhfsufosdufosuds453sfs"
-        //const fqFilePath = os.homedir + "/code-projects/osobisty-search/api/data/highlights/" + hashPageUrl + ".json"
-        //let t: string = JSON.stringify(content)
-        //const fmSection:string = serialiseFrontMatter(frontMatterFields)
-        //const t:string  = fmSection + content 
+        const reqPayload: reqSchema = req.payload as reqSchema
 
-        // fs.writeFile(fqFilePath, t, "utf-8", (err: any) => {
-        //   if (err) throw err
-        // })
+        const clipPageId: string = generateIdFromText(new URL(reqPayload.page_url).toString()).toString()
+        const filename: string = generateClippingPageFilename(clipPageId, reqPayload.page_url)
 
-        // if file for URL doesn't exit 
-        //    filename = domain + - + hash of URL
-        // create json file 
-        //    one json file per web page
-        //    filename = domain + - + hash of URL
-        //    {pageUrl: '',
-        //     clippings: []     
-        //      }
-        // else read the file as json
-        //    add new clipping entry
-        //    save file
+        const webPageCollection = db.Collections.has("webclippings") ? db.Collections.get("webclippings") : db.Collections.add("webclippings")
+        if (webPageCollection === undefined) throw new Error("collection has() check pass but returned undefined. Possible data or index curruption?")
 
-        const filename: string = generateClippingPageFilename(reqPayload.link)
-
-
-        const c = db.Collections.has("webclippings") ? db.Collections.get("webclippings") : db.Collections.add("webclippings")
-
-        let d;
-        let w: WebClipPageDbSchema | undefined;
-        if (c?.Documents.has(filename)) {
-          d = c.Documents.get(filename)
-          Object.assign(w, d?.data)
+        let doc: Document | undefined;
+        let webPage: WebClipPageDbSchema = {id:"0", page_url:"-", clippings: new Array<WebClipDbSchema>()};
+        if (webPageCollection.Documents.has(filename)) {
+          doc = webPageCollection.Documents.get(filename)
+          if (doc === undefined) throw new Error("doc has() check passed but doc undefiend. Possible data or index corruption")
           //Object.setPrototypeOf(d?.data, w.prototype)
+          
+          console.log("doc exists")
         } else {
-          d = c?.Documents.add(filename)
+          doc = webPageCollection.Documents.add(filename)
+          console.log("doc does NOT exist")
         }
-      
-        const id: string = generateClipId(reqPayload.source_content);
-//TODO: save the clippings 
-        //if (d !== undefined) {d.data = {page: , clippings: } }
-        res = h.response({ message: "created", webClippingData: { id:  id} })
+
+        if (doc.data === undefined) {
+          // if the doc exists in the DB but empty.
+          webPage.id = clipPageId
+          webPage.page_url = reqPayload.page_url
+        } else {
+          webPage = doc.data as WebClipPageDbSchema
+        }
+
+        const clipId: string = generateIdFromText(reqPayload.source_content).toString() // generateClipId(reqPayload.source_content);
+
+        const index = webPage.clippings.findIndex(i => i.id === clipId)
+        if (index > -1) {
+          webPage.clippings[index].notes_content = reqPayload.notes_content
+          webPage.clippings[index].source_content = reqPayload.source_content
+          webPage.clippings[index].source_content_html = reqPayload.matched_html
+        } else {
+          webPage.clippings.push({id: clipId, source_content: reqPayload.source_content, notes_content: reqPayload.notes_content, source_content_html: reqPayload.matched_html})
+        }
+        
+        doc.data = webPage
+        doc.save();
+
+        res = h.response({ message: "created", webClippingData: { clipId: clipId, clipPageId: clipPageId }})
         res.code(200)
 
       } catch (error) {
         console.error(error)
-        res = h.response({ message: "error"})
+        res = h.response({ message: "error" })
         res.code(500)
       }
       return res
@@ -131,44 +138,43 @@ export namespace webclippings {
 }
 
 /**
- * 
- * @param clippingPageUrl 
+ * Generate the filename given the URL. This should generate the same results given the same URL.
+ * @param {string} clippingPageId - unique ID for the page
+ * @param {string} clippingPageUrl - 
  * @returns filename = domain + --- + hash of URL
  */
-function generateClippingPageFilename(clippingPageUrl: string): string {
-  let filename = "";
+function generateClippingPageFilename(clippingPageId: string, clippingPageUrl: string): string {
   //filename = domain + --- + hash of URL
   const url = new URL(clippingPageUrl)
 
-  //const hash = createHash('sha256')
-  //hash.update(url.toString())
-  const b: Buffer = Buffer.from(url.toString(), 'utf-8')
-
-  const hash = fletcher16(b)
-
-  filename = url.hostname + "---" + hash.toString();
+  const filename = url.hostname + "---" + clippingPageId;
   return filename
 }
 
+
+
+
+// /**
+//  * 
+//  * @param clipText 
+//  * @returns clipId generated using the Flecher16 checksum algo
+//  */
+// function generateClipId(clipText: string): string {
+//   return ;
+// }
+
 /**
- * 
- * @param clipText 
- * @returns clipId generated using the Flecher16 checksum algo
+ * Generate an ID from some text using a checksum algo. Givem the same text the same ID will be generated.
+ * @param text any chunk of text to generate an ID from
+ * @returns Id generated using the Flecher16 checksum algo
  */
-function generateClipId(clipText: string): string {
-  const b: Buffer = Buffer.from(clipText, 'utf-8')
+//TODO: - verify the regeneration and uniqueness assumption
+function generateIdFromText(text: string): string {
+  const b: Buffer = Buffer.from(text, 'utf-8')
 
   const id = fletcher16(b)
-  //const hash = createHash('sha256');
 
-  //hash.update(clipText)
-  //const id: string = hash.digest('hex');
   return id.toString();
 }
 
-// function loadClippingPageDataFile(clippingPageUrl: string): object {
-//   const pageData: object = {};
-//   return pageData
-// }
-
-export {}
+export { }
