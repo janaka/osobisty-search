@@ -27,7 +27,7 @@
         "${workspaceRoot}/api/node_modules/.bin/jest",
         "--runInBand"
       ],
-      "program": "${workspaceFolder}/api/tests/routes/webclippings.test.ts",
+      "program": "${workspaceFolder}/api/tests/routes/",
       "outFiles": [
         "${workspaceFolder}/api/build/**/*.js"
       ],

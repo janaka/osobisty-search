@@ -1,11 +1,12 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
-import joi, { object } from 'joi';
+import joi, { object, ValidationError } from 'joi';
 import fs from 'fs';
 import os from 'os';
-import { URL } from 'url';
 import { Dbms, DbmsConfig, Collection, Document, JsonFileAdaptor } from '../dbms/dbms.js'
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { WebClipPageDbSchema, WebClipDbSchema } from './webclippageDBSchema.js';
+import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';
+import { URL } from 'url';
 
 const dbConfig: DbmsConfig = {
   // TODO: move these paths into  config / .env
@@ -36,12 +37,14 @@ const schemaWebclipping = joi.object<reqSchema>({
       tags: ['api'],
       validate: {
         payload: schemaWebclipping,
-        failAction: (request: any, h: any, err: any) => {
-          console.error(err);
-          throw new Error(err);
+        failAction: (request: Request, h: ResponseToolkit, err: any) => {
+          console.error("request "+err);
+          console.error("request payload: " + JSON.stringify(request.payload))
+          //throw new Error("request validation error: " + err);
+          throw err
+        // note: if you `throw new Error()` here it overrides the resopone with a generic 500
         }
       },
-
       response: {
         schema: joi.object({
           message: joi.string().pattern(new RegExp('^created$')).example('created'),
@@ -49,8 +52,13 @@ const schemaWebclipping = joi.object<reqSchema>({
             clipId: joi.string().description("Unique ID for the page generated using the clip text").example('08234939'),
             clipPageId: joi.string().description("Unique ID for the page generated using the page URL").example('29384748')
           })
-        }).label('webClippingResponse')
-      }
+        }).label('webClippingResponse'),
+        failAction: 'error'
+        // failAction: (request: any, h: any, err: any) => {
+        //   console.error("response "+err);
+        //   throw err;
+        // }
+      },
     },
 
     handler: (req: Request, h: ResponseToolkit) => {
@@ -60,7 +68,7 @@ const schemaWebclipping = joi.object<reqSchema>({
       try {
 
         const db: Dbms = new Dbms(dbConfig); // TODO: this needs to be a singleton. Move intantiation to api-server.ts
-        console.log(req.payload)
+        //console.log(req.payload)
         const reqPayload: reqSchema = req.payload as reqSchema
 
         const clipPageId: string = generateIdFromText(new URL(reqPayload.page_url).toString()).toString()
@@ -70,7 +78,7 @@ const schemaWebclipping = joi.object<reqSchema>({
         if (webPageCollection === undefined) throw new Error("collection has() check pass but returned undefined. Possible data or index curruption?")
 
         let doc: Document | undefined;
-        let webPage: WebClipPageDbSchema = {id:"0", page_url:"-", clippings: new Array<WebClipDbSchema>()};
+          let webPage: WebClipPageDbSchema = {id:"0", page_url:"-", clippings: []};
         if (webPageCollection.Documents.has(filename)) {
           doc = webPageCollection.Documents.get(filename)
           if (doc === undefined) throw new Error("doc has() check passed but doc undefiend. Possible data or index corruption")
@@ -108,27 +116,15 @@ const schemaWebclipping = joi.object<reqSchema>({
         res.code(200)
 
       } catch (error) {
-        console.error(error)
-        res = h.response({ message: "error" })
-        res.code(500)
+        console.error("catch all error handler: " + error)
+        
+          res = h.response({ message: "error" })
+          res.code(500)
       }
       return res
     }
   }
 
-/**
- * Generate the filename given the URL. This should generate the same results given the same URL.
- * @param {string} clippingPageId - unique ID for the page
- * @param {string} clippingPageUrl - 
- * @returns filename = domain + --- + hash of URL
- */
-function generateClippingPageFilename(clippingPageId: string, clippingPageUrl: string): string {
-  //filename = domain + --- + hash of URL
-  const url = new URL(clippingPageUrl)
-
-  const filename = url.hostname + "---" + clippingPageId;
-  return filename
-}
 
 
 

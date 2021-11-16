@@ -30,9 +30,11 @@ var corsOptions = {
   optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
 }
 
+const version = process.env.npm_package_version;
 const swaggerOptions: HapiSwagger.RegisterOptions = {
   info: {
-      title: 'Osobisty API'
+      title: 'Osobisty API',
+      version: version
   }
 };
 

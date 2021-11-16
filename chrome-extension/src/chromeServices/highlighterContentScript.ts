@@ -1,4 +1,4 @@
-import { DOMMessage, DOMMessageResponse } from '../types';
+
 import { generateHighlightMarkup } from './utils'
 
 
@@ -80,7 +80,7 @@ const onReceiveMesssage = (
     if (msg.command === "clipSelection") {
         const sel = window.getSelection()?.toString();
         if (sel) {
-            sendResponse({selectedText: sel, link: window.location.href.toString()})
+            sendResponse({selectedText: sel, page_url: window.location.href.toString()})
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
