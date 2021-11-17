@@ -57,22 +57,22 @@ const clipSelectionMenuItemHandler = (tab: any) => {
 }
 
 const clipLoadMenuItemHandler = (tab: any) => {
-  chrome.tabs.sendMessage(tab.id, { command: "clipLoad" }, (response) => {
+  chrome.tabs.sendMessage(tab.id, { command: "sendClipPageUrl" }, (response) => {
     console.log("clipLoad resp: ");
     console.log(response);
     try {
       const api = new Api()
 
-      api.webclippings.getWebclippings(response.page_url)
+      api.webclippings.getWebclippings({page_url: response.page_url})
         .then(response => response.json())
         .then((data: WebClippingsResponse) => {
           console.log("get resp ")
           console.log(data.webClippingData)
-          // once saved, tell the content script to highlight the selection
+          // send the data to the content script asking it to highlight on the webpage
           chrome.tabs.sendMessage(tab.id, { command: "highlightClips", data: data.webClippingData }, (response) => { })
         })
         .catch((error) => {
-          console.error("Error calling `api.webclippings.postWebclippings()`")
+          console.error("Error calling `api.webclippings.getWebclippings()`")
           console.error(error)
         })
     } catch (error) {
@@ -111,7 +111,7 @@ chrome.runtime.onInstalled.addListener(function () {
     id: 'jhs7292jdj0s32ssk3',
     title: 'Osobisty Load Page Clips',
     type: 'normal',
-    contexts: ['selection'],
+    contexts: ['page'],
   });
 });
 

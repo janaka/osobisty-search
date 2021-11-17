@@ -42,11 +42,11 @@ export const getRouteConfigWebclippings: ServerRoute = {
     tags: ['api'],
     validate: {
       query: joi.object({
-        page_url: joi.string().max(2000) //joi.string().min(4).max(8).description("ID of a web clip page")
+        page_url: joi.string().max(2000).description("Url safe encoded URL") //joi.string().min(4).max(8).description("ID of a web clip page")
       }),
       failAction: (request: any, h: any, err: any) => {
         console.error(err);
-        throw new Error(err);
+        throw err;
       }
     },
 
@@ -64,7 +64,10 @@ export const getRouteConfigWebclippings: ServerRoute = {
           })
         })
       }).label('webClippingsResponse'),
-      failAction: "log"
+      failAction: (request: any, h: any, err: any) => {
+        console.error(err);
+        throw err;
+      }
     }
   },
 

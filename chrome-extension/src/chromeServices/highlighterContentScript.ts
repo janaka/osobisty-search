@@ -1,9 +1,9 @@
-
 import { ClipHighlight } from './ClipHighlight'
+import { WebClippingData } from '../client-libs/osobisty-client'
 
-const doHighlight = async function (selectedText: string, webclippingId?: string): Promise<ClipHighlight> {
+const doHighlight = async function (selectedText: string, clipId?: string): Promise<ClipHighlight> {
 
-    //const sel = selectedText //window.getSelection()
+    //const sel = selectedText //window.getSelection(
 
     const promise = new Promise<ClipHighlight>((resolve, reject) => {
         console.log("mouseup event: " + selectedText?.toString())
@@ -15,11 +15,11 @@ const doHighlight = async function (selectedText: string, webclippingId?: string
             console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
             //TODO: split on linebreak to match across paragraphs
 
-            let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+            const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
             //let highlightNotFound: boolean = true;
             //let lastHightlightObj: any;
 
-            const clipHighlight = new ClipHighlight(selectedText,pElCollection)
+            const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId)
             // for (let i = 0; i < pElCollection.length; i++) {
             //     const pEl = pElCollection[i];
 
@@ -41,6 +41,7 @@ const doHighlight = async function (selectedText: string, webclippingId?: string
 
                 reject(new Error("`@selectedText` couldn't be found in HTML."))
             } else {
+                //clipHighlight.applyHighlight()
                 resolve(clipHighlight)
             }
         } else {
@@ -59,33 +60,63 @@ const undoHighlight = function (event: MouseEvent) {
 
 
 
-const onReceiveMesssage = (
+const onReceiveMesssage = async (
     msg: any,
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: any) => void) => {
 
     if (msg.command === "highlightSelection") {
+        console.log("handling cmd="+msg.command)
         const sel = window.getSelection()?.toString();
         if (sel) {
             console.log(msg)
             console.log(msg.data.clipId)
-            doHighlight(sel, msg.data.clipId);
+            const clipHighlight = await doHighlight(sel, msg.data.clipId);
+            clipHighlight.applyHighlight()
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
     }
 
     if (msg.command === "clipSelection") {
-        const sel = window.getSelection()?.toString();
-        if (sel) {
+        console.log("handling cmd="+msg.command)
+        const selectedText = window.getSelection()?.toString();
+        if (selectedText) {
+            
             sendResponse({
-                selectedText: sel,
-                page_url: window.location.href.toString()
-                //selectedTextHtml: 
+                selectedText: selectedText,
+                page_url: window.location.href.toString(),
             })
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
+    }
+
+
+    
+    if (msg.command === "sendClipPageUrl") {
+        console.log("handling cmd="+msg.command)
+        sendResponse({
+            page_url: encodeURIComponent(window.location.href.toString())
+        })
+    }
+
+    if (msg.command === "highlightClips") {
+        console.log("handling cmd="+msg.command)
+        const clipData: WebClippingData = msg.data;
+        console.log(msg)
+        if (clipData.clippings) {
+            const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+            clipData.clippings.forEach(clip => {
+                if (clip.source_content) {
+                    const clipHighlight = new ClipHighlight(clip.source_content, pElCollection, clip.id) 
+                    if (clipHighlight.highlightMatchFound) {
+                        clipHighlight.applyHighlight()
+                    }
+                }
+            });
+        }
+
     }
 }
 

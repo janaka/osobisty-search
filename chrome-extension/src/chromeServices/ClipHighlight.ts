@@ -79,6 +79,11 @@ private _highlightedHtml: string | null;
    * Replaces the innerHTML property of the respective element with the value of {@link ClipHighlight.highlightedHtml}
    */
   applyHighlight() {
+    if (this.highlightMatchFound && this.RegExpMatchedHtmlElement && this.highlightedHtml) {
+      this.RegExpMatchedHtmlElement.innerHTML = this.highlightedHtml
+    } else {
+      throw new Error("ClipHighlight.applyHighlight() - cannot apply highlight because no match was found or RegExpMatchedHtmlElement is null or highlightedHtml is null")
+    }
 
   }
 
