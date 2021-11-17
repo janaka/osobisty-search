@@ -25,6 +25,6 @@
   },
   "include": [
     "src",
-    "src/chromeServices/highlighterContentScript.test.ts"
+    "src/chromeServices/*.test.ts"
   ]
 }

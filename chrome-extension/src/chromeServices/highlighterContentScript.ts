@@ -1,49 +1,47 @@
 
-import { generateHighlightMarkup, highlightMarkupResult } from './utils'
+import { ClipHighlight } from './ClipHighlight'
 
+const doHighlight = async function (selectedText: string, webclippingId?: string): Promise<ClipHighlight> {
 
+    //const sel = selectedText //window.getSelection()
 
+    const promise = new Promise<ClipHighlight>((resolve, reject) => {
+        console.log("mouseup event: " + selectedText?.toString())
 
-const doHighlight = async function (selectedText: string, webclippingId?: string): Promise<highlightMarkupResult> {
+        if (selectedText != null && selectedText.toString().length > 0) {
 
-    const sel = selectedText //window.getSelection()
+            let highlightText: string = selectedText != null ? selectedText.toString() : ""
 
-    const promise = new Promise<highlightMarkupResult>((resolve, reject) => {
-        console.log("mouseup event: " + sel?.toString())
-
-        if (sel != null && sel.toString().length > 0) {
-
-            let highlightText: string = sel != null ? sel.toString() : ""
-
-            console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
+            console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
             //TODO: split on linebreak to match across paragraphs
 
             let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
-            let highlightNotFound: boolean = true;
-            let lastHightlightObj: any;
+            //let highlightNotFound: boolean = true;
+            //let lastHightlightObj: any;
 
-            for (let i = 0; i < pElCollection.length; i++) {
-                const pEl = pElCollection[i];
+            const clipHighlight = new ClipHighlight(selectedText,pElCollection)
+            // for (let i = 0; i < pElCollection.length; i++) {
+            //     const pEl = pElCollection[i];
 
-                const highlightObj: highlightMarkupResult = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
+            //     const highlightObj: highlightMarkupResult = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
 
-                if (highlightObj.highlightMatchFound) {
-                    highlightNotFound = false;
-                    pEl.innerHTML = highlightObj.highlightedHtml
-                    break
-                }
-                lastHightlightObj = highlightObj
-            }
+            //     if (highlightObj.highlightMatchFound) {
+            //         highlightNotFound = false;
+            //         pEl.innerHTML = highlightObj.highlightedHtml
+            //         break
+            //     }
+            //     lastHightlightObj = highlightObj
+            // }
 
-            if (highlightNotFound) {
+            if (!clipHighlight.highlightMatchFound) {
                 console.log("highlight match didn't work, not found")
-                console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
-                console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
-                console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
+                console.log("highlight regex: " + clipHighlight.highlightRegExObj)
+                console.log("highlight text escaped: " + clipHighlight.highlightTextEscaped)
+                console.log("innerHtml: " + clipHighlight.highlightedHtml)
 
                 reject(new Error("`@selectedText` couldn't be found in HTML."))
             } else {
-                resolve(lastHightlightObj)
+                resolve(clipHighlight)
             }
         } else {
             reject(new Error("`@selectedText` was null or empty"))
