@@ -1,55 +1,55 @@
 
-import { generateHighlightMarkup } from './utils'
+import { generateHighlightMarkup, highlightMarkupResult } from './utils'
 
 
 
 
-const doHighlight = async function (selectedText: string, webclippingId?:string) {
+const doHighlight = async function (selectedText: string, webclippingId?: string): Promise<highlightMarkupResult> {
 
     const sel = selectedText //window.getSelection()
 
-    console.log("mouseup event: " + sel?.toString())
+    const promise = new Promise<highlightMarkupResult>((resolve, reject) => {
+        console.log("mouseup event: " + sel?.toString())
 
-    if (sel != null && sel.toString().length > 0) {
-        let highlightText: string = sel != null ? sel.toString() : ""
+        if (sel != null && sel.toString().length > 0) {
 
-        console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
-        //TODO: split on linebreak to match across paragraphs
+            let highlightText: string = sel != null ? sel.toString() : ""
 
-        let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
-        let highlightNotFound: boolean = true;
-        let lastHightlightObj: any;
+            console.log("mouseup event: sel?.toString():" + sel?.toString() + " highlightText:" + highlightText)
+            //TODO: split on linebreak to match across paragraphs
 
-        for (let i = 0; i < pElCollection.length; i++) {
-            const pEl = pElCollection[i];
+            let pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+            let highlightNotFound: boolean = true;
+            let lastHightlightObj: any;
 
-            const highlightObj = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
+            for (let i = 0; i < pElCollection.length; i++) {
+                const pEl = pElCollection[i];
 
-            if (highlightObj.highlightMatchFound) {
-                highlightNotFound = false;
-                pEl.innerHTML = highlightObj.highlightedHtml
-                break
+                const highlightObj: highlightMarkupResult = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
+
+                if (highlightObj.highlightMatchFound) {
+                    highlightNotFound = false;
+                    pEl.innerHTML = highlightObj.highlightedHtml
+                    break
+                }
+                lastHightlightObj = highlightObj
             }
-            lastHightlightObj = highlightObj
-        }
 
-        if (highlightNotFound) {
-            console.log("highlight match didn't work, not found")
-            console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
-            console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
-            console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
+            if (highlightNotFound) {
+                console.log("highlight match didn't work, not found")
+                console.log("highlight regex: " + lastHightlightObj.highlightRegExObj)
+                console.log("highlight text escaped: " + lastHightlightObj.highlightTextEscaped)
+                console.log("innerHtml: " + lastHightlightObj.highlightedHtml)
+
+                reject(new Error("`@selectedText` couldn't be found in HTML."))
+            } else {
+                resolve(lastHightlightObj)
+            }
         } else {
-            //send message to background.js to save highlight to backend
-            // chrome.runtime.sendMessage(
-            //     {
-            //         messageName: "postWebClipping",
-            //         messageData: highlightText
-            //     }, (response) => {
-            //         console.log(response)
-            //     });
+            reject(new Error("`@selectedText` was null or empty"))
         }
-
-    }
+    })
+    return promise
 }
 
 
@@ -65,13 +65,13 @@ const onReceiveMesssage = (
     msg: any,
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: any) => void) => {
-    
+
     if (msg.command === "highlightSelection") {
         const sel = window.getSelection()?.toString();
         if (sel) {
             console.log(msg)
-            console.log(msg.data.id)
-            doHighlight(sel, msg.data.id);
+            console.log(msg.data.clipId)
+            doHighlight(sel, msg.data.clipId);
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
@@ -80,7 +80,11 @@ const onReceiveMesssage = (
     if (msg.command === "clipSelection") {
         const sel = window.getSelection()?.toString();
         if (sel) {
-            sendResponse({selectedText: sel, page_url: window.location.href.toString()})
+            sendResponse({
+                selectedText: sel,
+                page_url: window.location.href.toString()
+                //selectedTextHtml: 
+            })
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
