@@ -42,6 +42,9 @@ private _highlightedHtml: string | null;
    */
   RegExpMatchedHtml: string | null;
 
+  /**
+   * The clip text with special regex characters escaped 
+   */
   highlightTextEscaped: string;
 
   /**
@@ -49,7 +52,13 @@ private _highlightedHtml: string | null;
    */
   clipId: string | undefined;
 
-  constructor(higlightClipText: string, htmlElementCollect: HTMLCollectionOf<HTMLParagraphElement>, clipId?: string) {
+  /**
+   * When {true} extra debub information is output to the console.
+   * Default = {false}
+   */
+  debugModeOn: boolean;
+
+  constructor(higlightClipText: string, htmlElementCollect: HTMLCollectionOf<HTMLParagraphElement>,  clipId?: string, debugModeOn:boolean=false) {
     this.clipText = higlightClipText;
     this.RegExpMatchedHtmlElement = null;
     this.RegExpMatchedHtml = "";
@@ -58,12 +67,17 @@ private _highlightedHtml: string | null;
     this.highlightTextEscaped = "";
     this.highlightRegExObj = this.generateRegExp(this.clipText);
     this.clipId = clipId ? clipId : undefined;
+    this.debugModeOn = debugModeOn;
 
     for (let i = 0; i < htmlElementCollect.length; i++) {
       const pEl = htmlElementCollect[i];
-
+      pEl.innerHTML = pEl.innerHTML.replace(new RegExp('\\n|\\t|\\v|\\f|\\r|\\0', 'g'), ' ') // strip any New Line etc. from innerHTML
+      if (this.debugModeOn) {
+        console.log("ElementInnerHtml>>>" + pEl.innerHTML) //.replace(new RegExp('\\t|\\n|\\v|\\f|\\0|\\r', 'g'), ' '))
+        console.log("EscapedClipText>>>" + this.highlightTextEscaped)
+      }
+      
       const match: RegExpMatchArray | null = pEl.innerHTML.match(this.highlightRegExObj);
-      //console.log(pEl.innerHTML)
       if (match != null) {        
         this.highlightMatchFound = true;
         this.RegExpMatchedHtmlElement = pEl;
@@ -93,11 +107,21 @@ private _highlightedHtml: string | null;
    * @returns {RegExp} regular expression that would match the {@link clipText} in HTML
    */
   private generateRegExp(clipText: string): RegExp {
-    const matchRegExStep1 = clipText.replace(new RegExp('\\s|\\(|\\)', 'g'), '(?:<[a-zA-Z0-9"/:=.\\s]*?>)?\\$&?(?:<[a-zA-Z0-9"/:=.\\s]*?>)?'); // escape regex special char in text
-    this.highlightTextEscaped = matchRegExStep1;
-    const matchRegExStep2 = '(?:<[a-zA-Z0-9"/:=.\\s]*?>)?' + matchRegExStep1 + '(?:<\\/[a-zA-Z0-9"/:=.\\s]*?>)?';
-    const regExpObj = new RegExp(matchRegExStep2, 'g');
-    return regExpObj;
+    let matchRegExStepFinal = "";
+    try {
+      
+      const escCharRegEx = new RegExp('\\s|\\(|\\)|\\+|\\[|\\*|\\?|\\^|\\$', 'g') // list of special characters to escape
+      const matchRegExStepLast = clipText.replace(escCharRegEx, '(?:<[a-zA-Z0-9"/:=.\\s]*?>)?\\$&?(?:<[a-zA-Z0-9"/:=.\\s]*?>)?'); // escape regex special char in text
+      //const matchRegExStepLast = matchRegExStep1.replace(new RegExp('\\n', 'g'), '\\s') // escape NewLine characters
+      this.highlightTextEscaped = matchRegExStepLast;
+      matchRegExStepFinal = '(?:<[a-zA-Z0-9"/:=.\\s]*?>)?' + matchRegExStepLast + '(?:<\\/[a-zA-Z0-9"/:=.\\s]*?>)?';
+      const regExpObj = new RegExp(matchRegExStepFinal, 'g');  
+      return regExpObj;
+    } catch (error) {
+      console.error('clipText: "'+ clipText + '"')
+      console.error('matchRegExStepFinal="' +matchRegExStepFinal+'"')
+      throw error
+    }
   }
 }
 

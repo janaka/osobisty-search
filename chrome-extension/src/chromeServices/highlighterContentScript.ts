@@ -6,47 +6,37 @@ const doHighlight = async function (selectedText: string, clipId?: string): Prom
     //const sel = selectedText //window.getSelection(
 
     const promise = new Promise<ClipHighlight>((resolve, reject) => {
-        console.log("mouseup event: " + selectedText?.toString())
+        
+            console.log("mouseup event: " + selectedText?.toString())
 
-        if (selectedText != null && selectedText.toString().length > 0) {
+            if (selectedText != null && selectedText.toString().length > 0) {
 
-            let highlightText: string = selectedText != null ? selectedText.toString() : ""
+                let highlightText: string = selectedText != null ? selectedText.toString() : ""
 
-            console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
-            //TODO: split on linebreak to match across paragraphs
+                console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
+                //TODO: split on linebreak to match across paragraphs
 
-            const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
-            //let highlightNotFound: boolean = true;
-            //let lastHightlightObj: any;
+                const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
 
-            const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId)
-            // for (let i = 0; i < pElCollection.length; i++) {
-            //     const pEl = pElCollection[i];
+                const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId, true)
 
-            //     const highlightObj: highlightMarkupResult = generateHighlightMarkup(highlightText, pEl.innerHTML, webclippingId)
+                if (!clipHighlight.highlightMatchFound) {
+                    console.error("//// Error Message Start ///")
+                    console.log("highlight match didn't work, not found")
+                    console.log('selectedText: "' + clipHighlight.clipText + '"')
+                    console.log('highlight regex: "' + clipHighlight.highlightRegExObj +'"')
+                    console.log('highlight text escaped: "' + clipHighlight.highlightTextEscaped + '"')
+                    console.log(' innerHtml: "' + clipHighlight.highlightedHtml+'"')
 
-            //     if (highlightObj.highlightMatchFound) {
-            //         highlightNotFound = false;
-            //         pEl.innerHTML = highlightObj.highlightedHtml
-            //         break
-            //     }
-            //     lastHightlightObj = highlightObj
-            // }
-
-            if (!clipHighlight.highlightMatchFound) {
-                console.log("highlight match didn't work, not found")
-                console.log("highlight regex: " + clipHighlight.highlightRegExObj)
-                console.log("highlight text escaped: " + clipHighlight.highlightTextEscaped)
-                console.log("innerHtml: " + clipHighlight.highlightedHtml)
-
-                reject(new Error("`@selectedText` couldn't be found in HTML."))
+                    reject(new Error("`@selectedText` couldn't be found in HTML."))
+                } else {
+                    //clipHighlight.applyHighlight()
+                    resolve(clipHighlight)
+                }
             } else {
-                //clipHighlight.applyHighlight()
-                resolve(clipHighlight)
+                reject(new Error("`@selectedText` was null or empty"))
             }
-        } else {
-            reject(new Error("`@selectedText` was null or empty"))
-        }
+
     })
     return promise
 }
@@ -66,12 +56,12 @@ const onReceiveMesssage = async (
     sendResponse: (response: any) => void) => {
 
     if (msg.command === "highlightSelection") {
-        console.log("handling cmd="+msg.command)
-        const sel = window.getSelection()?.toString();
-        if (sel) {
+        console.log("handling cmd=" + msg.command)
+        const selectedText = window.getSelection()?.toString();
+        if (selectedText) {
             console.log(msg)
             console.log(msg.data.clipId)
-            const clipHighlight = await doHighlight(sel, msg.data.clipId);
+            const clipHighlight = await doHighlight(selectedText.trim(), msg.data.clipId);
             clipHighlight.applyHighlight()
         } else {
             console.error("There's no selection. Selected text is empty!")
@@ -79,12 +69,12 @@ const onReceiveMesssage = async (
     }
 
     if (msg.command === "clipSelection") {
-        console.log("handling cmd="+msg.command)
+        console.log("handling cmd=" + msg.command)
         const selectedText = window.getSelection()?.toString();
         if (selectedText) {
-            
+
             sendResponse({
-                selectedText: selectedText,
+                selectedText: selectedText.trim(),
                 page_url: window.location.href.toString(),
             })
         } else {
@@ -93,27 +83,38 @@ const onReceiveMesssage = async (
     }
 
 
-    
+
     if (msg.command === "sendClipPageUrl") {
-        console.log("handling cmd="+msg.command)
+        console.log("handling cmd=" + msg.command)
         sendResponse({
             page_url: encodeURIComponent(window.location.href.toString())
         })
     }
 
     if (msg.command === "highlightClips") {
-        console.log("handling cmd="+msg.command)
+        console.log("handling cmd=" + msg.command)
         const clipData: WebClippingData = msg.data;
         console.log(msg)
+        let matchMissedCount: number = 0;
+        let noMatchClips:string[] = [];
         if (clipData.clippings) {
             const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
             clipData.clippings.forEach(clip => {
                 if (clip.source_content) {
-                    const clipHighlight = new ClipHighlight(clip.source_content, pElCollection, clip.id) 
+                    const clipHighlight = new ClipHighlight(clip.source_content, pElCollection, clip.id)
                     if (clipHighlight.highlightMatchFound) {
                         clipHighlight.applyHighlight()
+                    } else {
+                        // track missed matches and report
+                        matchMissedCount++;
+                        noMatchClips.push(clip.source_content)
                     }
                 }
+            });
+
+            console.log("Number of saved clips that didn't match on the page: " + matchMissedCount)
+            noMatchClips.forEach(e => {
+                console.log(e)
             });
         }
 
