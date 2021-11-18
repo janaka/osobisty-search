@@ -1,28 +1,32 @@
 import { Api, Webclipping, WebClippingResponse, WebClippingsResponse } from './client-libs/osobisty-client'
 
 
-// chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
-//   if (request.messageName === "postWebClipping") {
-//     console.log("Message received in background script")
-//     console.log("highlight: " + request.messageData)
+chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+  if (request.command === "getWebClippings") {
+    try {
+      const api = new Api()
 
-//     const api = new Api()
+      api.webclippings.getWebclippings({ page_url: request.page_url })
+        .then(response => response.json())
+        .then((data: WebClippingsResponse) => {
+          console.log("get resp ")
+          console.log(data.webClippingData)
 
-//     const wc: Webclipping = {
-//       source_content: request.messageData,
-//       page_url: 'http://www.url.com'
-//     }
+          if (sender && sender.tab && sender.tab.id) {
+            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: data.webClippingData }, (response) => { })
+          } else {
 
-//     api.webclippings.postWebclippings(wc)
-//       .then(response => response.json())
-//       .then((data: WebClippingResponse) => {
-//         console.log(data.webClippingData)
-//         sendResponse(data)
-//       })
-//       .catch((error) => { console.error(error) })
-//   }
-
-// });
+          }
+        })
+        .catch((error) => {
+          console.error("Error calling `api.webclippings.getWebclippings()`")
+          console.error(error)
+        })
+    } catch (error) {
+      throw error
+    }
+  }
+});
 
 const clipSelectionMenuItemHandler = (tab: any) => {
 
@@ -63,7 +67,7 @@ const clipLoadMenuItemHandler = (tab: any) => {
     try {
       const api = new Api()
 
-      api.webclippings.getWebclippings({page_url: response.page_url})
+      api.webclippings.getWebclippings({ page_url: response.page_url })
         .then(response => response.json())
         .then((data: WebClippingsResponse) => {
           console.log("get resp ")
@@ -109,15 +113,20 @@ chrome.runtime.onInstalled.addListener(function () {
 
   chrome.contextMenus.create({
     id: 'jhs7292jdj0s32ssk3',
-    title: 'Osobisty Load Page Clips',
+    title: 'Osobisty Load Page Highlights',
     type: 'normal',
     contexts: ['page'],
   });
 });
 
+
 chrome.contextMenus.onClicked.addListener(onClickContextMenu)
 
-//chrome.contextMenus.create({"title": "Osobisty Clip Selection", "contexts": ["selection"],"onclick": onClickContextMenu});
+// chrome.webNavigation.onCompleted.addListener((details)=>{
+//   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+//     console.log(details)  
+//   });
 
+// })
 
 export { }

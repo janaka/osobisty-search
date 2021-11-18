@@ -3,72 +3,58 @@ import React, { useEffect, useState } from 'react';
 import './App.css';
 //import { DOMMessage, DOMMessageResponse } from './types';
 import { SearchClient as TypesenseSearchClient } from "typesense";
+import { WebClippingDataExtended } from './types/WebClippingDataExtended';
 
 function App() {
   const [title, setTitle] = React.useState('');
   const [headlines, setHeadlines] = React.useState<string[]>([]);
   const [selectedHit, setSelectedHit] = useState(null);
+  const [clipData, setClipData] = React.useState<WebClippingDataExtended>();
 
-  // useEffect(() => {
-  //   /**
-  //    * We can't use "chrome.runtime.sendMessage" for sending messages from React.
-  //    * For sending messages from React we need to specify which tab to send it to.
-  //    */
-  //   chrome.tabs && chrome.tabs.query({
-  //     active: true,
-  //     currentWindow: true
-  //   }, tabs => {
-  //     /**
-  //      * Sends a single message to the content script(s) in the specified tab,
-  //      * with an optional callback to run when a response is sent back.
-  //      *
-  //      * The runtime.onMessage event is fired in each content script running
-  //      * in the specified tab for the current extension.
-  //      */
-  //     chrome.tabs.sendMessage(
-  //       tabs[0].id || 0,
-  //       { type: 'GET_DOM' } as DOMMessage,
-  //       (response: DOMMessageResponse) => {
-  //         setTitle(response.title);
-  //         setHeadlines(response.headlines);
-  //       });
-  //       console.log("Fired - chrome.tabs.sendMessage()")
-  //   });
-  // },[]);
+  useEffect(() => {
+    /**
+     * We can't use "chrome.runtime.sendMessage" for sending messages from React.
+     * For sending messages from React we need to specify which tab to send it to.
+     */
+    // chrome.tabs && chrome.tabs.query({
+    //   active: true,
+    //   currentWindow: true
+    // }, tabs => {
+    //   /**
+    //    * Sends a single message to the content script(s) in the specified tab,
+    //    * with an optional callback to run when a response is sent back.
+    //    *
+    //    * The runtime.onMessage event is fired in each content script running
+    //    * in the specified tab for the current extension.
+    //    */
+    //   chrome.tabs.sendMessage(
+    //     tabs[0].id || 0,
+    //     { type: 'GET_DOM' } as DOMMessage,
+    //     (response: DOMMessageResponse) => {
+    //       setTitle(response.title);
+    //       setHeadlines(response.headlines);
+    //     });
+    //     console.log("Fired - chrome.tabs.sendMessage()")
+    // });
+    chrome.runtime.onMessage.addListener(
+      function(request, sender, sendResponse) {
+        console.log("command message received at extensions")
+        
+        if (request.command === "updateHighlightInfo") {
+          const data = request.data as WebClippingDataExtended
+          setClipData(data)  
+          console.log(request)
+        }
+      }
+    );
+  },[]);
   return (
     <div className="App">
       <header className="App-header">
         Osobisty
       </header>
-      <ul className="SEOForm">
-        <li className="SEOValidation">
-          <div className="SEOValidationField">
-            <span className="SEOValidationFieldTitle">Title:</span>
-            <span className={`SEOValidationFieldStatus ${title.length < 30 || title.length > 65 ? 'Error' : 'Ok'}`}>
-              &nbsp;{title.length}&nbsp;Characters
-            </span>
-          </div>
-          <div className="SEOVAlidationFieldValue">
-            {title}
-          </div>
-        </li>
-
-        <li className="SEOValidation">
-          <div className="SEOValidationField">
-            <span className="SEOValidationFieldTitle">Main Heading:</span>
-            <span className={`SEOValidationFieldStatus ${headlines.length !== 1 ? 'Error' : 'Ok'}`}>
-              &nbsp;{headlines.length}
-            </span>
-          </div>
-          <div className="SEOVAlidationFieldValue">
-            <ul>
-              {headlines.map((headline, index) => (<li key={index}>{headline}</li>))}
-            </ul>
-          </div>
-        </li>
-      </ul>
       <div>
-
+        {clipData?.numberClipsHighlighted} Clips of {clipData?.totalClips} highlighted. 
         <OsobistyResults searchContext={title} selectedHit={selectedHit} setSelectedHit={setSelectedHit}/>
       </div>
     </div>
@@ -171,16 +157,7 @@ function OsobistyResults(props: any) {
 }
 
 
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    console.log(sender.tab ?
-                "from a content script:" + sender.tab.url :
-                "from the extension");
-    if (request.greeting === "hello")
-      console.log(request.highlightedText)
-      sendResponse({farewell: "goodbye"});
-  }
-);
+
 
 
 export default App;

@@ -1,41 +1,55 @@
 import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
+import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
+
+const getPageClippings = () => {
+    chrome.runtime.sendMessage({ command: "getWebClippings",  page_url: window.location.href.toString() }, (response) => {});
+    console.log("on dom load fire getPageClippings()")
+}
+
+if (document.readyState === 'loading') {  // Loading hasn't finished yet
+    document.addEventListener('DOMContentLoaded', getPageClippings);
+} else {  // `DOMContentLoaded` has already fired
+    getPageClippings();
+}
+
+
 
 const doHighlight = async function (selectedText: string, clipId?: string): Promise<ClipHighlight> {
 
     //const sel = selectedText //window.getSelection(
 
     const promise = new Promise<ClipHighlight>((resolve, reject) => {
-        
-            console.log("mouseup event: " + selectedText?.toString())
 
-            if (selectedText != null && selectedText.toString().length > 0) {
+        console.log("mouseup event: " + selectedText?.toString())
 
-                let highlightText: string = selectedText != null ? selectedText.toString() : ""
+        if (selectedText != null && selectedText.toString().length > 0) {
 
-                console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
-                //TODO: split on linebreak to match across paragraphs
+            let highlightText: string = selectedText != null ? selectedText.toString() : ""
 
-                const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
+            console.log("mouseup event: sel?.toString():" + selectedText?.toString() + " highlightText:" + highlightText)
+            //TODO: split on linebreak to match across paragraphs
 
-                const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId, true)
+            const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
 
-                if (!clipHighlight.highlightMatchFound) {
-                    console.error("//// Error Message Start ///")
-                    console.log("highlight match didn't work, not found")
-                    console.log('selectedText: "' + clipHighlight.clipText + '"')
-                    console.log('highlight regex: "' + clipHighlight.highlightRegExObj +'"')
-                    console.log('highlight text escaped: "' + clipHighlight.highlightTextEscaped + '"')
-                    console.log(' innerHtml: "' + clipHighlight.highlightedHtml+'"')
+            const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId, true)
 
-                    reject(new Error("`@selectedText` couldn't be found in HTML."))
-                } else {
-                    //clipHighlight.applyHighlight()
-                    resolve(clipHighlight)
-                }
+            if (!clipHighlight.highlightMatchFound) {
+                console.error("//// Error Message Start ///")
+                console.log("highlight match didn't work, not found")
+                console.log('selectedText: "' + clipHighlight.clipText + '"')
+                console.log('highlight regex: "' + clipHighlight.highlightRegExObj + '"')
+                console.log('highlight text escaped: "' + clipHighlight.highlightTextEscaped + '"')
+                console.log(' innerHtml: "' + clipHighlight.highlightedHtml + '"')
+
+                reject(new Error("`@selectedText` couldn't be found in HTML."))
             } else {
-                reject(new Error("`@selectedText` was null or empty"))
+                //clipHighlight.applyHighlight()
+                resolve(clipHighlight)
             }
+        } else {
+            reject(new Error("`@selectedText` was null or empty"))
+        }
 
     })
     return promise
@@ -96,7 +110,7 @@ const onReceiveMesssage = async (
         const clipData: WebClippingData = msg.data;
         console.log(msg)
         let matchMissedCount: number = 0;
-        let noMatchClips:string[] = [];
+        let noMatchClips: string[] = [];
         if (clipData.clippings) {
             const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
             clipData.clippings.forEach(clip => {
@@ -116,12 +130,21 @@ const onReceiveMesssage = async (
             noMatchClips.forEach(e => {
                 console.log(e)
             });
+            const clipDataE: WebClippingDataExtended = clipData as WebClippingDataExtended
+            clipDataE.numberClipsHighlighted = clipData.clippings.length - matchMissedCount
+            clipDataE.totalClips = clipData.clippings.length
+            clipDataE.numberClipsNotHighlighted = matchMissedCount
+            
+            sendHighlightDataToExtension(clipDataE)
         }
 
     }
 }
 
-
+const sendHighlightDataToExtension = (data: WebClippingDataExtended) => {
+    chrome.runtime.sendMessage({ command:"updateHighlightInfo",  data: data }, (response) => {});
+    console.log("send command to ext")
+}
 
 
 // const highlightHandler = (event: MouseEvent) => {
