@@ -32,7 +32,7 @@ const doHighlight = async function (selectedText: string, clipId?: string): Prom
 
             const pElCollection: HTMLCollectionOf<HTMLParagraphElement> = document.getElementsByTagName<"p">("p")
 
-            const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId, true)
+            const clipHighlight = new ClipHighlight(selectedText, pElCollection, clipId, false)
 
             if (!clipHighlight.highlightMatchFound) {
                 console.error("//// Error Message Start ///")
