@@ -3,9 +3,10 @@
 }
 
 .osobisty-side-ui-container {
-  position: absolute;
+  position: fixed;
   border: 10px yellowgreen solid;
-  /* float: right;
+  float: right;
+  /* 
   display: inline; */
   height: 500px ;
   width: 400px;

@@ -20,12 +20,13 @@ const hovermenuClickHandler = (event:any) => {
 
 const injectEventHandler = () => {
 // inject the even handler into the page as this content script isn't directly available to the page.
-const script = document.createElement("script");
-script.textContent = 'var hovermenuClickHandler = (event:any) => {'
-    + 'event.target.style.color = "red"'
-    + 'console.log("fire handler")}';
+const s = document.createElement("script");
 
-    (document.head||document.documentElement).appendChild(script);
+s.src = chrome.runtime.getURL('./static/js/osobisty.js');
+// s.onload = function() {
+//     s.remove();
+// };
+(document.head || document.documentElement).appendChild(s);
 }
 
 const renderSideUI = () => {
@@ -42,18 +43,20 @@ const renderSideUI = () => {
 
 if (document.readyState === 'loading') {  // Loading hasn't finished yet
     console.log("readyState=" + document.readyState)
+    injectEventHandler();
     document.addEventListener('DOMContentLoaded', getPageClippings);
     renderSideUI();
-    injectEventHandler();
+    
     //renderInlineMenu();
     
 
 } else {  // `DOMContentLoaded` has already fired
     console.log("readState not loading")
+    injectEventHandler();
     getPageClippings();
     //renderInlineMenu();
     renderSideUI();
-    injectEventHandler();
+    
     
 
 }
@@ -176,8 +179,6 @@ const onReceiveMesssage = async (
                         const mark = clipHighlight.RegExpMatchedHtmlElement?.getElementsByClassName("ob-highlight-952")[0]
                         if (mark) {
                             mark.className = mark.className + " someotherclass";
-                            mark.addEventListener('mouseover',hovermenuClickHandler, false)
-                            mark.addEventListener('click',hovermenuClickHandler, false)
                         }
                     } else {
                         // track missed matches and report

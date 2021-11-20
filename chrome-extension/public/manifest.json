@@ -7,25 +7,36 @@
     "activeTab",
     "scripting",
     "contextMenus"
- ],
+  ],
   "action": {
-      "default_popup": "index.html",
-      "default_title": "Osobisty"
+    "default_popup": "index.html",
+    "default_title": "Osobisty"
   },
   "content_scripts": [
     {
-        "matches": ["http://*/*", "https://*/*"],
-        "js": ["./static/js/content.js"],
-        "css": ["./highlighterContentScript.css"]
+      "matches": [
+        "http://*/*",
+        "https://*/*"
+      ],
+      "js": [
+        "./static/js/content.js"
+      ],
+      "css": [
+        "./highlighterContentScript.css"
+      ]
     }
- ],
- "background": {
-  "service_worker": "./static/js/background.js",
-  "type": "module"
-},
+  ],
+  "background": {
+    "service_worker": "./static/js/background.js",
+    "type": "module"
+  },
+  "web_accessible_resources": [{
+    "resources": ["static/js/osobisty.js"],
+    "matches": ["<all_urls>"]
+  }],
   "icons": {
-      "16": "logo192.png",
-      "48": "logo192.png",
-      "128": "logo192.png"
+    "16": "logo192.png",
+    "48": "logo192.png",
+    "128": "logo192.png"
   }
 }
