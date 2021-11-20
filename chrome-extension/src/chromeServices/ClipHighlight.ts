@@ -96,7 +96,7 @@ export class ClipHighlight {
    */
   applyHighlight() {
     if (this.highlightMatchFound && this.RegExpMatchedHtmlElement && this.highlightedHtml) {
-      this.RegExpMatchedHtmlElement.innerHTML = this.highlightedHtml
+      this.RegExpMatchedHtmlElement.innerHTML = this.highlightedHtml 
     } else {
       throw new Error("ClipHighlight.applyHighlight() - cannot apply highlight because no match was found or RegExpMatchedHtmlElement is null or highlightedHtml is null")
     }

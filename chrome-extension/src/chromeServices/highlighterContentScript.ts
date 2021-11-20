@@ -12,28 +12,56 @@ const getPageClippings = () => {
     console.log("on dom load fire getPageClippings()")
 }
 
-if (document.readyState === 'loading') {  // Loading hasn't finished yet
-    document.addEventListener('DOMContentLoaded', getPageClippings);
-} else {  // `DOMContentLoaded` has already fired
-    getPageClippings();
+const hovermenuClickHandler = (event:any) => {
+    event.target.style.color = "red"
+    console.log("fire handler")
 }
 
 
-const renderInlineMenu = () => {
-    const highlightEl: HTMLCollectionOf<Element> = document.getElementsByClassName("ob-highlight-952")
-    //document.addEventListener
+const injectEventHandler = () => {
+// inject the even handler into the page as this content script isn't directly available to the page.
+const script = document.createElement("script");
+script.textContent = 'var hovermenuClickHandler = (event:any) => {'
+    + 'event.target.style.color = "red"'
+    + 'console.log("fire handler")}';
 
-    for (let i = 0; i < highlightEl.length; i++) {
-        const el = highlightEl[i];
-        //el.addEventListener('hover',)
-    }
+    (document.head||document.documentElement).appendChild(script);
 }
 
 const renderSideUI = () => {
-    const sideUIContainer = new HTMLDivElement()
-    sideUIContainer.className = "osobisty-side-ui"
-    document.body.append()
+    console.log("render side ui")
+    try {
+        const sideUIContainer = document.createElement("div") //new HTMLDivElement()
+        sideUIContainer.className = "osobisty-side-ui-container"
+        document.body.insertBefore(sideUIContainer, document.body.firstChild)
+
+    } catch (error) {
+        throw error
+    }
 }
+
+if (document.readyState === 'loading') {  // Loading hasn't finished yet
+    console.log("readyState=" + document.readyState)
+    document.addEventListener('DOMContentLoaded', getPageClippings);
+    renderSideUI();
+    injectEventHandler();
+    //renderInlineMenu();
+    
+
+} else {  // `DOMContentLoaded` has already fired
+    console.log("readState not loading")
+    getPageClippings();
+    //renderInlineMenu();
+    renderSideUI();
+    injectEventHandler();
+    
+
+}
+
+
+
+
+
 
 
 
@@ -99,6 +127,7 @@ const onReceiveMesssage = async (
             console.log(msg.data.clipId)
             const clipHighlight = await doHighlight(selectedText.trim(), msg.data.clipId);
             clipHighlight.applyHighlight()
+            clipHighlight.RegExpMatchedHtmlElement?.getElementsByClassName("ob-highlight-952")[0].addEventListener('mouseover',hovermenuClickHandler, false)
         } else {
             console.error("There's no selection. Selected text is empty!")
         }
@@ -144,6 +173,12 @@ const onReceiveMesssage = async (
                     const clipHighlight = new ClipHighlight(clip.source_content, pElCollection, clip.id)
                     if (clipHighlight.highlightMatchFound) {
                         clipHighlight.applyHighlight()
+                        const mark = clipHighlight.RegExpMatchedHtmlElement?.getElementsByClassName("ob-highlight-952")[0]
+                        if (mark) {
+                            mark.className = mark.className + " someotherclass";
+                            mark.addEventListener('mouseover',hovermenuClickHandler, false)
+                            mark.addEventListener('click',hovermenuClickHandler, false)
+                        }
                     } else {
                         // track missed matches and report
                         matchMissedCount++;
