@@ -2,8 +2,13 @@ import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
 import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
 
+let clipData: WebClippingData;
+
+
 const getPageClippings = () => {
-    chrome.runtime.sendMessage({ command: "getWebClippings",  page_url: window.location.href.toString() }, (response) => {});
+    chrome.runtime.sendMessage({ command: "getWebClippings", page_url: window.location.href.toString() }, (response) => { });
+    // background script send a message with `command=highlightClips`
+
     console.log("on dom load fire getPageClippings()")
 }
 
@@ -11,6 +16,23 @@ if (document.readyState === 'loading') {  // Loading hasn't finished yet
     document.addEventListener('DOMContentLoaded', getPageClippings);
 } else {  // `DOMContentLoaded` has already fired
     getPageClippings();
+}
+
+
+const renderInlineMenu = () => {
+    const highlightEl: HTMLCollectionOf<Element> = document.getElementsByClassName("ob-highlight-952")
+    //document.addEventListener
+
+    for (let i = 0; i < highlightEl.length; i++) {
+        const el = highlightEl[i];
+        //el.addEventListener('hover',)
+    }
+}
+
+const renderSideUI = () => {
+    const sideUIContainer = new HTMLDivElement()
+    sideUIContainer.className = "osobisty-side-ui"
+    document.body.append()
 }
 
 
@@ -105,9 +127,13 @@ const onReceiveMesssage = async (
         })
     }
 
+    if (msg.command === "sendClipData") {
+        sendResponse({ data: clipData }) // clipData global should have data since the page should already be loaded  
+    }
+
     if (msg.command === "highlightClips") {
         console.log("handling cmd=" + msg.command)
-        const clipData: WebClippingData = msg.data;
+        clipData = msg.data;
         console.log(msg)
         let matchMissedCount: number = 0;
         let noMatchClips: string[] = [];
@@ -134,27 +160,17 @@ const onReceiveMesssage = async (
             clipDataE.numberClipsHighlighted = clipData.clippings.length - matchMissedCount
             clipDataE.totalClips = clipData.clippings.length
             clipDataE.numberClipsNotHighlighted = matchMissedCount
-            
-            sendHighlightDataToExtension(clipDataE)
+
+            //sendHighlightDataToExtension(clipDataE)
         }
 
     }
 }
 
-const sendHighlightDataToExtension = (data: WebClippingDataExtended) => {
-    chrome.runtime.sendMessage({ command:"updateHighlightInfo",  data: data }, (response) => {});
-    console.log("send command to ext")
-}
-
-
-// const highlightHandler = (event: MouseEvent) => {
-//     console.log("sfsf")
-//     doHighlight(event);
-
+// const sendHighlightDataToExtension = (data: WebClippingDataExtended) => {
+//     chrome.runtime.sendMessage({ command:"updateHighlightInfo",  data: data }, (response) => {});
+//     console.log("send command to ext")
 // }
-
-//document.addEventListener('mouseup', highlightHandler);
-//document.addEventListener('click', undoHighlight);
 
 /**
 * Fired when a message is received from either an extension process or a background script.
