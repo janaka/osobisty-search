@@ -1,6 +1,7 @@
 import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
 import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
+import { link } from 'fs';
 
 let clipData: WebClippingData;
 
@@ -12,29 +13,57 @@ const getPageClippings = () => {
     console.log("on dom load fire getPageClippings()")
 }
 
-const hovermenuClickHandler = (event:any) => {
-    event.target.style.color = "red"
-    console.log("fire handler")
-}
+// const hovermenuClickHandler = (event:any) => {
+//     event.target.style.color = "red"
+//     console.log("fire handler")
+// }
 
 
 const injectEventHandler = () => {
-// inject the even handler into the page as this content script isn't directly available to the page.
-const s = document.createElement("script");
+    // inject the even handler into the page as this content script isn't directly available to the page.
+    const s = document.createElement("script");
 
-s.src = chrome.runtime.getURL('./static/js/osobisty.js');
-// s.onload = function() {
-//     s.remove();
-// };
-(document.head || document.documentElement).appendChild(s);
+    s.src = chrome.runtime.getURL('./static/js/osobisty.js');
+    // s.onload = function() {
+    //     s.remove();
+    // };
+    (document.head || document.documentElement).appendChild(s);
 }
 
 const renderSideUI = () => {
     console.log("render side ui")
     try {
-        const sideUIContainer = document.createElement("div") //new HTMLDivElement()
-        sideUIContainer.className = "osobisty-side-ui-container"
-        document.body.insertBefore(sideUIContainer, document.body.firstChild)
+
+        fetch(chrome.runtime.getURL('/asset-manifest.json')).then(r => r.text()).then(reactAssetManifest => {
+
+
+            //const match = indexhtml.match(new RegExp('<link href="(.*?)" rel="stylesheet">?')) //TODO: switch this to get the url from asset-manifest.json
+
+            //let cssLinkStr: string = "";
+            
+                
+                //cssLinkStr = match[1]
+                
+                const reactCsslinkEl = document.createElement("link")
+                reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
+                reactCsslinkEl.rel = "stylesheet"
+                console.log(reactCsslinkEl.href)
+                document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
+            
+
+            const reactScript = document.createElement("script")
+            reactScript.src = chrome.runtime.getURL("/static/js/main.js")
+            document.body.insertAdjacentElement('afterbegin', reactScript);
+            const reactRootDiv = document.createElement("div")
+            reactRootDiv.id = "osobisty-side-ui-root"
+            document.body.insertAdjacentElement('afterbegin', reactRootDiv); // 'afterbegin': Just inside the element, before its first child
+
+//TODO: try calling before page render or something
+            //document.body.insertBefore(sideUIContainer, document.body.firstChild)
+            // not using innerHTML as it would break js event listeners of the page
+        });
+
+        //<link href="/static/css/main.d4627c23.css" rel="stylesheet">
 
     } catch (error) {
         throw error
@@ -46,9 +75,9 @@ if (document.readyState === 'loading') {  // Loading hasn't finished yet
     injectEventHandler();
     document.addEventListener('DOMContentLoaded', getPageClippings);
     renderSideUI();
-    
+
     //renderInlineMenu();
-    
+
 
 } else {  // `DOMContentLoaded` has already fired
     console.log("readState not loading")
@@ -56,8 +85,8 @@ if (document.readyState === 'loading') {  // Loading hasn't finished yet
     getPageClippings();
     //renderInlineMenu();
     renderSideUI();
-    
-    
+
+
 
 }
 
@@ -130,7 +159,6 @@ const onReceiveMesssage = async (
             console.log(msg.data.clipId)
             const clipHighlight = await doHighlight(selectedText.trim(), msg.data.clipId);
             clipHighlight.applyHighlight()
-            clipHighlight.RegExpMatchedHtmlElement?.getElementsByClassName("ob-highlight-952")[0].addEventListener('mouseover',hovermenuClickHandler, false)
         } else {
             console.error("There's no selection. Selected text is empty!")
         }

@@ -9,7 +9,6 @@
     "contextMenus"
   ],
   "action": {
-    "default_popup": "index.html",
     "default_title": "Osobisty"
   },
   "content_scripts": [
@@ -20,9 +19,6 @@
       ],
       "js": [
         "./static/js/content.js"
-      ],
-      "css": [
-        "./highlighterContentScript.css"
       ]
     }
   ],
@@ -30,10 +26,16 @@
     "service_worker": "./static/js/background.js",
     "type": "module"
   },
-  "web_accessible_resources": [{
-    "resources": ["static/js/osobisty.js"],
-    "matches": ["<all_urls>"]
-  }],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "index.html", "/static/css/main.*.css", "static/js/main.js", "static/js/osobisty.js", "asset-manifest.json"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ],
   "icons": {
     "16": "logo192.png",
     "48": "logo192.png",

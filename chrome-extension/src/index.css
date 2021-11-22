@@ -1,15 +1,15 @@
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  width: 350px;
-  height: 100%;
+.ob-highlight-952 {
+  background-color:steelblue;
 }
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+.osobisty-side-ui-container {
+  position: fixed;
+  border: 10px yellowgreen solid;
+  float: right;
+  /* 
+  display: inline; */
+  height: 500px ;
+  width: 400px;
+  top: 0px;
+  right: 0px;
 }
