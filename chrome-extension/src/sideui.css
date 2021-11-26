@@ -2,7 +2,8 @@
   background-color:steelblue;
 } */
 
-.dark {
+
+:root, .dark {
   --primary-bg: #373c42;
   --primary-text: #ebebeb;
   --secondary-bg: #2e3538;
@@ -14,8 +15,21 @@
   --search-highlight: #3e7569;
 }
 
+.light {
+  --primary-bg: #ebebeb;
+  --primary-text:  #373c42;
+  --secondary-bg:  #a4a7a9;
+  --secondary-text:  #2e3538;
+  --hover-bg: #474c50;
+  --active-bg: #626569;
+  --translucent: rgba(47, 52, 55, .8);
+  --transparent: rgba(47, 52, 55, 0);
+  --search-highlight: #28f5c8;  
+}
+
 .osobisty-side-ui-container {
-  background-color: gray;
+  background-color: var(--primary-bg);
+  color: var(--primary-text);
   overflow-y: auto;
   font-family: 'Courier New', Courier, monospace;
   font-size: 10pt;
@@ -65,7 +79,9 @@
 
 .osobisty-side-ui-result-item blockquote {
   margin: 1.5em 5px;
- border-left: 4px solid var(--search-highlight);
- font-size: 10pt;
- font-family: 'Courier New', Courier, monospace;
+  padding: 0.5em 5px;
+  border-left: 4px solid var(--search-highlight);
+  font-size: 10pt;
+  font-family: 'Courier New', Courier, monospace;
+  
 }
