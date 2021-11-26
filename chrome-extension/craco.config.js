@@ -1,5 +1,13 @@
 //const CopyWebpackPlugin = require('copy-webpack-plugin');
 module.exports = {
+  style: {
+    postcss: {
+      plugins: [
+        require('tailwindcss'),
+        require('autoprefixer'),
+      ],
+    },
+  },
   webpack: {
     configure: (webpackConfig, { env, paths }) => {
       return {
