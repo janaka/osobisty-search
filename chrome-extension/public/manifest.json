@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "scripting",
-    "contextMenus"
+    "contextMenus",
+    "storage"
   ],
   "action": {
     "default_title": "Osobisty"

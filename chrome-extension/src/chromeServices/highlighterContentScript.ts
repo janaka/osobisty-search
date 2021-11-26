@@ -1,7 +1,7 @@
 import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
 import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
-import { link } from 'fs';
+
 
 let clipData: WebClippingData;
 
@@ -12,11 +12,6 @@ const getPageClippings = () => {
 
     console.log("on dom load fire getPageClippings()")
 }
-
-// const hovermenuClickHandler = (event:any) => {
-//     event.target.style.color = "red"
-//     console.log("fire handler")
-// }
 
 
 const injectEventHandler = () => {
@@ -36,20 +31,12 @@ const renderSideUI = () => {
 
         fetch(chrome.runtime.getURL('/asset-manifest.json')).then(r => r.text()).then(reactAssetManifest => {
 
+            const reactCsslinkEl = document.createElement("link")
+            reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
+            reactCsslinkEl.rel = "stylesheet"
+            console.log(reactCsslinkEl.href)
+            document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
 
-            //const match = indexhtml.match(new RegExp('<link href="(.*?)" rel="stylesheet">?')) //TODO: switch this to get the url from asset-manifest.json
-
-            //let cssLinkStr: string = "";
-            
-                
-                //cssLinkStr = match[1]
-                
-                const reactCsslinkEl = document.createElement("link")
-                reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
-                reactCsslinkEl.rel = "stylesheet"
-                console.log(reactCsslinkEl.href)
-                document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
-            
 
             const reactScript = document.createElement("script")
             reactScript.src = chrome.runtime.getURL("/static/js/main.js")
@@ -57,14 +44,8 @@ const renderSideUI = () => {
             const reactRootDiv = document.createElement("div")
             reactRootDiv.id = "osobisty-side-ui-root"
             document.body.insertAdjacentElement('afterbegin', reactRootDiv); // 'afterbegin': Just inside the element, before its first child
-
-//TODO: try calling before page render or something
-            //document.body.insertBefore(sideUIContainer, document.body.firstChild)
             // not using innerHTML as it would break js event listeners of the page
         });
-
-        //<link href="/static/css/main.d4627c23.css" rel="stylesheet">
-
     } catch (error) {
         throw error
     }
@@ -76,17 +57,12 @@ if (document.readyState === 'loading') {  // Loading hasn't finished yet
     document.addEventListener('DOMContentLoaded', getPageClippings);
     renderSideUI();
 
-    //renderInlineMenu();
-
-
 } else {  // `DOMContentLoaded` has already fired
     console.log("readState not loading")
     injectEventHandler();
     getPageClippings();
     //renderInlineMenu();
     renderSideUI();
-
-
 
 }
 
@@ -151,8 +127,10 @@ const onReceiveMesssage = async (
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: any) => void) => {
 
+    console.log("chrome.onMessage() handling cmd=" + msg.command)
+
     if (msg.command === "highlightSelection") {
-        console.log("handling cmd=" + msg.command)
+
         const selectedText = window.getSelection()?.toString();
         if (selectedText) {
             console.log(msg)
@@ -241,3 +219,29 @@ const onReceiveMesssage = async (
 */
 //chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
 chrome.runtime.onMessage.addListener(onReceiveMesssage);
+
+// when the extension icon is clicked. only fires if there is no ext popup UI hooked up.
+// chrome.action.onClicked.addListener(
+//     (tab) => {
+//         // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
+//     },
+// )
+
+window.addEventListener("message", (event: MessageEvent<any>) => {
+    console.log("ContentScript received message from: " + event.data.source)
+    console.log(event)
+    // We only accept messages from ourselves
+    if (event.source !== window) {
+        console.log("Reject! Event source not same window: " + event.source)
+        return;
+    }
+
+    if (event.data.source && (event.data.source === "SIDEUI")) {
+        console.log("SIDEUI")
+        if (event.data.cmd && (event.data.cmd === "sendClippingData"))
+            console.log("Received command: " +event.data.cmd+ " from: " + event.data.source);
+            console.log("Response with clipping data from contentscript to sideui");
+            window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
+            
+    }
+}, false);

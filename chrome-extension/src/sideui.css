@@ -1,15 +1,71 @@
-.ob-highlight-952 {
+/* .ob-highlight-952 {
   background-color:steelblue;
+} */
+
+.dark {
+  --primary-bg: #373c42;
+  --primary-text: #ebebeb;
+  --secondary-bg: #2e3538;
+  --secondary-text: #a4a7a9;
+  --hover-bg: #474c50;
+  --active-bg: #626569;
+  --translucent: rgba(47, 52, 55, .8);
+  --transparent: rgba(47, 52, 55, 0);
+  --search-highlight: #3e7569;
 }
 
 .osobisty-side-ui-container {
+  background-color: gray;
+  overflow-y: auto;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10pt;
+}
+
+.osobisty-side-ui-container.open {
   position: fixed;
-  border: 10px yellowgreen solid;
+  z-index: 99512;
+  border: 10px pink solid;
   float: right;
   /* 
   display: inline; */
-  height: 500px ;
+  height: 500px;
   width: 400px;
   top: 0px;
   right: 0px;
+}
+
+
+.osobisty-side-ui-container.closed {
+  position: fixed;
+  z-index: 99512;
+  border: 10px pink solid;
+  float: right;
+  /* 
+  display: inline; */
+  height: 50px;
+  width: 50px;
+  top: 20px;
+  right: 0px;
+}
+
+.osobisty-side-ui-results {
+  padding-left: 0;
+  margin: 0;
+}
+
+.osobisty-side-ui-result-item {
+  list-style: none;
+  font-weight: normal;
+  padding: 6px 12px;
+  /* white-space: nowrap;
+  overflow:auto; 
+  text-overflow: ellipsis;*/
+  border-left: 3px solid transparent;
+}
+
+.osobisty-side-ui-result-item blockquote {
+  margin: 1.5em 5px;
+ border-left: 4px solid var(--search-highlight);
+ font-size: 10pt;
+ font-family: 'Courier New', Courier, monospace;
 }

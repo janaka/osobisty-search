@@ -1,6 +1,6 @@
 /**
  * This script is injected into the page from the content script.
- * Events handles need to be attached here, not from the content script
+ * Event handlers need to be attached here, not from the content script
  */
 
 
