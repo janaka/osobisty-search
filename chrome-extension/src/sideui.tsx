@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Api, WebClippingData, WebClippingsResponse, Model1 } from './client-libs/osobisty-client';
+import { Api, WebClippingData, WebClippingsResponse, Model1, Clippings } from './client-libs/osobisty-client';
 import './sideui.css';
 import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon, LockClosedIcon } from '@heroicons/react/solid'
 
@@ -71,12 +71,12 @@ function SideUI(props: any) {
     // }
 
 
-    <div className={isOpen ? 'h-500 w-400 min-w-400 max-w-600 top-0 right-0 rounded-sm z-top overflow-y-auto fixed float-right font-mono text-xs osobisty-side-ui-container open' : 'h-50 w-50 top-0 right-0 fixed float-right z-top osobisty-side-ui-container closed'}>
-      <button id="expandcollaps-button" className="group relative h-6 m-1 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500" onClick={clickHandler}>
-        <span className="absolute left-0 inset-y-0 flex items-center pl-3">
+    <div className={isOpen ? 'h-500 w-400 min-w-400 max-w-600 p-2 pb-3 top-0 right-0 rounded-sm z-top overflow-y-auto fixed float-right font-mono text-xs bg-primary-700 osobisty-side-ui-container open' : 'h-50 w-30 pt-2 top-0 right-0 fixed float-right z-top closed'}>
+      <button id="expandcollaps-button" className="group relative h-6 mb-1 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-300 bg-primary-600 hover:bg-primary-700" onClick={clickHandler}>
+        <span className="absolute left-0 inset-y-0 flex items-center">
           {isOpen
-            ? <ChevronDoubleRightIcon className="h-5 w-5 text-gray-500 group-hover:text-gray-400" aria-hidden="true" />
-            : <ChevronDoubleLeftIcon className="h-5 w-5 text-gray-500 group-hover:text-gray-400" aria-hidden="true" />}
+            ? <ChevronDoubleRightIcon className="h-8 w-8 text-primary-500 group-hover:text-secondary-300" aria-hidden="true" />
+            : <ChevronDoubleLeftIcon className="h-8 w-8 text-primary-500 group-hover:text-secondary-300" aria-hidden="true" />}
         </span>
       </button>
       {isOpen && <ClipsList />}
@@ -109,6 +109,16 @@ function ClipsList() {
         console.log(event.data.clippingData);
         if (event.data.clippingData) {
           setClipsData(event.data.clippingData)
+        } else {
+          // some test data so we can do local dev
+          const testClippingData: WebClippingData = {
+            clippings: [
+              { id: '9208749', source_content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '8208749', source_content: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '9608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' }
+            ]
+          }
+          setClipsData(testClippingData)
         }
         //port.postMessage(event.data.text); 
       }
@@ -144,48 +154,49 @@ function ClipsList() {
 
   return (
     <div>
-
-      {/* .pt-12 pl-12 border-l-4 border-solid border-transparent {
-  //list-style: none;
-  //font-weight: normal;
-  //padding: 6px 12px;
-  border-left: 3px solid transparent;
-}
-
-.pt-12 pl-12 border-l-4 border-solid border-transparent blockquote {
-  margin: 1.5em 5px;
-  padding: 0.5em 5px;
-  border-left: 4px solid var(--search-highlight);
-  font-size: 10pt;
-  font-family: 'Courier New', Courier, monospace;
-  
-} */}
-      {clipsData && clipsData.clippings
-        ? <ol>
+      {
+        clipsData && clipsData.clippings &&
+        <ol className="text-primary-300">
           {
             clipsData.clippings.map((clip: Model1) => (
-              <li id={clip.id} key={clip.id} className="pt-4 pl-4">
-                <blockquote className="ml-3 pl-5 border-l-4 border-green-600 border-solid">{clip.source_content}</blockquote>
-                {clip.notes_content && <div id={clip.id + ':note'} className="notes-content">{clip.notes_content}</div>}
+              <li id={clip.id} key={clip.id} className="pt-4 pl-1 osobisty-side-ui-result-item">
+                <Clip clipData={clip} />
               </li>
             ))
           }
         </ol>
-        : <div className="text-red-100">Test data
-          <ol className="osobisty-side-ui-results">
-            <li id="14596" className="pt-4 pl-4">
-            <blockquote className="ml-3 pl-5 border-l-4 border-green-600 border-solid">ersal personal search system which I’ve named Osobisty (which means personal or private in Polish). I’ll dive deeper into why I need Osobisty in another </blockquote></li>
-            <li id="51324" className="pt-4 pl-4 ">
-              <blockquote className="ml-3 pl-5 border-l-4 border-green-600 border-solid">access my curated content both public or private. I currently have private notes (Zettlekasten)</blockquote></li>
-          </ol>
-        </div>
       }
     </div>
 
   )
 }
 
+function Clip(props: any) {
 
+  const onclickHandler = (event: any) => {
+    console.log("click to edit")
+    console.log(event.target.contenteditable)
+    event.target.contenteditable = true;
+  }
+  return (
+    <div className="bg-primary-600 shadow overflow-hidden sm:rounded-lg">
+      {props.clipData && props.clipData.source_content &&
+        <div className="py-3 sm:px-2">
+          <blockquote className="ml-1 pl-3 border-l-4 border-secondary-700 border-solid">
+            {props.clipData.source_content}
+          </blockquote>
+        </div>
+      }
+
+
+      <div>
+        <dt className="pt-1 px-3 text-primary-400">Notes<div className="border-b border-primary-500"></div></dt>
+        <dd className="p-3 " onClick={onclickHandler}>{props.clipData && props.clipData.notes_content}</dd>
+      </div>
+
+    </div>
+  )
+}
 
 
 export default SideUI;

@@ -6,15 +6,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        primary: {
-          dark: '#3c4858',
-          DEFAULT: '#373c42',
-          light: '#e0e6ed',
-        }
+        primary: colors.gray,
+        secondary: colors.teal
       },
       zIndex: {
         'top': 2147483647,
-      }, 
+      },
       minWidth: {
         '400': '400px',
       },
