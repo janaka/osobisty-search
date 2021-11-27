@@ -30,58 +30,55 @@
 .osobisty-side-ui-container {
   background-color: var(--primary-bg);
   color: var(--primary-text);
-  overflow-y: auto;
+  /* overflow-y: auto;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 10pt;
+  font-size: 10pt; */
 }
 
-.osobisty-side-ui-container.open {
+/* .osobisty-side-ui-container.open {
   position: fixed;
-  z-index: 99512;
-  border: 10px pink solid;
   float: right;
-  /* 
-  display: inline; */
+
   height: 500px;
   width: 400px;
   top: 0px;
   right: 0px;
-}
+} */
 
-
+/* 
 .osobisty-side-ui-container.closed {
   position: fixed;
-  z-index: 99512;
-  border: 10px pink solid;
+  
   float: right;
-  /* 
-  display: inline; */
+
   height: 50px;
   width: 50px;
   top: 20px;
   right: 0px;
-}
+} 
+*/
 
-.osobisty-side-ui-results {
+/* .osobisty-side-ui-results {
   padding-left: 0;
   margin: 0;
-}
+} */
 
-.osobisty-side-ui-result-item {
-  list-style: none;
-  font-weight: normal;
-  padding: 6px 12px;
-  /* white-space: nowrap;
-  overflow:auto; 
-  text-overflow: ellipsis;*/
+/* .osobisty-side-ui-result-item {
+  //list-style: none;
+  //font-weight: normal;
+  //padding: 6px 12px;
   border-left: 3px solid transparent;
-}
+} */
 
-.osobisty-side-ui-result-item blockquote {
+/* .osobisty-side-ui-result-item blockquote {
   margin: 1.5em 5px;
   padding: 0.5em 5px;
   border-left: 4px solid var(--search-highlight);
   font-size: 10pt;
   font-family: 'Courier New', Courier, monospace;
   
+} */
+
+iframe {
+  z-index: 0;
 }

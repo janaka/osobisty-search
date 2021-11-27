@@ -31,20 +31,25 @@ const renderSideUI = () => {
 
         fetch(chrome.runtime.getURL('/asset-manifest.json')).then(r => r.text()).then(reactAssetManifest => {
 
-            const reactCsslinkEl = document.createElement("link")
-            reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
-            reactCsslinkEl.rel = "stylesheet"
-            console.log(reactCsslinkEl.href)
-            document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
 
 
-            const reactScript = document.createElement("script")
-            reactScript.src = chrome.runtime.getURL("/static/js/main.js")
-            document.body.insertAdjacentElement('afterbegin', reactScript);
-            const reactRootDiv = document.createElement("div")
-            reactRootDiv.id = "osobisty-side-ui-root"
-            document.body.insertAdjacentElement('afterbegin', reactRootDiv); // 'afterbegin': Just inside the element, before its first child
-            // not using innerHTML as it would break js event listeners of the page
+            if (!document.getElementById("osobisty-side-ui-root")) { 
+                // not running in standalone deve mode.
+                const reactCsslinkEl = document.createElement("link")
+                reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
+                reactCsslinkEl.rel = "stylesheet"
+                console.log(reactCsslinkEl.href)
+                document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
+    
+                const reactScript = document.createElement("script")
+                reactScript.src = chrome.runtime.getURL("/static/js/main.js")
+                document.body.insertAdjacentElement('afterbegin', reactScript);
+                const reactRootDiv = document.createElement("div")
+                reactRootDiv.className = "z-top"
+                reactRootDiv.id = "osobisty-side-ui-root"
+                document.body.insertAdjacentElement('afterbegin', reactRootDiv); // 'afterbegin': Just inside the element, before its first child
+                // not using innerHTML as it would break js event listeners of the page
+            }
         });
     } catch (error) {
         throw error
@@ -239,9 +244,9 @@ window.addEventListener("message", (event: MessageEvent<any>) => {
     if (event.data.source && (event.data.source === "SIDEUI")) {
         console.log("SIDEUI")
         if (event.data.cmd && (event.data.cmd === "sendClippingData"))
-            console.log("Received command: " +event.data.cmd+ " from: " + event.data.source);
-            console.log("Response with clipping data from contentscript to sideui");
-            window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
-            
+            console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
+        console.log("Response with clipping data from contentscript to sideui");
+        window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
+
     }
 }, false);

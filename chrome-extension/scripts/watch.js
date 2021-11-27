@@ -17,29 +17,32 @@ const webpack = require("webpack");
 const configFactory = require("react-scripts/config/webpack.config");
 const colors = require("colors/safe");
 const ExtensionReloader = require("webpack-extension-reloader");
+const { createWebpackDevConfig } = require("@craco/craco");
+const cracoConfig = require("../craco.config.js");
 
 // Create the Webpack config usings the same settings used by the "start" script
 // of create-react-app.
-const config = configFactory("development");
+const webpackConfig = createWebpackDevConfig(cracoConfig); // with Craco webpack CRA overrides
+//const webpackConfig = configFactory("development");
 
 // The classic webpack-dev-server can't be used to develop browser extensions,
 // so we remove the "webpackHotDevClient" from the config "entry" point.
-if (config.entry && config.entry.length > 0) {
-  console.log(config.entry)
+if (webpackConfig.entry && webpackConfig.entry.length > 0) {
+  console.log(webpackConfig.entry)
 // config.entry = config.entry.filter(function(entry) {
 //   return !entry.includes("webpackHotDevClient");
 // });
 }
 // Edit the Webpack config by setting the output directory to "./build".
-config.output.path = paths.appBuild;
+webpackConfig.output.path = paths.appBuild;
 paths.publicUrl = paths.appBuild + "/";
 
 // Add the webpack-extension-reloader plugin to the Webpack config.
 // It notifies and reloads the extension on code changes.
-config.plugins.push(new ExtensionReloader());
+webpackConfig.plugins.push(new ExtensionReloader());
 
 // Start Webpack in watch mode.
-const compiler = webpack(config);
+const compiler = webpack(webpackConfig);
 const watcher = compiler.watch({}, function(err) {
   if (err) {
     console.error(err);
