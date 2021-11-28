@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Api, WebClippingData, WebClippingsResponse, Model1, Clippings } from './client-libs/osobisty-client';
+import { WebClippingData, Model1 } from './client-libs/osobisty-client';
 import './sideui.css';
-import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon, LockClosedIcon } from '@heroicons/react/solid'
+import { ChevronDoubleLeftIcon, ChevronDoubleRightIcon } from '@heroicons/react/solid'
 
 function SideUI(props: any) {
   const [isOpen, setIsOpen] = useState(false);
@@ -71,15 +71,18 @@ function SideUI(props: any) {
     // }
 
 
-    <div className={isOpen ? 'h-500 w-400 min-w-400 max-w-600 p-2 pb-3 top-0 right-0 rounded-sm z-top overflow-y-auto fixed float-right font-mono text-xs bg-primary-700 osobisty-side-ui-container open' : 'h-50 w-30 pt-2 top-0 right-0 fixed float-right z-top closed'}>
-      <button id="expandcollaps-button" className="group relative h-6 mb-1 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-300 bg-primary-600 hover:bg-primary-700" onClick={clickHandler}>
+    <div className={isOpen ? 'min-h-500 w-400 min-w-400 max-w-600 p-2 pb-3 top-0 right-0 rounded-sm z-top fixed float-right font-mono text-xs bg-primary-700 osobisty-side-ui-container open' : 'h-50 w-30 pt-2 top-0 right-0 fixed float-right z-top closed'}>
+      <div className="mb-3">
+      <button id="expandcollaps-button" className="group relative h-6 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-300 bg-primary-600 hover:bg-primary-700" onClick={clickHandler}>
         <span className="absolute left-0 inset-y-0 flex items-center">
           {isOpen
             ? <ChevronDoubleRightIcon className="h-8 w-8 text-primary-500 group-hover:text-secondary-300" aria-hidden="true" />
             : <ChevronDoubleLeftIcon className="h-8 w-8 text-primary-500 group-hover:text-secondary-300" aria-hidden="true" />}
         </span>
       </button>
-      {isOpen && <ClipsList />}
+      </div>
+      
+      <div className="overflow-y-auto h-500">{isOpen && <ClipsList />}</div>
     </div>
   );
 }
@@ -115,7 +118,11 @@ function ClipsList() {
             clippings: [
               { id: '9208749', source_content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore', notes_content: 'Some notes about why I found this clip interesting.' },
               { id: '8208749', source_content: 'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium,', notes_content: 'Some notes about why I found this clip interesting.' },
-              { id: '9608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' }
+              { id: '9608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '9618749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '7608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '6608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' },
+              { id: '2608749', source_content: 'But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born ', notes_content: 'Some notes about why I found this clip interesting.' }
             ]
           }
           setClipsData(testClippingData)
@@ -159,7 +166,7 @@ function ClipsList() {
         <ol className="text-primary-300">
           {
             clipsData.clippings.map((clip: Model1) => (
-              <li id={clip.id} key={clip.id} className="pt-4 pl-1 osobisty-side-ui-result-item">
+              <li id={clip.id} key={clip.id} className="pb-4 osobisty-side-ui-result-item">
                 <Clip clipData={clip} />
               </li>
             ))
@@ -172,12 +179,19 @@ function ClipsList() {
 }
 
 function Clip(props: any) {
-
+  
   const onclickHandler = (event: any) => {
     console.log("click to edit")
     console.log(event.target.contenteditable)
     event.target.contenteditable = true;
   }
+
+  const oninputHandler = async (event:any) => {
+    // auto expand the text box based on the content
+    // doesn't work yet. Following this example https://css-tricks.com/auto-growing-inputs-textareas/
+    event.target.dataset.value = event.target.value
+  }
+
   return (
     <div className="bg-primary-600 shadow overflow-hidden sm:rounded-lg">
       {props.clipData && props.clipData.source_content &&
@@ -187,11 +201,11 @@ function Clip(props: any) {
           </blockquote>
         </div>
       }
-
-
-      <div>
+      <div className="min-h-full">
         <dt className="pt-1 px-3 text-primary-400">Notes<div className="border-b border-primary-500"></div></dt>
-        <dd className="p-3 " onClick={onclickHandler}>{props.clipData && props.clipData.notes_content}</dd>
+        <dd className="p-3 min-h-full" onClick={onclickHandler}>
+          <textarea className="w-full min-h-full bg-transparent resize-none focus:outline-none focus:bg-primary-500" onInput={oninputHandler} >{props.clipData && props.clipData.notes_content}</textarea>
+          </dd>
       </div>
 
     </div>

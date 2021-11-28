@@ -29,8 +29,9 @@
 
 .osobisty-side-ui-container {
   
-  color: var(--primary-text);
+  
   /* 
+  color: var(--primary-text);
   background-color: var(--primary-bg);
   overflow-y: auto;
   font-family: 'Courier New', Courier, monospace;

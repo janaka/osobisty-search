@@ -18,7 +18,7 @@ module.exports = {
       maxWidth: {
         '600': '600px',
       },
-      minHieght: {
+      minHeight: {
         '500': '500px',
       },
       width: {
@@ -26,8 +26,9 @@ module.exports = {
         '400': '400px',
 
       },
-      hieght: {
+      height: {
         '50': '50px',
+        '500': '500px'
       },
     },
   },
