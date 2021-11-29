@@ -3,7 +3,7 @@
 } */
 
 
-:root, .dark {
+/* :root, .dark {
   --primary-bg: #373c42;
   --primary-text: #ebebeb;
   --secondary-bg: #2e3538;
@@ -25,18 +25,19 @@
   --translucent: rgba(47, 52, 55, .8);
   --transparent: rgba(47, 52, 55, 0);
   --search-highlight: #28f5c8;  
-}
+} */
 
+/*
 .osobisty-side-ui-container {
   
   
-  /* 
+  
   color: var(--primary-text);
   background-color: var(--primary-bg);
   overflow-y: auto;
   font-family: 'Courier New', Courier, monospace;
-  font-size: 10pt; */
-}
+  font-size: 10pt; 
+} */
 
 /* .osobisty-side-ui-container.open {
   position: fixed;
@@ -73,15 +74,16 @@
   border-left: 3px solid transparent;
 } */
 
+/* 
 .osobisty-side-ui-result-item blockquote { 
-  /* 
+   
   override element styles from host page.
   need to use the class name to make the selector more specific hence high priority than an element only style.
-*/
 
   @apply font-mono text-sm
   
-}
+
+}*/
 
 iframe {
   z-index: 0;
