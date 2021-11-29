@@ -14,26 +14,28 @@ const dbConfig: DbmsConfig = {
   metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
 }
 
-interface reqSchema {
+interface reqClipSchema {
+  clip_id?: string,
   source_content: string,
   notes_content: string,
   matched_html: string,
   page_url: string
 }
 
-const schemaWebclipping = joi.object<reqSchema>({
+const schemaWebclipping = joi.object<reqClipSchema>({
+  clip_id: joi.string().description("If clip_id is present, corresponding clip is updated."),
   source_content: joi.string().required().description('Clipped text').example('Some text clipped from a website.'),
   notes_content: joi.string().description('Notes related to the clipped text in `source_content`').example('Some nottes about the clipped text'),
   matched_html: joi.string().base64().description('The clipped `source_content` including any innerHTML base64 encoded. Makes highlighting easier on next page viist'),
-  page_url: joi.string().uri({ scheme: ['http', 'https', 'kindle'] }).required().description('URi of the page the text was clipped from').example('https://www.google.com')
+  page_url: joi.string().required().uri({ scheme: ['http', 'https', 'kindle'] }).description('URi of the page the text was clipped from').example('https://www.google.com')
 }).label('webclipping')
 
 
   export const postRouteConfigWebclippings: ServerRoute = {
-    method: 'POST',
+    method: ['POST', 'PUT'],
     path: '/webclippings',
     options: {
-      description: 'Create a new webclpping',
+      description: 'Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.',
       tags: ['api'],
       validate: {
         payload: schemaWebclipping,
@@ -69,7 +71,7 @@ const schemaWebclipping = joi.object<reqSchema>({
 
         const db: Dbms = new Dbms(dbConfig); // TODO: this needs to be a singleton. Move intantiation to api-server.ts
         //console.log(req.payload)
-        const reqPayload: reqSchema = req.payload as reqSchema
+        const reqPayload: reqClipSchema = req.payload as reqClipSchema
 
         const clipPageId: string = generateIdFromText(new URL(reqPayload.page_url).toString()).toString()
         const filename: string = generateClippingPageFilename(clipPageId, reqPayload.page_url)
@@ -98,7 +100,7 @@ const schemaWebclipping = joi.object<reqSchema>({
           webPage = doc.data as WebClipPageDbSchema
         }
 
-        const clipId: string = generateIdFromText(reqPayload.source_content).toString() // generateClipId(reqPayload.source_content);
+        const clipId: string = reqPayload.clip_id ? reqPayload.clip_id : generateIdFromText(reqPayload.source_content).toString() // generateClipId(reqPayload.source_content);
 
         const index = webPage.clippings.findIndex(i => i.id === clipId)
         if (index > -1) {
