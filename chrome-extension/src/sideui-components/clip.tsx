@@ -14,7 +14,7 @@ function Clip(props: any) {
   const oninputHandler = async (event: any) => {
     // auto expand the text box based on the content
     // doesn't work yet. Following this example https://css-tricks.com/auto-growing-inputs-textareas/
-    event.target.dataset.value = event.target.value
+    //event.target.dataset.value = event.target.value
     //const note_content = event.target.value
 
     const clip: Model1 = props.clipData.clip
@@ -53,7 +53,7 @@ const saveClipNote = (clipData: { clip: Model1, page_url: string, page_id: strin
 }
 
 const saveClipNoteCmdResponseHandler = (event: MessageEvent<any>) => {
-  console.log("<Clip> received message from: " + event.data.source)
+  console.log("<Clip> received cmd=" + +  " from: " + event.data.source)
   console.log(event)
   // We only accept messages from ourselves
   if (event.source !== window) {
@@ -65,7 +65,7 @@ const saveClipNoteCmdResponseHandler = (event: MessageEvent<any>) => {
   if (event.data.source && (event.data.source === "CONTENT_SCRIPT")) {
     if (event.data.cmd && (event.data.cmd === "saveClipDataCmdResponse"))
       console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
-    console.log(event.data.msg);
+      console.log(event.data.msg);
   }
 }
 

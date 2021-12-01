@@ -55,7 +55,7 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
 let server: Server = Hapi.server({
   port: PORT,
   host: HOST,
-  // debug: { request: ['error'] }
+  debug: { request: ['error'] }
 });
 
 //app.use(cors(corsOptions));
