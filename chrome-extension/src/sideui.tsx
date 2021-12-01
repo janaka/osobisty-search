@@ -20,18 +20,6 @@ function SideUI(props: any) {
       setIsOpen(JSON.parse(isOpenKey).isOpen)
     }
 
-
-
-    //   });
-    // chrome.runtime.onMessage.addListener(
-    //   function(request, sender, sendResponse) {
-    //     console.log("command message received at extensions")
-
-    //     if (request.command === "updateHighlightInfo") {
-
-    //     }
-    //   }
-    // );
   }, [props.isOpen, isOpen]);
 
   const clickHandler = (event: any) => {
@@ -47,30 +35,6 @@ function SideUI(props: any) {
   }
 
   return (
-
-    // .osobisty-side-ui-container {
-    //   background-color: var(--primary-bg);
-    //   color: var(--primary-text);
-    //   overflow-y: auto;
-    //   font-family: 'Courier New', Courier, monospace;
-    //   font-size: 10pt;
-    // }
-
-    // .osobisty-side-ui-container.open {
-    // .osobisty-side-ui-container.closed {
-    //   position: fixed;
-
-    //   float: right;
-    //   /* 
-    //   display: inline; */
-    //   height: 50px;
-    //   width: 50px;
-    //   top: 20px;
-    //   right: 0px;
-    // }
-    // }
-
-
     <div className={isOpen ? 'min-h-500 w-400 min-w-400 max-w-600 p-2 pb-3 top-0 right-0 rounded-sm z-top fixed float-right antialiased font-mono text-sm text-primary-300 bg-primary-700 osobisty-side-ui-container open' : 'h-50 w-30 pt-2 top-0 right-0 fixed float-right z-top closed'}>
       <div className="mb-3">
       <button id="expandcollaps-button" className="group relative h-6 flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-primary-300 bg-primary-600 hover:bg-primary-700" onClick={clickHandler}>

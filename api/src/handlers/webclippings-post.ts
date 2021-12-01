@@ -32,7 +32,7 @@ const schemaWebclipping = joi.object<reqClipSchema>({
 
 
   export const postRouteConfigWebclippings: ServerRoute = {
-    method: 'POST',
+    method: 'POST', // don't add multiple actions. the client doesn't get generated with the request content type property
     path: '/webclippings',
     options: {
       description: 'Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.',
