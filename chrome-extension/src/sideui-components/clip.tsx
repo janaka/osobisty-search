@@ -1,31 +1,41 @@
-import { useEffect} from "react";
+import { useEffect } from "react";
 import { Model1 } from "../client-libs/osobisty-client";
+import useDebounce from "../hooks/useDebounce";
 
 
 function Clip(props: any) {
+
+
+  const [debouncedNotesContentsValue, currentNotesContentsValue, setCurrentNotesContentsValue] = useDebounce('', 300)
+
+  useEffect(() => {
+    setCurrentNotesContentsValue(props.clipData.clip.notes_content)
+
+  }, [setCurrentNotesContentsValue, props.clipData.clip.notes_content]);
 
   useEffect(() => {
     window.addEventListener("message", saveClipNoteCmdResponseHandler, false);
   }, []);
 
 
-  //TODO: add debounce. Lodash return function signature doesn't work 
 
-  const debouncedOnInputHandler = (event: any) => {
-      // auto expand the text box based on the content
-      // doesn't work yet. Following this example https://css-tricks.com/auto-growing-inputs-textareas/
-      //event.target.dataset.value = event.target.value
-      //const note_content = event.target.value
-      
-      const clip: Model1 = props.clipData.clip
-      clip.notes_content = event.target.value
-  
-      //TODO: FIX deleting all the content of a note doesn't work
-  
-      saveClipNote({ clip: clip, page_url: props.clipData.page_url, page_id: props.clipData.page_id });
-  
-    }
-   
+  const onInputHandler = (event: any) => {
+    // auto expand the text box based on the content
+    // doesn't work yet. Following this example https://css-tricks.com/auto-growing-inputs-textareas/
+    //event.target.dataset.value = event.target.value
+
+    setCurrentNotesContentsValue(event.target.value)
+
+    //TODO: FIX deleting all the content of a note doesn't work
+
+  }
+
+  useEffect(() => {
+    const clip: Model1 = props.clipData.clip
+    clip.notes_content = debouncedNotesContentsValue
+    console.log("debounce value changed")
+    saveClipNote({ clip: clip, page_url: props.clipData.page_url, page_id: props.clipData.page_id });
+  }, [debouncedNotesContentsValue, props.clipData.clip, props.clipData.page_id, props.clipData.page_url]);
 
 
 
@@ -42,7 +52,7 @@ function Clip(props: any) {
         <div className="min-h-full">
           <dt className="pt-1 px-3 text-primary-400">Notes<div className="border-b border-primary-500"></div></dt>
           <dd className="p-3 min-h-full">
-            <textarea className="w-full min-h-full bg-transparent resize-none focus:outline-none font-mono text-primary-300 focus:bg-primary-500" onInput={debouncedOnInputHandler} >{props.clipData.clip.notes_content}</textarea>
+            <textarea className="w-full min-h-full bg-transparent resize-none focus:outline-none font-mono text-primary-300 focus:bg-primary-500" onInput={onInputHandler} >{props.clipData.clip.notes_content}</textarea>
           </dd>
         </div>
       }
@@ -51,7 +61,8 @@ function Clip(props: any) {
 }
 
 const saveClipNote = (clipData: { clip: Model1, page_url: string, page_id: string }) => {
-  console.log("<clip> send saveClipData command")
+  console.log("<clip> send saveClipData command");
+  console.log("note= " + clipData.clip.notes_content);
   window.postMessage({ source: 'SIDEUI', cmd: 'saveClipData', data: clipData }, "*");
 }
 
