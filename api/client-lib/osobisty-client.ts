@@ -297,7 +297,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Osobisty API
- * @version 0.4.1
+ * @version 0.4.2
  * @baseUrl http://localhost:3002
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -331,22 +331,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/webclippings`,
         method: "POST",
         body: body,
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags webclippings
-     * @name PutWebclippings
-     * @summary Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.
-     * @request PUT:/webclippings
-     */
-    putWebclippings: (body: Webclipping, params: RequestParams = {}) =>
-      this.request<WebClippingResponse, any>({
-        path: `/webclippings`,
-        method: "PUT",
-        body: body,
+        type: ContentType.Json,
         ...params,
       }),
   };
