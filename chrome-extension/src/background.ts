@@ -2,6 +2,8 @@ import { Api, Webclipping, WebClippingResponse, WebClippingsResponse } from './c
 
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
+  // these logs appear in the extension servie work console, access from the chrome extension page
+  console.log("Background script received command=" + request.command + " from content script")
   if (request.command === "getWebClippings") {
     try {
       const api = new Api()
@@ -26,6 +28,42 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
       throw error
     }
   }
+
+  if (request.command === "saveClipData") {
+    try {
+      
+      console.log(request.data)
+      const api = new Api()
+
+      // make sure all field are mapped here. Else data will get overritten with nothing i.e. data loss
+      const wc: Webclipping = {
+        clip_id: request.data.clip.id,
+        source_content: request.data.clip.source_content,
+        notes_content: request.data.clip.notes_content,
+        page_url: request.data.page_url,
+      }
+
+      api.webclippings.postWebclippings(wc)
+        .then(response => response.json())
+        .then((data: WebClippingResponse) => {
+          console.log("postWebclippings() resp ")
+          console.log(data.webClippingData)
+          // once saved, tell the content script to highlight the selection
+          sendResponse({msg: data.message})
+        })
+        .catch((error) => {
+          
+            //chrome.tabs.sendMessage(sender.tab.id, { command: "saveClipDataCmdResponse", msg: "error" }, (response) => { })
+          console.error("Error calling `api.webclippings.postWebclippings()`")
+          console.error(error)
+          sendResponse({msg: "error", detail: error})
+        })
+    } catch (error) {
+      throw error
+    }
+  }
+
+
 });
 
 const clipSelectionMenuItemHandler = (tab: any) => {
@@ -121,6 +159,20 @@ chrome.runtime.onInstalled.addListener(function () {
 
 
 chrome.contextMenus.onClicked.addListener(onClickContextMenu)
+
+//when the extension icon is clicked. only fires if there is no ext popup UI hooked up.
+chrome.action.onClicked.addListener(
+  (tab: chrome.tabs.Tab) => {
+      // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
+      console.log("extention icon clicked!")
+      // chrome.scripting.executeScript({
+      //   target: {tabId: tab.id},
+      //   files: ['content.js']
+      // });
+      
+  }
+);
+
 
 // chrome.webNavigation.onCompleted.addListener((details)=>{
 //   chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {

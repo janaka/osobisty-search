@@ -1,21 +1,15 @@
 import { useEffect } from "react";
-import { Webclipping, WebClippingData } from "../client-libs/osobisty-client";
-import { WebClippingDataExtended } from "../types/WebClippingDataExtended";
+import { Model1 } from "../client-libs/osobisty-client";
 
 function Clip(props: any) {
 
   useEffect(() => {
-    
+
 
     window.addEventListener("message", saveClipNoteCmdResponseHandler, false);
 
   }, []);
 
-  const onclickHandler = (event: any) => {
-    console.log("click to edit")
-    console.log(event.target.contenteditable)
-    event.target.contenteditable = true;
-  };
 
   const oninputHandler = async (event: any) => {
     // auto expand the text box based on the content
@@ -23,39 +17,43 @@ function Clip(props: any) {
     event.target.dataset.value = event.target.value
     //const note_content = event.target.value
 
-    const clipData:Webclipping = props.clipData
-    clipData.notes_content = event.target.value
+    const clip: Model1 = props.clipData.clip
+    clip.notes_content = event.target.value
 
-    saveClipNote(clipData);
+    saveClipNote({ clip: clip, page_url: props.clipData.page_url, page_id: props.clipData.page_id });
+
+
 
   };
 
   return (
     <div className="bg-primary-600 shadow overflow-hidden sm:rounded-lg">
-      {props.clipData && props.clipData.source_content &&
+      {props.clipData && props.clipData.clip && props.clipData.clip.source_content &&
         <div className="py-3 sm:px-2">
           <blockquote className="ml-1 pl-3 border-l-4 font-mono not-italic opacity-100 antialiased text-sm text-primary-300 border-secondary-700 border-solid">
-            {props.clipData.source_content}
+            {props.clipData.clip.source_content}
           </blockquote>
         </div>
       }
-      <div className="min-h-full">
-        <dt className="pt-1 px-3 text-primary-400">Notes<div className="border-b border-primary-500"></div></dt>
-        <dd className="p-3 min-h-full" onClick={onclickHandler}>
-          <textarea className="w-full min-h-full bg-transparent resize-none focus:outline-none font-mono text-primary-300 focus:bg-primary-500" onInput={oninputHandler} >{props.clipData && props.clipData.notes_content}</textarea>
-        </dd>
-      </div>
-
+      {props.clipData && props.clipData.clip &&
+        <div className="min-h-full">
+          <dt className="pt-1 px-3 text-primary-400">Notes<div className="border-b border-primary-500"></div></dt>
+          <dd className="p-3 min-h-full">
+            <textarea className="w-full min-h-full bg-transparent resize-none focus:outline-none font-mono text-primary-300 focus:bg-primary-500" onInput={oninputHandler} >{props.clipData.clip.notes_content}</textarea>
+          </dd>
+        </div>
+      }
     </div>
   )
 }
 
-const saveClipNote = (clipData: Webclipping) => {
-  window.postMessage({ source: 'SIDEUI', cmd: 'saveClipNoteData', data: clipData}, "*");
+const saveClipNote = (clipData: { clip: Model1, page_url: string, page_id: string }) => {
+  console.log("<clip> send saveClipData command")
+  window.postMessage({ source: 'SIDEUI', cmd: 'saveClipData', data: clipData }, "*");
 }
 
 const saveClipNoteCmdResponseHandler = (event: MessageEvent<any>) => {
-  console.log("SideUI received message from: " + event.data.source)
+  console.log("<Clip> received message from: " + event.data.source)
   console.log(event)
   // We only accept messages from ourselves
   if (event.source !== window) {
@@ -65,11 +63,10 @@ const saveClipNoteCmdResponseHandler = (event: MessageEvent<any>) => {
   }
 
   if (event.data.source && (event.data.source === "CONTENT_SCRIPT")) {
-    console.log("CONTENT_SCRIPT")
-    if (event.data.cmd && (event.data.cmd === "saveClipNoteDataCmdResponse"))
+    if (event.data.cmd && (event.data.cmd === "saveClipDataCmdResponse"))
       console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
-    console.log(event.data.clippingData);
-
+    console.log(event.data.msg);
   }
+}
 
-  export default Clip;
+export default Clip;

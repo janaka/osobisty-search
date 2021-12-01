@@ -12,11 +12,10 @@ const dbConfig: DbmsConfig = {
   metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
 }
 
-
 interface resSchema {
   id: string,
   page_url: string,
-  clippings: Array<{
+  clippings: Array<{ // TODO: pull this out as `interface clip` so we don't have `Model1` in the client
     id: string,
     source_content: string, // plain text
     notes_content: string,

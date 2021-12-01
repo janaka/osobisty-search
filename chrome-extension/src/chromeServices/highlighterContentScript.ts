@@ -2,7 +2,6 @@ import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
 import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
 
-
 let clipData: WebClippingData;
 
 
@@ -33,14 +32,14 @@ const renderSideUI = () => {
 
 
 
-            if (!document.getElementById("osobisty-side-ui-root")) { 
+            if (!document.getElementById("osobisty-side-ui-root")) {
                 // not running in standalone deve mode.
                 const reactCsslinkEl = document.createElement("link")
                 reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
                 reactCsslinkEl.rel = "stylesheet"
                 console.log(reactCsslinkEl.href)
                 document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
-    
+
                 const reactScript = document.createElement("script")
                 reactScript.src = chrome.runtime.getURL("/static/js/main.js")
                 document.body.insertAdjacentElement('afterbegin', reactScript);
@@ -174,6 +173,10 @@ const onReceiveMesssage = async (
         sendResponse({ data: clipData }) // clipData global should have data since the page should already be loaded  
     }
 
+    // if (msg.command === "saveClipDataCmdResponse") {
+    //     window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'saveClipDataCmdResponse', msg: msg.msg }, "*");
+    // }
+
     if (msg.command === "highlightClips") {
         console.log("handling cmd=" + msg.command)
         clipData = msg.data;
@@ -214,6 +217,41 @@ const onReceiveMesssage = async (
     }
 }
 
+const messageEventHandler = (event: MessageEvent<any>) => {
+    console.log("ContentScript received message from: " + event.data.source)
+    console.log(event)
+    // We only accept messages from ourselves
+    if (event.source !== window) {
+        console.log("Reject! Event source not same window: " + event.source)
+        return;
+    }
+
+    if (event.data.source && (event.data.source === "SIDEUI")) {
+        if (event.data.cmd) {
+            console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
+
+            switch (event.data.cmd) {
+                case "sendClippingData":
+                    console.log("Response with clipping data from contentscript to sideui");
+                    // don't need to hit the background script because the content script already had the clipData from the load event that defintiely already happened
+                    window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
+                    break;
+                case "saveClipData":
+                    // relay message to background script
+                    console.log("Content script send command `saveClipData` to background script.")
+                    console.log(event.data.data)
+                    chrome.runtime.sendMessage({ command: "saveClipData", data: event.data.data }, (response) => { 
+                        window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'saveClipDataCmdResponse', msg: response}, "*");
+                    });
+                    break;
+            }
+        }
+    }
+
+}
+
+
+
 // const sendHighlightDataToExtension = (data: WebClippingDataExtended) => {
 //     chrome.runtime.sendMessage({ command:"updateHighlightInfo",  data: data }, (response) => {});
 //     console.log("send command to ext")
@@ -225,28 +263,8 @@ const onReceiveMesssage = async (
 //chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
 chrome.runtime.onMessage.addListener(onReceiveMesssage);
 
-// when the extension icon is clicked. only fires if there is no ext popup UI hooked up.
-// chrome.action.onClicked.addListener(
-//     (tab) => {
-//         // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
-//     },
-// )
 
-window.addEventListener("message", (event: MessageEvent<any>) => {
-    console.log("ContentScript received message from: " + event.data.source)
-    console.log(event)
-    // We only accept messages from ourselves
-    if (event.source !== window) {
-        console.log("Reject! Event source not same window: " + event.source)
-        return;
-    }
+// handle commands from the SideUI
+window.addEventListener("message", messageEventHandler, false);
 
-    if (event.data.source && (event.data.source === "SIDEUI")) {
-        console.log("SIDEUI")
-        if (event.data.cmd && (event.data.cmd === "sendClippingData"))
-            console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
-        console.log("Response with clipping data from contentscript to sideui");
-        window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
 
-    }
-}, false);

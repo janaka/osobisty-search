@@ -15,7 +15,7 @@ const dbConfig: DbmsConfig = {
 }
 
 interface reqClipSchema {
-  clip_id?: string,
+  clip_id: string,
   source_content: string,
   notes_content: string,
   matched_html: string,
@@ -37,11 +37,15 @@ const schemaWebclipping = joi.object<reqClipSchema>({
     options: {
       description: 'Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.',
       tags: ['api'],
+      payload: {
+        defaultContentType: 'application/json'
+      },
       validate: {
         payload: schemaWebclipping,
         failAction: (request: Request, h: ResponseToolkit, err: any) => {
           console.error("request "+err);
-          console.error("request payload: " + JSON.stringify(request.payload))
+          console.error("request payload: ")
+          console.log(JSON.parse(request.payload.toString()))
           //throw new Error("request validation error: " + err);
           throw err
         // note: if you `throw new Error()` here it overrides the resopone with a generic 500

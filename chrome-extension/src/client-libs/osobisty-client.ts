@@ -39,6 +39,9 @@ export interface WebClippingsResponse {
 }
 
 export interface Webclipping {
+  /** If clip_id is present, corresponding clip is updated. */
+  clip_id?: string;
+
   /**
    * Clipped text
    * @example Some text clipped from a website.
@@ -294,7 +297,7 @@ export class HttpClient<SecurityDataType = unknown> {
 
 /**
  * @title Osobisty API
- * @version 0.3.0
+ * @version 0.4.1
  * @baseUrl http://localhost:3002
  */
 export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDataType> {
@@ -320,7 +323,7 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
      *
      * @tags webclippings
      * @name PostWebclippings
-     * @summary Create a new webclpping
+     * @summary Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.
      * @request POST:/webclippings
      */
     postWebclippings: (body: Webclipping, params: RequestParams = {}) =>
@@ -328,7 +331,22 @@ export class Api<SecurityDataType extends unknown> extends HttpClient<SecurityDa
         path: `/webclippings`,
         method: "POST",
         body: body,
-        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags webclippings
+     * @name PutWebclippings
+     * @summary Create a new webclpping. If the web clip already exists then all fields are updated with the the payload. If the clip_id is present it is used to find the clip. Otherwise the id is computed using the clip content in the `source_content` field.
+     * @request PUT:/webclippings
+     */
+    putWebclippings: (body: Webclipping, params: RequestParams = {}) =>
+      this.request<WebClippingResponse, any>({
+        path: `/webclippings`,
+        method: "PUT",
+        body: body,
         ...params,
       }),
   };

@@ -6,7 +6,7 @@ function ClipsList() {
   const [clipsData, setClipsData] = useState({} as WebClippingData);
   useEffect(() => {
 
-    //var port = chrome.runtime.connect();
+    //ask the content script which will ask the background script to execute the `cmd`
     window.postMessage({ source: 'SIDEUI', cmd: 'sendClippingData' }, "*");
 
 
@@ -82,7 +82,7 @@ function ClipsList() {
           {
             clipsData.clippings.map((clip: Model1) => (
               <li id={clip.id} key={clip.id} className="pb-4 osobisty-side-ui-result-item">
-                <Clip clipData={clip} />
+                <Clip clipData={{clip: clip, page_url: clipsData.page_url, page_id: clipsData.id}} />
               </li>
             ))
           }
