@@ -3,7 +3,7 @@ import { Api, Webclipping, WebClippingResponse, WebClippingsResponse } from './c
 
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
   // these logs appear in the extension servie work console, access from the chrome extension page
-  console.log("Background script received command=" + request.command + " from content script")
+  console.log("Background script received command=" + request.command + " from content script. traceId=" + request.traceId)
   if (request.command === "getWebClippings") {
     try {
       const api = new Api()
@@ -15,14 +15,17 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
           console.log(data.webClippingData)
 
           if (sender && sender.tab && sender.tab.id) {
-            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: data.webClippingData }, (response) => { })
+            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: data.webClippingData, traceId:request.traceId }, (response) => { })
           } else {
 
           }
         })
         .catch((error) => {
-          console.error("Error calling `api.webclippings.getWebclippings()`")
+          console.error("Error: " + error.status + " - " + error.status + ", calling `api.webclippings.getWebclippings()`")
           console.error(error)
+          if (sender && sender.tab && sender.tab.id) {
+            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: "", error: { status: error.status, statusText: error.status, traceId:request.traceId  } }, (response) => { })
+          }
         })
     } catch (error) {
       throw error
@@ -31,7 +34,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
 
   if (request.command === "saveClipData") {
     try {
-      
+
       console.log(request.data)
       const api = new Api()
 
@@ -49,14 +52,14 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
           console.log("postWebclippings() resp ")
           console.log(data.webClippingData)
           // once saved, tell the content script to highlight the selection
-          sendResponse({msg: data.message})
+          sendResponse({ msg: data.message, traceId: request.traceId })
         })
         .catch((error) => {
-          
-            //chrome.tabs.sendMessage(sender.tab.id, { command: "saveClipDataCmdResponse", msg: "error" }, (response) => { })
+
+          //chrome.tabs.sendMessage(sender.tab.id, { command: "saveClipDataCmdResponse", msg: "error" }, (response) => { })
           console.error("Error calling `api.webclippings.postWebclippings()`")
           console.error(error)
-          sendResponse({msg: "error", detail: error})
+          sendResponse({ msg: "error", detail: error, traceId: request.traceId})
         })
     } catch (error) {
       throw error
@@ -67,9 +70,9 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
 });
 
 const clipSelectionMenuItemHandler = (tab: any) => {
-
-  chrome.tabs.sendMessage(tab.id, { command: "clipSelection" }, (response) => {
-    console.log("clipSelection resp: ");
+  console.log("Send command=clipSelection, traceId=13000");
+  chrome.tabs.sendMessage(tab.id, { command: "clipSelection", traceId: "13000" }, (response) => {
+    console.log("Handle command=clipSelection, traceId=13000");
     console.log(response);
     try {
       const api = new Api()
@@ -85,7 +88,7 @@ const clipSelectionMenuItemHandler = (tab: any) => {
           console.log("post resp ")
           console.log(data.webClippingData)
           // once saved, tell the content script to highlight the selection
-          chrome.tabs.sendMessage(tab.id, { command: "highlightSelection", data: data.webClippingData }, (response) => { })
+          chrome.tabs.sendMessage(tab.id, { command: "highlightSelection", data: data.webClippingData, traceId: response.traceId }, (response) => { })
         })
         .catch((error) => {
           console.error("Error calling `api.webclippings.postWebclippings()`")
@@ -163,13 +166,13 @@ chrome.contextMenus.onClicked.addListener(onClickContextMenu)
 //when the extension icon is clicked. only fires if there is no ext popup UI hooked up.
 chrome.action.onClicked.addListener(
   (tab: chrome.tabs.Tab) => {
-      // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
-      console.log("extention icon clicked!")
-      // chrome.scripting.executeScript({
-      //   target: {tabId: tab.id},
-      //   files: ['content.js']
-      // });
-      
+    // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
+    console.log("extention icon clicked!")
+    // chrome.scripting.executeScript({
+    //   target: {tabId: tab.id},
+    //   files: ['content.js']
+    // });
+
   }
 );
 

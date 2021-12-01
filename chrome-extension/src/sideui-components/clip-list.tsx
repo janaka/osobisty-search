@@ -7,11 +7,12 @@ function ClipsList() {
   useEffect(() => {
 
     //ask the content script which will ask the background script to execute the `cmd`
-    window.postMessage({ source: 'SIDEUI', cmd: 'sendClippingData' }, "*");
+    console.log("trcId=1111 <ClipsList> send cmd=sendClippingData");
+    window.postMessage({ source: 'SIDEUI', cmd: 'sendClippingData', traceId: '1111' }, "*");
 
 
     window.addEventListener("message", (event: MessageEvent<any>) => {
-      console.log("<SideUI><ClipsList> received message from: " + event.data.source)
+      console.log("<SideUI><ClipsList> received message from: " + event.data.source + " traceId=" +event.data.traceId)
       console.log(event)
       // We only accept messages from ourselves
       if (event.source !== window) {
@@ -23,7 +24,7 @@ function ClipsList() {
       if (event.data.source && (event.data.source === "CONTENT_SCRIPT")) {
         console.log("CONTENT_SCRIPT")
         if (event.data.cmd && (event.data.cmd === "listHighlights")) {
-          console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
+          console.log("Received command: " + event.data.cmd + " from: " + event.data.source, " traceId=" + event.data.traceId);
           console.log(event.data.clippingData);
           if (event.data.clippingData) {
             setClipsData(event.data.clippingData)

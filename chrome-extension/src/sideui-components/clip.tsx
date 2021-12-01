@@ -33,7 +33,7 @@ function Clip(props: any) {
   useEffect(() => {
     const clip: Model1 = props.clipData.clip
     clip.notes_content = debouncedNotesContentsValue
-    console.log("debounce value changed")
+    
     saveClipNote({ clip: clip, page_url: props.clipData.page_url, page_id: props.clipData.page_id });
   }, [debouncedNotesContentsValue, props.clipData.clip, props.clipData.page_id, props.clipData.page_url]);
 
@@ -62,7 +62,7 @@ function Clip(props: any) {
 
 const saveClipNote = (clipData: { clip: Model1, page_url: string, page_id: string }) => {
   console.log("<clip> send saveClipData command");
-  console.log("note= " + clipData.clip.notes_content);
+  console.log("note=  " + clipData.clip.notes_content);
   window.postMessage({ source: 'SIDEUI', cmd: 'saveClipData', data: clipData }, "*");
 }
 

@@ -6,7 +6,7 @@ let clipData: WebClippingData;
 
 
 const getPageClippings = () => {
-    chrome.runtime.sendMessage({ command: "getWebClippings", page_url: window.location.href.toString() }, (response) => { });
+    chrome.runtime.sendMessage({ command: "getWebClippings", page_url: window.location.href.toString(), traceId: '12111' }, (response) => { });
     // background script send a message with `command=highlightClips`
 
     console.log("on dom load fire getPageClippings()")
@@ -29,8 +29,6 @@ const renderSideUI = () => {
     try {
 
         fetch(chrome.runtime.getURL('/asset-manifest.json')).then(r => r.text()).then(reactAssetManifest => {
-
-
 
             if (!document.getElementById("osobisty-side-ui-root")) {
                 // not running in standalone deve mode.
@@ -218,7 +216,7 @@ const onReceiveMesssage = async (
 }
 
 const messageEventHandler = (event: MessageEvent<any>) => {
-    console.log("ContentScript received message from: " + event.data.source)
+    console.log("ContentScript received message from: " + event.data.source + " traceId="+event.data.traceId)
     console.log(event)
     // We only accept messages from ourselves
     if (event.source !== window) {
@@ -228,20 +226,20 @@ const messageEventHandler = (event: MessageEvent<any>) => {
 
     if (event.data.source && (event.data.source === "SIDEUI")) {
         if (event.data.cmd) {
-            console.log("Received command: " + event.data.cmd + " from: " + event.data.source);
+            console.log("Received command: " + event.data.cmd + " from: " + event.data.source + "traceid=" + event.data.traceId);
 
             switch (event.data.cmd) {
                 case "sendClippingData":
-                    console.log("Response with clipping data from contentscript to sideui");
+                    console.log("Response with clipping data from contentscript to sideui. traceId=" + event.data.traceId);
                     // don't need to hit the background script because the content script already had the clipData from the load event that defintiely already happened
-                    window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData }, "*");
+                    window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'listHighlights', clippingData: clipData, traceId: event.data.traceId }, "*");
                     break;
                 case "saveClipData":
                     // relay message to background script
-                    console.log("Content script send command `saveClipData` to background script.")
+                    console.log("Content script send command `saveClipData` to background script. traceId=" + event.data.traceId)
                     console.log(event.data.data)
-                    chrome.runtime.sendMessage({ command: "saveClipData", data: event.data.data }, (response) => { 
-                        window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'saveClipDataCmdResponse', msg: response}, "*");
+                    chrome.runtime.sendMessage({ command: "saveClipData", data: event.data.data, traceId: event.data.traceId}, (response) => { 
+                        window.postMessage({ source: 'CONTENT_SCRIPT', cmd: 'saveClipDataCmdResponse', msg: response, traceId: response.traceId}, "*");
                     });
                     break;
             }
