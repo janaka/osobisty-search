@@ -15,7 +15,8 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
           console.log(data.webClippingData)
 
           if (sender && sender.tab && sender.tab.id) {
-            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: data.webClippingData, traceId:request.traceId }, (response) => { })
+            console.log("Send getWebClippings successs response, command=highlightClips, traceId="+request.traceId)
+            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: data.webClippingData, traceId: request.traceId }, (response) => { })
           } else {
 
           }
@@ -24,7 +25,8 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
           console.error("Error: " + error.status + " - " + error.status + ", calling `api.webclippings.getWebclippings()`")
           console.error(error)
           if (sender && sender.tab && sender.tab.id) {
-            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: "", error: { status: error.status, statusText: error.status, traceId:request.traceId  } }, (response) => { })
+            console.log("Send getWebClippings error response, command=highlightClips, status=" + error.status + ", statusText=" + error.statusText + ", traceId="+request.traceId)
+            chrome.tabs.sendMessage(sender.tab.id, { command: "highlightClips", data: "", error: { status: error.status, statusText: error.status}, traceId: request.traceId }, (response) => { })
           }
         })
     } catch (error) {
@@ -49,7 +51,7 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
       api.webclippings.postWebclippings(wc)
         .then(response => response.json())
         .then((data: WebClippingResponse) => {
-          console.log("postWebclippings() resp ")
+          console.log("Send saveClipData successs response command=saveClipData, traceId="+request.traceId)
           console.log(data.webClippingData)
           // once saved, tell the content script to highlight the selection
           sendResponse({ msg: data.message, traceId: request.traceId })
@@ -59,7 +61,8 @@ chrome.runtime.onMessage.addListener(async function (request, sender, sendRespon
           //chrome.tabs.sendMessage(sender.tab.id, { command: "saveClipDataCmdResponse", msg: "error" }, (response) => { })
           console.error("Error calling `api.webclippings.postWebclippings()`")
           console.error(error)
-          sendResponse({ msg: "error", detail: error, traceId: request.traceId})
+          console.log("Send saveClipData error response command=saveClipData, status=" + error.status + ", statusText=" + error.statusText + " traceId="+request.traceId)
+          sendResponse({ msg: "error status=" + error.status + " , statusText=" + error.statusText, detail: error, traceId: request.traceId})
         })
     } catch (error) {
       throw error

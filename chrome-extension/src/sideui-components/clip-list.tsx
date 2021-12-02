@@ -6,18 +6,13 @@ function ClipsList() {
   const [clipsData, setClipsData] = useState({} as WebClippingData);
   useEffect(() => {
 
-    //ask the content script which will ask the background script to execute the `cmd`
-    console.log("trcId=1111 <ClipsList> send cmd=sendClippingData");
-    window.postMessage({ source: 'SIDEUI', cmd: 'sendClippingData', traceId: '1111' }, "*");
-
-
     window.addEventListener("message", (event: MessageEvent<any>) => {
       console.log("<SideUI><ClipsList> received message from: " + event.data.source + " traceId=" +event.data.traceId)
-      console.log(event)
+      console.log("traceId=" +event.data.traceId, event)
       // We only accept messages from ourselves
       if (event.source !== window) {
-        console.log("Reject! Event source not same window: ");
-        console.log(event.source);
+        console.log("Reject! Event source not same window. traceId=" +event.data.traceId);
+        console.log("traceId=" +event.data.traceId, event.source);
         return;
       }
 
@@ -48,6 +43,11 @@ function ClipsList() {
         //port.postMessage(event.data.text); 
       }
     }, false);
+
+    //ask the content script which will ask the background script to execute the `cmd`
+    console.log("<ClipsList> send cmd=sendClippingData, traceId=1111");
+    window.postMessage({ source: 'SIDEUI', cmd: 'sendClippingData', traceId: '1111' }, "*");
+
   }, [])
 
 

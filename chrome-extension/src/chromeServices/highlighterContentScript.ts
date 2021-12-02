@@ -5,7 +5,9 @@ import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
 let clipData: WebClippingData;
 
 
+
 const getPageClippings = () => {
+    console.log("Send message command=getWebClippings, traceId=12111")
     chrome.runtime.sendMessage({ command: "getWebClippings", page_url: window.location.href.toString(), traceId: '12111' }, (response) => { });
     // background script send a message with `command=highlightClips`
 
@@ -52,24 +54,6 @@ const renderSideUI = () => {
         throw error
     }
 }
-
-if (document.readyState === 'loading') {  // Loading hasn't finished yet
-    console.log("readyState=" + document.readyState)
-    injectEventHandler();
-    document.addEventListener('DOMContentLoaded', getPageClippings);
-    renderSideUI();
-
-} else {  // `DOMContentLoaded` has already fired
-    console.log("readState not loading")
-    injectEventHandler();
-    getPageClippings();
-    //renderInlineMenu();
-    renderSideUI();
-
-}
-
-
-
 
 
 
@@ -129,10 +113,10 @@ const onReceiveMesssage = async (
     sender: chrome.runtime.MessageSender,
     sendResponse: (response: any) => void) => {
 
-    console.log("chrome.onMessage() handling cmd=" + msg.command)
+    console.log("chrome.onMessage() handling cmd=" + msg.command + ", traceId=" +msg.traceId)
 
     if (msg.command === "highlightSelection") {
-
+        console.log("handling cmd=" + msg.command+ ", traceId=" +msg.traceId)
         const selectedText = window.getSelection()?.toString();
         if (selectedText) {
             console.log(msg)
@@ -145,7 +129,7 @@ const onReceiveMesssage = async (
     }
 
     if (msg.command === "clipSelection") {
-        console.log("handling cmd=" + msg.command)
+        console.log("handling cmd=" + msg.command+ ", traceId=" +msg.traceId)
         const selectedText = window.getSelection()?.toString();
         if (selectedText) {
 
@@ -161,7 +145,7 @@ const onReceiveMesssage = async (
 
 
     if (msg.command === "sendClipPageUrl") {
-        console.log("handling cmd=" + msg.command)
+        console.log("handling cmd=" + msg.command+ ", traceId=" +msg.traceId)
         sendResponse({
             page_url: encodeURIComponent(window.location.href.toString())
         })
@@ -176,7 +160,7 @@ const onReceiveMesssage = async (
     // }
 
     if (msg.command === "highlightClips") {
-        console.log("handling cmd=" + msg.command)
+        console.log("handling cmd=" + msg.command + ", traceId=" +msg.traceId)
         clipData = msg.data;
         console.log(msg)
         let matchMissedCount: number = 0;
@@ -215,9 +199,16 @@ const onReceiveMesssage = async (
     }
 }
 
+/**
+* Fired when a message is received from either an extension process or a background script.
+*/
+//chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
+chrome.runtime.onMessage.addListener(onReceiveMesssage);
+
+
 const messageEventHandler = (event: MessageEvent<any>) => {
     console.log("ContentScript received message from: " + event.data.source + " traceId="+event.data.traceId)
-    console.log(event)
+    console.log("traceId:"+event.data.traceId, event)
     // We only accept messages from ourselves
     if (event.source !== window) {
         console.log("Reject! Event source not same window: " + event.source)
@@ -248,6 +239,28 @@ const messageEventHandler = (event: MessageEvent<any>) => {
 
 }
 
+// handle commands from the SideUI
+window.addEventListener("message", messageEventHandler, false);
+
+
+/**
+ * Thing you want to happen on pageload go here.
+ */
+if (document.readyState === 'loading') {  // Loading hasn't finished yet
+    console.log("readyState=" + document.readyState)
+    injectEventHandler();
+    document.addEventListener('DOMContentLoaded', getPageClippings);
+    renderSideUI();
+
+} else {  // `DOMContentLoaded` has already fired
+    console.log("readState not loading")
+    injectEventHandler();
+    getPageClippings();
+    //renderInlineMenu();
+    renderSideUI();
+
+}
+
 
 
 // const sendHighlightDataToExtension = (data: WebClippingDataExtended) => {
@@ -255,14 +268,6 @@ const messageEventHandler = (event: MessageEvent<any>) => {
 //     console.log("send command to ext")
 // }
 
-/**
-* Fired when a message is received from either an extension process or a background script.
-*/
-//chrome.runtime.onMessage.addListener(messagesFromReactAppListener);
-chrome.runtime.onMessage.addListener(onReceiveMesssage);
 
-
-// handle commands from the SideUI
-window.addEventListener("message", messageEventHandler, false);
 
 
