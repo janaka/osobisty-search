@@ -1,5 +1,6 @@
 const path = require('path');
 const fs = require("fs");
+const { whenProd } = require('@craco/craco');
 
 const rewireBabelLoader = require("craco-babel-loader");
 
@@ -34,9 +35,12 @@ module.exports = {
         ...webpackConfig,
         entry: {
           main: [env === 'development' && require.resolve('react-dev-utils/webpackHotDevClient'), paths.appIndexJs].filter(Boolean),
-          // content: './src/chromeServices/highlighterContentScript.ts',
-          // background: './src/background.ts',
-          // osobisty: './src/chromeServices/pageLogic.ts',
+          ...whenProd(() => (
+            {content: './src/chromeServices/highlighterContentScript.ts',
+            background: './src/background.ts',
+            osobisty: './src/chromeServices/pageLogic.ts'})
+          )
+
         },
         output: {
           ...webpackConfig.output,
