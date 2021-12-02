@@ -38,7 +38,9 @@ module.exports = {
           ...whenProd(() => (
             {content: './src/chromeServices/highlighterContentScript.ts',
             background: './src/background.ts',
-            osobisty: './src/chromeServices/pageLogic.ts'})
+            osobisty: './src/chromeServices/pageLogic.ts',
+            // managesideui: './src/chromeServices/manageSideUI.ts'
+          })
           )
 
         },

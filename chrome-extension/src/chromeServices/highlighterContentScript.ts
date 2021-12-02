@@ -1,6 +1,7 @@
 import { ClipHighlight } from './ClipHighlight'
 import { WebClippingData } from '../client-libs/osobisty-client'
 import { WebClippingDataExtended } from '../types/WebClippingDataExtended';
+import { injectSideUI, toggleSideUI } from './manageSideUI'
 
 let clipData: WebClippingData;
 
@@ -24,35 +25,6 @@ const injectEventHandler = () => {
     //     s.remove();
     // };
     (document.head || document.documentElement).appendChild(s);
-}
-
-const renderSideUI = () => {
-    console.log("render side ui")
-    try {
-
-        fetch(chrome.runtime.getURL('/asset-manifest.json')).then(r => r.text()).then(reactAssetManifest => {
-
-            if (!document.getElementById("osobisty-side-ui-root")) {
-                // not running in standalone deve mode.
-                const reactCsslinkEl = document.createElement("link")
-                reactCsslinkEl.href = chrome.runtime.getURL(JSON.parse(reactAssetManifest).files["main.css"])
-                reactCsslinkEl.rel = "stylesheet"
-                console.log(reactCsslinkEl.href)
-                document.head.insertAdjacentElement('afterbegin', reactCsslinkEl) // 'afterbegin': Just inside the element, before its first child.
-
-                const reactScript = document.createElement("script")
-                reactScript.src = chrome.runtime.getURL("/static/js/main.js")
-                document.body.insertAdjacentElement('afterbegin', reactScript);
-                const reactRootDiv = document.createElement("div")
-                reactRootDiv.className = "z-top"
-                reactRootDiv.id = "osobisty-side-ui-root"
-                document.body.insertAdjacentElement('afterbegin', reactRootDiv); // 'afterbegin': Just inside the element, before its first child
-                // not using innerHTML as it would break js event listeners of the page
-            }
-        });
-    } catch (error) {
-        throw error
-    }
 }
 
 
@@ -142,6 +114,12 @@ const onReceiveMesssage = async (
         }
     }
 
+    if (msg.command=== "toggleSideUI") {
+        // inject the the SideUI or Remove it
+        console.log("handling cmd=" + msg.command+ ", traceId=" +msg.traceId)
+        const isEnabledState = toggleSideUI() 
+        console.log("SideUI enabled="+isEnabledState+ ",  traceId=" +msg.traceId)
+    }
 
 
     if (msg.command === "sendClipPageUrl") {
@@ -250,15 +228,14 @@ if (document.readyState === 'loading') {  // Loading hasn't finished yet
     console.log("readyState=" + document.readyState)
     injectEventHandler();
     document.addEventListener('DOMContentLoaded', getPageClippings);
-    renderSideUI();
+    injectSideUI();
 
 } else {  // `DOMContentLoaded` has already fired
     console.log("readState not loading")
     injectEventHandler();
     getPageClippings();
     //renderInlineMenu();
-    renderSideUI();
-
+    injectSideUI();
 }
 
 

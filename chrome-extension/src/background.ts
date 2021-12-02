@@ -1,6 +1,5 @@
 import { Api, Webclipping, WebClippingResponse, WebClippingsResponse } from './client-libs/osobisty-client'
 
-
 chrome.runtime.onMessage.addListener(async function (request, sender, sendResponse) {
   // these logs appear in the extension servie work console, access from the chrome extension page
   console.log("Background script received command=" + request.command + " from content script. traceId=" + request.traceId)
@@ -168,14 +167,17 @@ chrome.contextMenus.onClicked.addListener(onClickContextMenu)
 
 //when the extension icon is clicked. only fires if there is no ext popup UI hooked up.
 chrome.action.onClicked.addListener(
-  (tab: chrome.tabs.Tab) => {
-    // document.getElementById("osobisty-side-ui-root")?.style.display = "none"
-    console.log("extention icon clicked!")
+  (tab: any) => {
+    //console.log("extention icon clicked!")
+
+    // enable of disable based on the current persisted per origin state in local storage.
+    console.log("Send command=toggleSideUI, traceId=13111")
+    chrome.tabs.sendMessage(tab.id, { command: "toggleSideUI", data: "", traceId: "13111" }, (response) => { })
+    console.log("extention icon clicked!");
     // chrome.scripting.executeScript({
     //   target: {tabId: tab.id},
     //   files: ['content.js']
     // });
-
   }
 );
 
