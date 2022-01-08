@@ -19,3 +19,15 @@ yarn start
 ```
 
 Open http://localhost:3000 to see your app.
+
+
+## Architecture
+
+Search UI SPA
+
+Typesense search engine
+
+Backend API proxy for auth + CORS
+
+
+
