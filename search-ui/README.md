@@ -28,6 +28,3 @@ Search UI SPA
 Typesense search engine
 
 Backend API proxy for auth + CORS
-
-
-

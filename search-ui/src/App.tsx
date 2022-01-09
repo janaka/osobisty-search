@@ -1,5 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
+import { useAuth0 } from "@auth0/auth0-react";
 import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './useFetchHook';
 import useKeyboardShortcut from './useKeyboardShortcutHook';
@@ -12,6 +13,8 @@ import {
 
 import './App.css';
 import { func } from 'prop-types';
+import LoginButton from './components/loginButton';
+import LogoutButton from './components/logoutButon';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -28,6 +31,7 @@ const tsSearchClient = new TypesenseSearchClient({
 });
 
 function App() {
+  const { user, isAuthenticated, isLoading } = useAuth0();
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   const [selectedHit, setSelectedHit] = useState(null);
   const [doReset, setDoReset] = useState(false);
@@ -84,15 +88,23 @@ function App() {
   }
   useKeyboardShortcut(["`"], backtickKeyHandler, { overrideSystem: false })
 
-
-
+  // if (isLoading) {
+  //   return <div>Loading ...</div>;
+  // }
 
   return (
     <Router>
-      <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
-        <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-        <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
-      </Search>
+      {isAuthenticated ?
+
+        <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
+          <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
+          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+        </Search>
+        : <div>
+          <h4> Login to start using Osobisty Search</h4>
+          <LoginButton />
+        </div>
+      }
     </Router>
   );
 }
@@ -168,7 +180,7 @@ function Search(props: any) {
       'query_by': 'title, tags, content, authors, type',
       'facet_by': 'type, tags',
       'prioritize_exact_match': true,
-      'per_page':'20'
+      'per_page': '20'
     }
     return searchParams;
   }
@@ -242,6 +254,7 @@ function Search(props: any) {
         >
           ×
         </button>
+        <LogoutButton />
       </div>
       <div className="sidebar-stats">
         <div className="sidebar-results-stats">
@@ -332,7 +345,7 @@ function DocPreview(props: any) {
               ×
             </button>
             {props.hitData.document.link && <a
-              title="Open on new page" 
+              title="Open on new page"
               href={props.hitData.document.type.startsWith("zettle-") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}
               // eslint-disable-next-line react/jsx-no-target-blank
               target="_blank"
@@ -377,7 +390,9 @@ function Suggestions() {
             <div className="keybinding-detail">Focus search box</div></li>
           <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">`</kbd></div>
             <div className="keybinding-detail">Switch light/dark color theme</div></li></ul></div>
-      <h2 className="empty-state-heading">About Osobisty</h2><div className="about">
+      
+      <h2 className="empty-state-heading">About Osobisty</h2>
+      <div className="about">
         <p className="">
           Osobisty means <em>private</em> in Polish.</p>
         <p>

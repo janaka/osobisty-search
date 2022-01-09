@@ -57,6 +57,36 @@ button {
     color: var(--primary-text);
 }
 
+.logout-button {
+    position: absolute;
+    top: 35%;
+    right: 4px;
+    
+}
+
+.button {
+    /* font-family: system-ui, sans-serif;
+    margin-left: 8px;
+    white-space: nowrap; */
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 4px;
+    cursor: pointer;
+    background: var(--primary-bg);
+    transform: translate(0, -50%);
+    font-size: 14px;
+}
+
+.button:hover {
+    background: var(--hover-bg);
+}
+
+.button:active {
+    background: var(--active-bg);
+}
+
+
+
 pre,
 code {
     font-size: 1em;
@@ -165,17 +195,17 @@ textarea {
 
 .search-box-clear {
     position: absolute;
-    top: 50%;
-    right: 12px;
+    top: 35%;
+    right: 82px;
     padding: 6px 10px;
     border: 0;
     border-radius: 4px;
     cursor: pointer;
-    background: transparent;
+    background: var(--primary-bg);
     transform: translate(0, -50%);
     font-size: 18px;
 }
-cd 
+
 .search-box-clear:hover {
     background: var(--hover-bg);
 }

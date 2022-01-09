@@ -9,6 +9,7 @@
     "lint:fix": "npm run lint -- --fix"
   },
   "dependencies": {
+    "@auth0/auth0-react": "^1.8.0",
     "@babel/runtime": "^7.15.4",
     "@types/jest": "^27.0.1",
     "@types/node": "^16.9.2",
