@@ -1,7 +1,8 @@
 import Hapi, { Server, Request } from '@hapi/hapi';
 import hapiswagger, * as HapiSwagger from 'hapi-swagger';
-import Inert from '@hapi/inert'
-import Vision from '@hapi/vision'
+import Inert from '@hapi/inert';
+import Vision from '@hapi/vision';
+import H2o2 from '@hapi/h2o2';
 
 import cors from 'cors';
 
@@ -66,7 +67,13 @@ server.route(routes)
 
 export const start = async () => {
   
-  await server.register(plugins);
+
+    await server.register(plugins);
+    console.log("plugins registered");
+  
+//    await server.register(H2o2);
+    console.log("H2o2 proxy module registered");
+
   await server.start();
 
   console.log('Server running on %s', server.info.uri);
