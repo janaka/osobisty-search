@@ -41,6 +41,9 @@ const swaggerOptions: HapiSwagger.RegisterOptions = {
 
 const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   {
+    plugin: H2o2
+  },
+  {
       plugin: Inert
   },
   {
@@ -49,7 +52,7 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   {
       plugin: HapiSwagger,
       options: swaggerOptions
-  }
+  }, 
 ];
 
 
@@ -63,16 +66,12 @@ let server: Server = Hapi.server({
 // Logging
 //app.use(morgan('dev'));
 
-server.route(routes)
+
 
 export const start = async () => {
   
 
-    await server.register(plugins);
-    console.log("plugins registered");
-  
-//    await server.register(H2o2);
-    console.log("H2o2 proxy module registered");
+
 
   await server.start();
 
@@ -86,6 +85,11 @@ export const start = async () => {
 };
 
 export const init = async () => {
+  await server.register(plugins);
+  console.log("plugins registered");
+
+  server.route(routes)
+  
   await server.initialize();
   return server;
 }

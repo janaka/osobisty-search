@@ -1,4 +1,4 @@
-import { start } from './libs/api-server.js'
+import { start, init } from './libs/api-server.js'
 
-
+await init();
 start();
