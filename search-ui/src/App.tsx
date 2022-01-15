@@ -18,17 +18,7 @@ import LogoutButton from './components/logoutButon';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
-const tsSearchClient = new TypesenseSearchClient({
-  nodes: [
-    {
-      host: 'localhost',
-      port: '8108',
-      protocol: 'http',
-    },
-  ],
-  apiKey: 'xyz',
-  connectionTimeoutSeconds: 2,
-});
+const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
 
 function App() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -37,13 +27,49 @@ function App() {
   const [doReset, setDoReset] = useState(false);
   const [docCount, setDocCount] = useState("");
   const [darkMode, SetDarkMode] = useState(true);
+  const [token, setToken] = useState("");
+
+  const { getAccessTokenSilently } = useAuth0();
+
+  useEffect(() => {
+    (async () => {
+      console.log(`Grabbing access token - audience:${audience}`)
+
+      const tkn = await getAccessTokenSilently(  {
+        audience: audience,
+        scope: "read:zettleDocuments"
+      });
+      //const tkn = await getAccessTokenSilently();
+      setToken(tkn)
+
+    })();
+  }, [getAccessTokenSilently])
+
+
+  const tsSearchClient = new TypesenseSearchClient({
+    nodes: [
+      {
+        host: 'localhost:3002/typesense', // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
+        port: 80,
+        protocol: 'http', //TODO: change to HTTPS before going to prod
+      },
+    ],
+    additionalHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+    sendApiKeyAsQueryParam: false,
+    apiKey: 'klsjdf98wrlkASDHc&E9sdaflsdfhj934rASFasdf',
+    connectionTimeoutSeconds: 2,
+  });
 
 
   useEffect(() => {
     const getDocCount = async () => {
-      let response = await tsSearchClient.collections("zettleDocuments").retrieve()
-      console.log(response.num_documents)
-      setDocCount(response.num_documents)
+      //let response = tsSearchClient.collections("zettleDocuments").retrieve();
+      let collection = tsSearchClient.collections("zettleDocuments");
+      //let response = collection.documents.length;
+      console.log(collection.documents.length);
+      setDocCount(collection.documents.length.toString());
     }
 
     void getDocCount();
@@ -88,23 +114,24 @@ function App() {
   }
   useKeyboardShortcut(["`"], backtickKeyHandler, { overrideSystem: false })
 
-  // if (isLoading) {
-  //   return <div>Loading ...</div>;
-  // }
+  if (!isAuthenticated) {
+    return (<div>
+      <h4> Login to start using Osobisty Search</h4>
+      <LoginButton />
+    </div>)
+  }
+
+
+  if (!token) {
+    return <div>Loading ...</div>;
+  }
 
   return (
     <Router>
-      {isAuthenticated ?
-
         <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
           <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
           <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
         </Search>
-        : <div>
-          <h4> Login to start using Osobisty Search</h4>
-          <LoginButton />
-        </div>
-      }
     </Router>
   );
 }
@@ -390,7 +417,7 @@ function Suggestions() {
             <div className="keybinding-detail">Focus search box</div></li>
           <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">`</kbd></div>
             <div className="keybinding-detail">Switch light/dark color theme</div></li></ul></div>
-      
+
       <h2 className="empty-state-heading">About Osobisty</h2>
       <div className="about">
         <p className="">

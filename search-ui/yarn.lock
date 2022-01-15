@@ -10511,10 +10511,10 @@ typescript@^4.4.3:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.4.tgz#a17d3a0263bf5c8723b9c52f43c5084edf13c2e8"
   integrity sha512-VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==
 
-typesense@^0.14.0:
-  version "0.14.0"
-  resolved "https://registry.yarnpkg.com/typesense/-/typesense-0.14.0.tgz#c7a61ccadcd5186e3700a973188d6b93648b2fdd"
-  integrity sha512-9ZLkjwhCYXCZuYmvS6En5hJm3AMhFZMbZ7hRMVFJlyK3essNqd8MSWEt2bpAvbvTN+1FgGLBQPJnpYdsbkVsKg==
+typesense@1.1.3-0:
+  version "1.1.3-0"
+  resolved "https://registry.yarnpkg.com/typesense/-/typesense-1.1.3-0.tgz#0118dac460b8ed098a713016bd99a87d456e97c8"
+  integrity sha512-oVzCf3j8j2TMxn+A40P1iGJeSdUffVbLJWEzhUQrfJqsOXKS8lYvQm17SUD+rQpeuj+gMZHyymrqRXUgpZKd3A==
   dependencies:
     axios "^0.21.1"
     loglevel "^1.7.1"
