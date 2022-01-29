@@ -82,14 +82,23 @@ let server: Server = Hapi.server({
 
 // Autohrization logic
 const validateFunc = async (decoded: any) => {
+// any global validation should go here. 
+// like checking if the user (by some identifier) is known and allowed 
 
   console.log(decoded)
+  
   const permissions = decoded.permissions;
-  var isValid:boolean  = false;
-  if (permissions.includes("read:zettleDocuments")) {
-    isValid = true;
-  }
+  const scope = decoded.scope;
+  var isValid:boolean  = true;
 
+// TODO: check user ID is authorized here.
+
+  // ideally we want to check permission at the route level but need to use plugin for that
+  if (scope.includes("read:zettleDocuments")) {
+    if (permissions.includes("user") && permissions.includes("read:zettleDocuments")) {
+      isValid = true;
+    }
+  }
   return {
     isValid: isValid,
     credentials: decoded,
@@ -118,10 +127,11 @@ const authConfig = () => {
 }
 
 export const start = async () => {
-  server.route(routes)
+  authConfig(); // call this before route registration other wise auth specific auth config doesn't know about the auth.strategy
+  server.route(routes) // register routes
   await server.start();
 
-  authConfig();
+  
   console.log('Server running on %s', server.info.uri);
 
   console.log('registered routes:')
