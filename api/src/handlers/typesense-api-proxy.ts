@@ -15,12 +15,14 @@ const mapUriHandler = function (request: Request): Promise<ProxyTarget> {
       console.log("Typesense Uri: " + uri)
       //console.log("Typesense req headers: ")
       //console.log (request.raw.req.headers)
+      //console.log(request.auth.credentials)
+      //console.log(request.auth.artifacts)
       console.log('')
 
       const proxytarget: ProxyTarget = {
         uri: uri,
         headers: {
-          'X-TYPESENSE-API-KEY': 'xyz' // TODO: switch to environment variable before prod
+          'X-TYPESENSE-API-KEY': `${process.env.TYPESENSE_API_KEY}` // TODO: switch to environment variable before prod
         }
       };
 
@@ -45,14 +47,23 @@ const onResponseHandler = async (err:any, res: IncomingMessage, req: Request, h:
 }
 
 
+/*
+`scope` - checks against the scopes claim in the JWT. This makes sure we are enforcing against the consent the user gave.
+There isn't a built in way to check against the `permissions` claim in the JWT, need to use  plugin. Permissions claim is what the app owner controls in the backend (Auth0).
+
+*/
 
 export const getRouteConfigTypesenseApi: ServerRoute =
 {
   method: '*',
   path: '/typesense:80/{proxypath*}',
   // options: {
-  //   auth: 'jwt'
-  // },
+  //   auth: {
+  //     access: {
+  //       scope: 'read:zettleDocuments'
+  //     }
+  //   }
+  //},
   handler: {
     proxy: {
       mapUri: mapUriHandler,
