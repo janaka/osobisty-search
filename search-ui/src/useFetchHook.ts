@@ -80,8 +80,8 @@ function useFetch<T = unknown>(url?: string, options?: RequestInit): State<T> {
     return () => {
       cancelRequest.current = true
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [url])
+    
+  }, [url]) // eslint-disable-line
 
   return state
 }
