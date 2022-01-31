@@ -51,7 +51,7 @@ function App() {
       {
         host: 'localhost:3002/typesense', // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
         port: 80,
-        protocol: 'http', //TODO: change to HTTPS before going to prod
+        protocol: 'https', //TODO: change to HTTPS before going to prod
       },
     ],
     additionalHeaders: {

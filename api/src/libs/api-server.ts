@@ -1,18 +1,20 @@
-import Hapi, { Server, Request } from '@hapi/hapi';
+import Hapi, { Server, Request, RouteOptionsCors } from '@hapi/hapi';
 import hapiswagger, * as HapiSwagger from 'hapi-swagger';
 import Inert from '@hapi/inert';
 import Vision from '@hapi/vision';
 import H2o2 from '@hapi/h2o2';
 import HapiAuthJwt2 from 'hapi-auth-jwt2';
 import jwksRsa from 'jwks-rsa';
-
-import cors from 'cors';
+import fs from 'fs';
+import os from 'os';
 
 import dotenv from 'dotenv';
 
 import { frontMatterFieldCollection, serialiseFrontMatter } from './frontmatter.js'
 
 import routes from '../handlers/index.js'
+import { ServerOptions } from 'https';
+import { dirname } from 'path';
 
 dotenv.config();
 
@@ -21,7 +23,7 @@ const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-const SSL = process.env.SSL;
+const SSL:boolean = process.env.SSL && (process.env.SSL.toLowerCase() === 'true') ? true : false;
 
 // Hapi lifecycle methods 
 // https://livebook.manning.com/book/hapi-js-in-action/chapter-5/30
@@ -31,11 +33,6 @@ const SSL = process.env.SSL;
 // const code = process.env.REACT_APP_CODE
 // const access_token = process.env.REACT_APP_ACCESS_TOKEN
 
-
-var corsOptions = {
-  origin: 'http://localhost:3001',
-  optionsSuccessStatus: 200 // some legacy browsers (IE11, various SmartTVs) choke on 204
-}
 
 const version = process.env.npm_package_version;
 const swaggerOptions: HapiSwagger.RegisterOptions = {
@@ -64,21 +61,34 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   },
 ];
 
+var origins: Array<string>
+var nodeServerOptions:ServerOptions | boolean;
 
-let server: Server = Hapi.server({
+if (SSL) {
+  origins = ['https://localhost:3001', 'http://localhost:3001']
+
+  nodeServerOptions = {
+    key: fs.readFileSync(process.cwd() + "/server.key"),
+    cert: fs.readFileSync(process.cwd() + "/server.crt")
+  };
+} else {
+  origins = ['http://localhost:3001']
+  nodeServerOptions = false;
+}
+
+var hapiServerOptions: Hapi.ServerOptions = {
   port: PORT,
   host: HOST,
+  tls: nodeServerOptions,
   routes: {
     cors: {
-      origin: ['*'] //TODO: set proper cors policy before going to prod
+      origin: origins,
     }
   },
   debug: { request: ['error'] }
-});
+}
 
-//app.use(cors(corsOptions));
-// Logging
-//app.use(morgan('dev'));
+let server: Server = Hapi.server(hapiServerOptions);
 
 // Autohrization logic
 const validateFunc = async (decoded: any) => {
@@ -133,7 +143,7 @@ export const start = async () => {
 
   
   console.log('Server running on %s', server.info.uri);
-
+  console.log('CWD:', process.cwd());
   console.log('registered routes:')
   server.table().forEach((route) => {
     console.log(route.path);

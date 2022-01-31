@@ -110,5 +110,6 @@ dist
 #Snyk
 .dccache
 
-/data
+/typesense/data
+/typesense/logs
 

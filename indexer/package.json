@@ -20,6 +20,6 @@
     "build": "npx tsc",
     "start": "node ./build/src/main.js",
     "test": "jest",
-    "typesenseServer": "docker run -p 8108:8108 -v`pwd`/data/typesense-data:/data typesense/typesense:0.21.0 --data-dir /data --api-key=xyz --enable-cors"
+    "typesenseServer": "docker run -p 8108:8108 -v`pwd`/typesense:/typesense typesense/typesense:0.21.0 --config=/typesense/typesense-server.local.ini "
   }
 }
