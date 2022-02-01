@@ -4,6 +4,7 @@ services:
     name: typesense-searchengine
     env: docker
     region: frankfurt
+    autoDeploy: true
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
     dockerfilePath: ./infra/typesense/Dockerfile
     envVars:
