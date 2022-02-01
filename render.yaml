@@ -7,6 +7,7 @@ services:
     autoDeploy: true
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
     dockerfilePath: ./infra/typesense/Dockerfile
+    dockerContext: ./infra/typesense
     envVars:
       - key: TYPESENSE_API_KEY
         sync: false # placeholder for a value to be added in the dashboard
