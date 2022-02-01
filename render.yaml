@@ -13,5 +13,5 @@ services:
         sync: false # placeholder for a value to be added in the dashboard
     disk:
       name: data
-      mountPath: /var/lib/typesense
+      mountPath: /var/lib/typesense/data
       sizeGB: 1 # optional
