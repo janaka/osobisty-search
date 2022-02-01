@@ -1,0 +1,15 @@
+services:
+# A private Redis instance
+  - type: pserv
+    name: typesense-searchengine
+    env: docker
+    region: frankfurt
+    repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
+    dockerfilePath: ./infra/typesense/Dockerfile
+    envVars:
+      - key: TYPESENSE_API_KEY
+        sync: false # placeholder for a value to be added in the dashboard
+    disk:
+      name: data
+      mountPath: /var/lib/typesense
+      sizeGB: 1 # optional
