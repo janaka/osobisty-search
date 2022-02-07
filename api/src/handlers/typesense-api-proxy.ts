@@ -1,6 +1,13 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import { ProxyHandlerOptions, ProxyTarget } from '@hapi/h2o2'
 import { URLSearchParams } from 'url';
+import { type } from 'os';
+import { compile } from 'joi';
+
+interface TypesenseAuthorisationResult {
+  IsAuthorised: boolean,
+  TypesenseApiKey: string,
+}
 
 
 const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
@@ -10,24 +17,30 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
       const protocol = request.server.info.protocol;
       const proxypath = request.params.proxypath;
       const proxyquery = new URLSearchParams(request.query);
-      const uri:string = protocol + '://localhost:8108/' + proxypath + '?' + proxyquery.toString();
-      //TODO: change host to configured
+      const typesensehost: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
+      const typesenseport: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "";
+      const uri: string = protocol + '://' + typesensehost + ':' + typesenseport + '/' + proxypath + '?' + proxyquery.toString();
+
       console.log("Typesense Uri: " + uri)
+      console.log("auth.credentials:")
+      console.log(request.auth.credentials.permissions)
       //console.log("Typesense req headers: ")
       //console.log (request.raw.req.headers)
       //console.log(request.auth.credentials)
       //console.log(request.auth.artifacts)
       console.log('')
 
+      const authresult = authoriseTypesenseRequest(request)
+      console.log(authresult)
       const proxytarget: ProxyTarget = {
         uri: uri,
         headers: {
-          'X-TYPESENSE-API-KEY': `${process.env.TYPESENSE_API_KEY}`
+          'X-TYPESENSE-API-KEY': `${authresult.TypesenseApiKey}`
         }
       };
 
       resolve(proxytarget);
-      
+
     })
 
     return promise
@@ -39,8 +52,68 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
 
 }
 
+function authoriseTypesenseRequest(request: Request): TypesenseAuthorisationResult {
+
+  let result: TypesenseAuthorisationResult = { IsAuthorised: false, TypesenseApiKey: "" };
+
+  const permissions: Array<string> = request.auth.credentials.permissions as Array<string>;
+  const path: string = request.path;
+  const apikey = mapTypesenseApiKey("admin:typesense");
+
+  console.log(apikey)
+  if (permissions.includes("admin:typesense")) {
+    result.IsAuthorised = true;
+    result.TypesenseApiKey = apikey
+  } else {
+    if (permissions.includes("read:zettleDocuments")) {
+      result.IsAuthorised = true;
+      result.TypesenseApiKey = apikey
+    }
+
+  }
+
+
+
+  return result;
+}
+
+/**
+ * map a permission to a typesense key
+ * @param permission a permission 
+ * @returns 
+ */
+function mapTypesenseApiKey(permission: string): string {
+  let apikey: string = "";
+  switch (permission) {
+    case "admin:typesense":
+      apikey = process.env.TYPESENSE_API_KEY_ADMIN ? process.env.TYPESENSE_API_KEY_ADMIN : "";
+      if (apikey === "") {
+        console.error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!");
+        throw new Error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!")
+      }
+      break;
+
+    case "read:zettleDocuments":
+
+      apikey = process.env.TYPESENSE_API_KEY_READ_ZETTLEDOCS ? process.env.TYPESENSE_API_KEY_READ_ZETTLEDOCS : "";
+      if (apikey === "") {
+        console.error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!");
+        throw new Error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!")
+      }
+
+    default:
+      apikey = "";
+      console.warn("mapTypesenseApiKey() now Typesense scope map match.");
+
+      break;
+  }
+
+  return apikey
+
+}
+
 // const onResponseHandler = async (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) => {
-  
+
 //     const payload = await wreck.read(res, { json: true });   
 //     const promise = new Promise<ResponseObject>((resolve, reject) => {
 //       try {
@@ -68,16 +141,18 @@ There isn't a built in way to check against the `permissions` claim in the JWT, 
 export const getRouteConfigTypesenseApi: ServerRoute =
 {
   method: '*',
-  path: '/typesense:80/{proxypath*}',
+  path: '/typesense:80/{proxypath*}', // this `typesense:80` is a TypeSense client side hack so we have something to match the route
   handler: {
     proxy: {
       rejectUnauthorized: true, // make sure cert validation fails throw a 500
       passThrough: true, // pass all req and res headers
       mapUri: mapUriHandler,
-      
       //onResponse: onResponseHandler,
-      
+
     }
+  },
+  rules: {
+
   }
 }
 

@@ -23,7 +23,7 @@ const PORT = process.env.PORT;
 const HOST = process.env.HOST;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
-const SSL:boolean = process.env.SSL && (process.env.SSL.toLowerCase() === 'true') ? true : false;
+const SSL: boolean = process.env.SSL && (process.env.SSL.toLowerCase() === 'true') ? true : false;
 
 // Hapi lifecycle methods 
 // https://livebook.manning.com/book/hapi-js-in-action/chapter-5/30
@@ -61,16 +61,18 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   },
 ];
 
-var origins: Array<string>
-var nodeServerOptions:ServerOptions | boolean;
+var origins: Array<string> = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(", ") : ['']
+var nodeServerOptions: ServerOptions | boolean;
+console.log(process.env)
 
-if (SSL) {
-  origins = ['https://localhost:3001', 'http://localhost:3001']
 
+if (SSL && (process.env.NODE_ENV === "development")) {
+  //self signed keys for private network
   nodeServerOptions = {
     key: fs.readFileSync(process.cwd() + "/server.key"),
     cert: fs.readFileSync(process.cwd() + "/server.crt")
   };
+
 } else {
   origins = ['http://localhost:3001']
   nodeServerOptions = false;
@@ -92,20 +94,20 @@ let server: Server = Hapi.server(hapiServerOptions);
 
 // Autohrization logic
 const validateFunc = async (decoded: any) => {
-// any global validation should go here. 
-// like checking if the user (by some identifier) is known and allowed 
-
+  // any global validation should go here. 
+  // like checking if the user (by some identifier) is known and allowed 
+  console.log("decoded:")
   console.log(decoded)
-  
+  decoded.entity = "user"
   const permissions = decoded.permissions;
   const scope = decoded.scope;
-  var isValid:boolean  = true;
+  var isValid: boolean = true;
 
-// TODO: check user ID is authorized here.
+  // TODO: check user ID is authorized here.
 
   // ideally we want to check permission at the route level but need to use plugin for that
   if (scope.includes("read:zettleDocuments")) {
-    if (permissions.includes("user") && permissions.includes("read:zettleDocuments")) {
+    if ((permissions.includes("user") || permissions.includes("machine")) && (permissions.includes("read:zettleDocuments") || permissions.includes("admin:typesense"))) {
       isValid = true;
     }
   }
@@ -141,7 +143,7 @@ export const start = async () => {
   server.route(routes) // register routes
   await server.start();
 
-  
+
   console.log('Server running on %s', server.info.uri);
   console.log('CWD:', process.cwd());
   console.log('registered routes:')
