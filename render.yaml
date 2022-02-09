@@ -37,7 +37,8 @@ services:
         sync: false
       - key: TYPESENSE_HOST
         sync: false
-      - key: TYPESENSE_PORT=8108
+      - key: TYPESENSE_PORT
+        value: 8108
       - key: TYPESENSE_API_KEY_ADMIN
         fromService:
           name: typesense-searchengine
