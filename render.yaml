@@ -1,5 +1,50 @@
 services:
-# A private Redis instance
+
+  # - type: web
+  #   name: osobisty-seach-ui
+  #   env: node
+  #   region: frankfurt
+  #   autoDeploy: true
+  #   repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
+  #   healthCheckPath: /ping
+  #   envVars:
+  #     - key: TYPESENSE_API_KEY_ADMIN
+  #       sync: false # placeholder for a value to be added in the dashboard
+  #     - key: TYPESENSE_API_KEY_READ_ZETTLEDOCS
+  #       sync: false # placeholder for a value to be added in the dashboard
+  # A private Typesense Instance
+  - type: web
+    name: osobisty-api
+    env: node
+    region: frankfurt
+    autoDeploy: false
+    repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
+    healthCheckPath: /ping
+    buildCommand: yarn build --cwd ./api
+    startCommand: yarn start --cwd ./api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: HOST
+        sync: false
+      - key: PORT
+        value: 3002
+      - key: CORS_ORIGINS
+        sync: false
+      - key: AUTH0_AUDIENCE
+        sync: false
+      - key: AUTH0_DOMAIN
+        sync: false
+      - key: TYPESENSE_HOST
+        sync: false
+      - key: TYPESENSE_PORT=8108
+      - key: TYPESENSE_API_KEY_ADMIN
+        fromService:
+          name: typesense-searchengine
+          type: pserv
+          envVarKey: TYPESENSE_API_KEY
+      - key: TYPESENSE_API_KEY_READ_ZETTLEDOCS
+        sync: false # placeholder for a value to be added in the dashboard
   - type: pserv
     name: typesense-searchengine
     env: docker
