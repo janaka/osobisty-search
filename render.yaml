@@ -28,7 +28,7 @@ services:
       - key: HOST
         sync: false
       - key: PORT
-        value: 3002
+        value: 443
       - key: CORS_ORIGINS
         sync: false
       - key: AUTH0_AUDIENCE
@@ -36,9 +36,15 @@ services:
       - key: AUTH0_DOMAIN
         sync: false
       - key: TYPESENSE_HOST
-        sync: false
+        fromService:
+          name: typesense-searchengine
+          type: pserv
+          property: HOST
       - key: TYPESENSE_PORT
-        value: 8108
+        fromService:
+          name: typesense-searchengine
+          type: pserv
+          property: PORT
       - key: TYPESENSE_API_KEY_ADMIN
         fromService:
           name: typesense-searchengine
