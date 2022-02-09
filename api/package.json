@@ -9,7 +9,8 @@
   "scripts": {
     "watch": "npx tsc -w",
     "build": "npx tsc",
-    "start": "NODE_EXTRA_CA_CERTS='./rootCA.pem' nodemon ./build/src/index.js",
+    "dev": "NODE_EXTRA_CA_CERTS='./rootCA.pem' nodemon ./build/src/index.js",
+    "start": "node ./build/src/index.js",
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
   "dependencies": {
