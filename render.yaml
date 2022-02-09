@@ -20,8 +20,8 @@ services:
     autoDeploy: false
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
     healthCheckPath: /ping
-    buildCommand: yarn build --cwd ./api
-    startCommand: yarn start --cwd ./api
+    buildCommand: yarn --cwd ./api build
+    startCommand: yarn --cwd ./api start
     envVars:
       - key: NODE_ENV
         value: production
