@@ -21,7 +21,7 @@ services:
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
     healthCheckPath: /ping
     buildCommand: yarn --cwd ./api && yarn --cwd ./api upgrade && yarn --cwd ./api build 
-    startCommand: yarn --cwd ./api start
+    startCommand: node ./api/build/src/index.js
     envVars:
       - key: NODE_ENV
         value: production
