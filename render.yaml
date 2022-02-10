@@ -12,7 +12,7 @@ services:
   #       sync: false # placeholder for a value to be added in the dashboard
   #     - key: TYPESENSE_API_KEY_READ_ZETTLEDOCS
   #       sync: false # placeholder for a value to be added in the dashboard
-  # A private Typesense Instance
+  # API
   - type: web
     name: osobisty-api
     env: node
@@ -52,6 +52,7 @@ services:
           envVarKey: TYPESENSE_API_KEY
       - key: TYPESENSE_API_KEY_READ_ZETTLEDOCS
         sync: false # placeholder for a value to be added in the dashboard
+  # A private Typesense Instance
   - type: pserv
     name: typesense-searchengine
     env: docker
