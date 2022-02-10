@@ -18,6 +18,16 @@ services:
         sync: false 
       - key: REACT_APP_AUTH0_DOMAIN
         sync: false
+      - key: TYPESENSE_HOST
+        fromService:
+          name: typesense-searchengine
+          type: pserv
+          property: host
+      - key: TYPESENSE_PORT
+        fromService:
+          name: typesense-searchengine
+          type: pserv
+          property: port
   # API
   - type: web
     name: osobisty-api
