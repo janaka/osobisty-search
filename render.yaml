@@ -5,7 +5,7 @@ services:
     env: static
     autoDeploy: false
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
-    buildCommand: yarn --cwd ./search-ui build
+    buildCommand: yarn --cwd ./search-ui && yarn --cwd ./search-ui build
     staticPublishPath: ./search-ui/build
     routes:
       - type: rewrite
