@@ -39,12 +39,12 @@ services:
         fromService:
           name: typesense-searchengine
           type: pserv
-          property: HOST
+          property: host
       - key: TYPESENSE_PORT
         fromService:
           name: typesense-searchengine
           type: pserv
-          property: PORT
+          property: port
       - key: TYPESENSE_API_KEY_ADMIN
         fromService:
           name: typesense-searchengine
