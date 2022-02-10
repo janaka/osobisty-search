@@ -11,6 +11,13 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+    envVars:
+      - key: REACT_APP_AUTH0_AUDIENCE
+        sync: false
+      - key: REACT_APP_AUTH0_CLIENT_ID
+        sync: false 
+      - key: REACT_APP_AUTH0_DOMAIN
+        sync: false
   # API
   - type: web
     name: osobisty-api

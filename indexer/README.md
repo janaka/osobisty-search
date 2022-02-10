@@ -62,6 +62,16 @@ curl "http://localhost:8108/multi_search?query_by=title" \
         }'
 ```
 
+Create scoped API keys
+```shell
+curl 'http://localhost:8108/keys' \
+    -X POST \
+    -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -H 'authorization: Bearer sklfjskdhfksdhfblk34h3k4hb3k4h3k '\
+    -d '{"description":"read:zettleDocuments","actions": ["document:get", "documents:search"], "collections": ["zettleDocuments"]}'
+```
+
 ## Build and run
 
 - build `yarn build`
