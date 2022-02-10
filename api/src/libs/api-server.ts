@@ -65,16 +65,19 @@ var origins: Array<string> = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS
 var nodeServerOptions: ServerOptions | boolean;
 console.log(process.env)
 
+if (process.env.NODE_ENV === "development") {
+  if (SSL) {
+    //self signed keys for private network
+    nodeServerOptions = {
+      key: fs.readFileSync(process.cwd() + "/server.key"),
+      cert: fs.readFileSync(process.cwd() + "/server.crt")
+    };
 
-if (SSL && (process.env.NODE_ENV === "development")) {
-  //self signed keys for private network
-  nodeServerOptions = {
-    key: fs.readFileSync(process.cwd() + "/server.key"),
-    cert: fs.readFileSync(process.cwd() + "/server.crt")
-  };
-
+  } else {
+    origins = ['http://localhost:3001']
+    nodeServerOptions = false;
+  }
 } else {
-  origins = ['http://localhost:3001']
   nodeServerOptions = false;
 }
 
