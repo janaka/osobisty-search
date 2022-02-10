@@ -3,7 +3,6 @@ services:
   - type: web
     name: osobisty-search-ui
     env: static
-    region: frankfurt
     autoDeploy: false
     repo: https://github.com/janaka/osobisty-search.git # optional, defaults to the repo this render.yaml is in.
     buildCommand: yarn --cwd ./search-ui build
