@@ -20,12 +20,12 @@ services:
         sync: false
       - key: TYPESENSE_HOST
         fromService:
-          name: typesense-searchengine
+          name: osobisty-api
           type: pserv
           property: host
       - key: TYPESENSE_PORT
         fromService:
-          name: typesense-searchengine
+          name: osobisty-api
           type: pserv
           property: port
   # API
