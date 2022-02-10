@@ -5,6 +5,9 @@ export namespace ping {
   export const getRouteConfig: any = {
     method: 'GET',
     path: '/ping',
+    options: {
+      auth: false
+    },
     handler: (req: Request, h: any) => {
       const res: ResponseObject = h.response({ message: "hello world!" })
       res.code(200)
