@@ -83,7 +83,7 @@ if (process.env.NODE_ENV === "development") {
 
 var hapiServerOptions: Hapi.ServerOptions = {
   port: PORT,
-  host: HOST,
+  host: process.env.NODE_ENV === "development" ? HOST : "0.0.0.0",
   tls: nodeServerOptions,
   routes: {
     cors: {
