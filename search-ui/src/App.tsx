@@ -19,6 +19,8 @@ import LogoutButton from './components/logoutButon';
 // 6be0576ff61c053d5f9a3225e2a90f76
 
 const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
+const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "" ;
+  const TYPESENSE_PORT: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "" ;
 
 function App() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -33,7 +35,7 @@ function App() {
 
   useEffect(() => {
     (async () => {
-      console.log(`Grabbing access token - audience:${audience}`)
+      //console.log(`Grabbing access token - audience:${audience}`)
 
       const tkn = await getAccessTokenSilently(  {
         audience: audience,
@@ -49,9 +51,9 @@ function App() {
   const tsSearchClient = new TypesenseSearchClient({
     nodes: [
       {
-        host: 'localhost:3002/typesense', // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
-        port: 80,
-        protocol: 'https', //TODO: change to HTTPS before going to prod
+        host: `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`, // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
+        port: 80, // this stays as 80 even on TLS, part of the API proxy hack
+        protocol: 'https',
       },
     ],
     additionalHeaders: {

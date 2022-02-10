@@ -21,12 +21,12 @@ services:
       - key: TYPESENSE_HOST
         fromService:
           name: osobisty-api
-          type: pserv
+          type: web
           property: host
       - key: TYPESENSE_PORT
         fromService:
           name: osobisty-api
-          type: pserv
+          type: web
           property: port
   # API
   - type: web
