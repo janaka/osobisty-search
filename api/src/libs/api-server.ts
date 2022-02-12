@@ -94,6 +94,8 @@ var hapiServerOptions: Hapi.ServerOptions = {
   debug: { request: ['error'] }
 }
 
+console.log("hapiServerOptions:", hapiServerOptions)
+
 let server: Server = Hapi.server(hapiServerOptions);
 
 // Autohrization logic
