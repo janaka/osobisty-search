@@ -150,9 +150,6 @@ export const getRouteConfigTypesenseApi: ServerRoute =
       //onResponse: onResponseHandler,
 
     }
-  },
-  rules: {
-
   }
 }
 
