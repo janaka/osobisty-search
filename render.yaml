@@ -18,12 +18,12 @@ services:
         sync: false 
       - key: REACT_APP_AUTH0_DOMAIN
         sync: false
-      - key: TYPESENSE_HOST
+      - key: REACT_APP_TYPESENSE_HOST
         fromService:
           name: osobisty-api
           type: web
           property: host
-      - key: TYPESENSE_PORT
+      - key: REACT_APP_TYPESENSE_PORT
         fromService:
           name: osobisty-api
           type: web

@@ -19,8 +19,10 @@ import LogoutButton from './components/logoutButon';
 // 6be0576ff61c053d5f9a3225e2a90f76
 
 const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
-const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "" ;
-  const TYPESENSE_PORT: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "" ;
+const TYPESENSE_HOST: string = process.env.REACT_APP_TYPESENSE_HOST ? process.env.REACT_APP_TYPESENSE_HOST : "";
+const TYPESENSE_PORT: string = process.env.REACT_APP_TYPESENSE_PORT ? process.env.REACT_APP_TYPESENSE_PORT : "";
+
+if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
 
 function App() {
   const { user, isAuthenticated, isLoading } = useAuth0();
@@ -37,7 +39,7 @@ function App() {
     (async () => {
       //console.log(`Grabbing access token - audience:${audience}`)
 
-      const tkn = await getAccessTokenSilently(  {
+      const tkn = await getAccessTokenSilently({
         audience: audience,
         scope: "read:zettleDocuments"
       });
@@ -48,10 +50,12 @@ function App() {
   }, [getAccessTokenSilently])
 
 
+  const typesenseHost = `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`
+  
   const tsSearchClient = new TypesenseSearchClient({
     nodes: [
       {
-        host: `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`, // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
+        host: typesenseHost, // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
         port: 80, // this stays as 80 even on TLS, part of the API proxy hack
         protocol: 'https',
       },
@@ -130,10 +134,10 @@ function App() {
 
   return (
     <Router>
-        <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
-          <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
-        </Search>
+      <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
+        <Results data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
+        <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+      </Search>
     </Router>
   );
 }
