@@ -89,7 +89,8 @@ var hapiServerOptions: Hapi.ServerOptions = {
   routes: {
     cors: {
       origin: origins,
-      additionalHeaders: ['accept', 'authorization', 'content-type', 'if-none-match', "origin", "cache-control"] // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+      //headers: [,"Accept", "Authorization", "Content-Type", "If-None-Match", ],
+      additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin"] // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
     }
   },
   debug: { request: ['error'] }
