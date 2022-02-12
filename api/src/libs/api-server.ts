@@ -90,7 +90,9 @@ var hapiServerOptions: Hapi.ServerOptions = {
     cors: {
       origin: origins,
       //headers: [,"Accept", "Authorization", "Content-Type", "If-None-Match", ],
-      additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin"] // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+      additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com"] // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+      //access-control-request-headers
+
     }
   },
   debug: { request: ['error'] }
