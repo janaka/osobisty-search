@@ -54,10 +54,7 @@ services:
           type: pserv
           property: host
       - key: TYPESENSE_PORT
-        fromService:
-          name: typesense-searchengine
-          type: pserv
-          property: port
+        sync: false
       - key: TYPESENSE_API_KEY_ADMIN
         fromService:
           name: typesense-searchengine
