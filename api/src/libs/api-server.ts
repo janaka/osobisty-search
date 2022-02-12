@@ -24,6 +24,9 @@ const HOST = process.env.HOST;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 const SSL: boolean = process.env.SSL && (process.env.SSL.toLowerCase() === 'true') ? true : false;
+const DEBUG: boolean = process.env.DEBUG ? true : false;
+
+
 
 // Hapi lifecycle methods 
 // https://livebook.manning.com/book/hapi-js-in-action/chapter-5/30
@@ -82,6 +85,21 @@ if (process.env.NODE_ENV === "development") {
   nodeServerOptions = false;
 }
 
+var serverOptionsDebug: false | {
+  log?: false | string[] | undefined;
+  request?: false | string[] | undefined;
+} | undefined
+
+if (DEBUG) {
+  serverOptionsDebug = {
+    request: ['request']
+  }
+} else {
+  serverOptionsDebug = {
+    request: false
+  }
+}
+
 var hapiServerOptions: Hapi.ServerOptions = {
   port: PORT,
   host: process.env.NODE_ENV === "development" ? HOST : "0.0.0.0",
@@ -95,7 +113,7 @@ var hapiServerOptions: Hapi.ServerOptions = {
 
     }
   },
-  debug: { request: ['error'] }
+  debug: serverOptionsDebug
 }
 
 console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
