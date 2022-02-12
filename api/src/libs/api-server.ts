@@ -94,7 +94,7 @@ var hapiServerOptions: Hapi.ServerOptions = {
   debug: { request: ['error'] }
 }
 
-console.log("hapiServerOptions:", hapiServerOptions)
+console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
 
 let server: Server = Hapi.server(hapiServerOptions);
 
