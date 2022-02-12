@@ -1,6 +1,6 @@
 import { fileIterator } from './fileIterator.js'
 import matter, { GrayMatterFile } from 'gray-matter';
-import {dateTimeNowUtc} from './utils'
+import {dateTimeNowUtc} from './utils.js'
 
 export async function fullIndexZettkeDocuments(typesenseClient: any) {
 

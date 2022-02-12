@@ -5,13 +5,14 @@
   "repository": "https://github.com/janaka/osobisty-search.git",
   "author": "Janaka Abeywardhana <contact@janaka.co.uk>",
   "license": "MIT",
-  "type": "module", 
+  "type": "module",
   "devDependencies": {
     "@types/node": "^16.7.13",
     "typescript": "^4.4.2"
   },
   "dependencies": {
     "@babel/runtime": "^7.14.6",
+    "dotenv": "^16.0.0",
     "gray-matter": "^4.0.3",
     "typesense": "^1.0.0-2"
   },

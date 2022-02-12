@@ -1,6 +1,6 @@
 import {fileIterator} from './fileIterator.js'
 import fs from 'fs';
-import {dateTimeNowUtc} from './utils'
+import {dateTimeNowUtc} from './utils.js'
 
 export async function fullIndexKindleHighlights(typesenseClient:any) {
 

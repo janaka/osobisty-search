@@ -6,17 +6,23 @@ import {fullIndexZettkeDocuments} from './zettle.js'
 import {fullIndexKindleHighlights} from './kindle.js'
 import {fullIndexTwitterBookmarks} from './twitter.js'
 import fs from 'fs';
-import os from 'os'
+import os from 'os';
+import 'dotenv/config';
+
+
+const TYPESENSE_HOST:string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
+const TYPESENSE_PORT:number = process.env.TYPESENSE_PORT ? Number(process.env.TYPESENSE_PORT) : 0;
+const TYPESENSE_KEY:string = process.env.TYPESENSE_KEY ? process.env.TYPESENSE_KEY : "";
 
 let typesense = new Typesense.Client({
   nodes: [
     {
-      host: 'localhost',
-      port: 8108,
-      protocol: 'http',
+      host: TYPESENSE_HOST,
+      port: TYPESENSE_PORT,
+      protocol: 'https',
     },
   ],
-  apiKey: 'xyz',
+  apiKey: TYPESENSE_KEY,
   connectionTimeoutSeconds: 2,
 });
 

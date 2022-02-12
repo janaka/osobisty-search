@@ -64,6 +64,7 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
 var origins: Array<string> = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(", ") : ['']
 var nodeServerOptions: ServerOptions | boolean;
 console.log(process.env)
+console.log("CORS orginis config:", origins.toString())
 
 if (process.env.NODE_ENV === "development") {
   if (SSL) {
