@@ -19,7 +19,11 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
       const proxyquery = new URLSearchParams(request.query);
       const typesensehost: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
       const typesenseport: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "";
-      const uri: string = protocol + '://' + typesensehost + ':' + typesenseport + '/' + proxypath + '?' + proxyquery.toString();
+      var uri: string = protocol + '://' + typesensehost + ':' + typesenseport + '/' + proxypath;
+      console.log(proxyquery)
+      if (proxyquery.toString().length > 0) {
+        uri = uri + '?' + proxyquery.toString()
+      }
 
       console.log("Typesense Uri: " + uri)
       console.log("auth.credentials:")
