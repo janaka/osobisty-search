@@ -64,7 +64,6 @@ function authoriseTypesenseRequest(request: Request): TypesenseAuthorisationResu
   const path: string = request.path;
   var apikey;
 
-  console.log(apikey)
   if (permissions.includes("admin:typesense")) {
     result.IsAuthorised = true;
     apikey = mapTypesenseApiKey("admin:typesense");
@@ -80,12 +79,10 @@ function authoriseTypesenseRequest(request: Request): TypesenseAuthorisationResu
         apikey = mapTypesenseApiKey("read:zettleDocuments");
         result.TypesenseApiKey = apikey
       } else {
-        console.warn("No permissions to interact with Typesense found!")
+        console.warn("You don't have needed permissions to interact with the Typesense zettleDocuments!")
       }
     }
   }
-
-
 
   return result;
 }
@@ -113,16 +110,17 @@ function mapTypesenseApiKey(permission: string): string {
         console.error("Env variable `TYPESENSE_API_KEY_READ_ZETTLEDOCS` is empty!");
         throw new Error("Env variable `TYPESENSE_API_KEY_READ_ZETTLEDOCS` is empty!")
       }
-    
+      break;
     case "write:zettleDocuments":
       apikey = process.env.TYPESENSE_API_KEY_WRITE_ZETTLEDOCS ? process.env.TYPESENSE_API_KEY_WRITE_ZETTLEDOCS : "";
       if (apikey === "") {
         console.error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!");
         throw new Error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!")
-      }     
+      }
+      break;     
     default:
       apikey = "";
-      console.warn("mapTypesenseApiKey() now Typesense scope map match.");
+      console.warn("warning: mapTypesenseApiKey() no Typesense scope map match for " + permission);
 
       break;
   }
