@@ -62,18 +62,22 @@ function authoriseTypesenseRequest(request: Request): TypesenseAuthorisationResu
 
   const permissions: Array<string> = request.auth.credentials.permissions as Array<string>;
   const path: string = request.path;
-  const apikey = mapTypesenseApiKey("admin:typesense");
+  var apikey;
 
   console.log(apikey)
   if (permissions.includes("admin:typesense")) {
     result.IsAuthorised = true;
+    apikey = mapTypesenseApiKey("admin:typesense");
     result.TypesenseApiKey = apikey
   } else {
     if (permissions.includes("write:zettleDocuments")) {
-
+      result.IsAuthorised = true;
+      apikey = mapTypesenseApiKey("write:zettleDocuments");
+      result.TypesenseApiKey = apikey
     } else {
       if (permissions.includes("read:zettleDocuments")) {
         result.IsAuthorised = true;
+        apikey = mapTypesenseApiKey("read:zettleDocuments");
         result.TypesenseApiKey = apikey
       } else {
         console.warn("No permissions to interact with Typesense found!")
