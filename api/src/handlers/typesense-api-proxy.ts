@@ -25,14 +25,14 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
         uri = uri + '?' + proxyquery.toString()
       }
 
-      console.log("Typesense Uri: " + uri)
-      console.log("auth.credentials:")
-      console.log(request.auth.credentials.permissions)
+      console.log("Typesense Uri: " + request.method + " " + uri)
+      console.log("auth.credentials:", request.auth.credentials.permissions)
+      console.log(request.info)
       //console.log("Typesense req headers: ")
       //console.log (request.raw.req.headers)
       //console.log(request.auth.credentials)
       //console.log(request.auth.artifacts)
-      console.log('')
+      console.log('----')
 
       const authresult = authoriseTypesenseRequest(request)
       console.log(authresult)
