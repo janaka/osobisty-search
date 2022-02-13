@@ -62,6 +62,8 @@ services:
           envVarKey: TYPESENSE_API_KEY
       - key: TYPESENSE_API_KEY_READ_ZETTLEDOCS
         sync: false # placeholder for a value to be added in the dashboard
+      - key: TYPESENSE_API_KEY_WRITE_ZETTLEDOCS
+        sync: false
   # private Typesense Instance
   - type: pserv
     name: typesense-searchengine
