@@ -32,10 +32,10 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
       //console.log (request.raw.req.headers)
       //console.log(request.auth.credentials)
       //console.log(request.auth.artifacts)
-      console.log('----')
-
+    
       const authresult = authoriseTypesenseRequest(request)
       console.log(authresult)
+      console.log('----')
       const proxytarget: ProxyTarget = {
         uri: uri,
         headers: {

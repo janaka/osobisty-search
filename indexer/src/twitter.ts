@@ -24,7 +24,7 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
         if (entry.content.entryType == "TimelineTimelineItem") {
           console.log("\x1b[36m%s\x1b[0m", c + ": " + entry.entryId)
           if (entry.content.itemContent.tweet_results.result) {
-            console.log(entry.content.itemContent.tweet_results.result.legacy.full_text)
+            //console.log(entry.content.itemContent.tweet_results.result.legacy.full_text)
             const screenName = entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.screen_name
             const tweetRestId = entry.content.itemContent.tweet_results.result.rest_id
             // Tweet Link Ex.1 https://twitter.com/QuinnyPig/status/1091041507342086144?s=20
@@ -51,3 +51,4 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
     console.error(err);
   }
 }
+

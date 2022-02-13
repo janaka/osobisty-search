@@ -4,7 +4,7 @@ import matter from 'gray-matter';
 
 import {fullIndexZettkeDocuments} from './zettle.js'
 import {fullIndexKindleHighlights} from './kindle.js'
-import {fullIndexTwitterBookmarks} from './twitter.js'
+import { fullIndexTwitterBookmarks} from './twitter.js'
 import fs from 'fs';
 import os from 'os';
 import 'dotenv/config';
@@ -32,7 +32,9 @@ let configOptions:ConfigurationOptions = {
 } 
 
 let typesense = new Typesense.Client(configOptions);
+//let d = await typesense.debug.retrieve()
 
+//console.log(d)
 
 var myArgs = process.argv.slice(2);
 
@@ -61,7 +63,8 @@ switch (myArgs[0]) {
     fullIndexKindleHighlights(typesense)
     break;
   case 'indexTwitter':
-    fullIndexTwitterBookmarks(typesense)
+    deleteDocsByType("zettleDocuments", "Twitter-bm")
+    //fullIndexTwitterBookmarks(typesense);
     break;
     case 'health':
       let r = await typesense.health.retrieve();
@@ -116,7 +119,7 @@ async function deleteDocsByType(collectionName: string, typeName: string) {
     let r = await typesense.collections(collectionName).documents().delete({ filter_by: 'type:=' + typeName.trim() })
     console.log("\x1b[36m%s\x1b[0m", r.num_deleted + " " + typeName + " docs deleted!");
   } catch (err: any) {
-    console.error(err);
+    //console.error(err);
   }
 }
 
