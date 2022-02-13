@@ -8,13 +8,15 @@ import {fullIndexTwitterBookmarks} from './twitter.js'
 import fs from 'fs';
 import os from 'os';
 import 'dotenv/config';
+import { ConfigurationOptions } from 'typesense/lib/Typesense/Configuration';
 
 
 const TYPESENSE_HOST:string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
 const TYPESENSE_PORT:number = process.env.TYPESENSE_PORT ? Number(process.env.TYPESENSE_PORT) : 0;
 const TYPESENSE_KEY:string = process.env.TYPESENSE_KEY ? process.env.TYPESENSE_KEY : "";
+const TYPESENSE_TOKEN:string = process.env.TYPESENSE_TOKEN ? process.env.TYPESENSE_TOKEN : "";
 
-let typesense = new Typesense.Client({
+let configOptions:ConfigurationOptions = {
   nodes: [
     {
       host: TYPESENSE_HOST,
@@ -22,9 +24,14 @@ let typesense = new Typesense.Client({
       protocol: 'https',
     },
   ],
-  apiKey: TYPESENSE_KEY,
+  apiKey: "asdflsdfasdfsadfasdfsdfasdfdsfa",
   connectionTimeoutSeconds: 2,
-});
+  additionalHeaders: {
+    Authorization: `Bearer ${TYPESENSE_TOKEN}`,
+  }
+} 
+
+let typesense = new Typesense.Client(configOptions);
 
 
 var myArgs = process.argv.slice(2);
@@ -56,7 +63,12 @@ switch (myArgs[0]) {
   case 'indexTwitter':
     fullIndexTwitterBookmarks(typesense)
     break;
-  case 'test1':
+    case 'health':
+      let r = await typesense.health.retrieve();
+
+      console.log("\x1b[36m%s\x1b[0m", r.status);
+      break;
+    case 'test1':
     testFrontMatterWrite();
     break;
   case 'test2':
