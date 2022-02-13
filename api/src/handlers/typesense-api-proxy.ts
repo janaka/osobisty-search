@@ -27,7 +27,7 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
 
       console.log("Typesense Uri: " + request.method + " " + uri)
       console.log("auth.credentials:", request.auth.credentials.permissions)
-      console.log(request.info)
+      //console.log(request.info)
       //console.log("Typesense req headers: ")
       //console.log (request.raw.req.headers)
       //console.log(request.auth.credentials)
@@ -69,11 +69,16 @@ function authoriseTypesenseRequest(request: Request): TypesenseAuthorisationResu
     result.IsAuthorised = true;
     result.TypesenseApiKey = apikey
   } else {
-    if (permissions.includes("read:zettleDocuments")) {
-      result.IsAuthorised = true;
-      result.TypesenseApiKey = apikey
-    }
+    if (permissions.includes("write:zettleDocuments")) {
 
+    } else {
+      if (permissions.includes("read:zettleDocuments")) {
+        result.IsAuthorised = true;
+        result.TypesenseApiKey = apikey
+      } else {
+        console.warn("No permissions to interact with Typesense found!")
+      }
+    }
   }
 
 
@@ -101,10 +106,16 @@ function mapTypesenseApiKey(permission: string): string {
 
       apikey = process.env.TYPESENSE_API_KEY_READ_ZETTLEDOCS ? process.env.TYPESENSE_API_KEY_READ_ZETTLEDOCS : "";
       if (apikey === "") {
-        console.error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!");
-        throw new Error("Env variable `TYPESENSE_API_KEY_ADMIN` is empty!")
+        console.error("Env variable `TYPESENSE_API_KEY_READ_ZETTLEDOCS` is empty!");
+        throw new Error("Env variable `TYPESENSE_API_KEY_READ_ZETTLEDOCS` is empty!")
       }
-
+    
+    case "write:zettleDocuments":
+      apikey = process.env.TYPESENSE_API_KEY_WRITE_ZETTLEDOCS ? process.env.TYPESENSE_API_KEY_WRITE_ZETTLEDOCS : "";
+      if (apikey === "") {
+        console.error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!");
+        throw new Error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!")
+      }     
     default:
       apikey = "";
       console.warn("mapTypesenseApiKey() now Typesense scope map match.");
