@@ -33,6 +33,7 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
             let twitterBookmark = {
               type: "Twitter-bm",
               authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" + screenName + ")",
+              content: "", //notes
               source_content: entry.content.itemContent.tweet_results.result.legacy.full_text,
               date: entry.content.itemContent.tweet_results.result.legacy.created_at,
               link: tweetLink,

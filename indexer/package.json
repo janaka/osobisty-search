@@ -19,7 +19,7 @@
   "scripts": {
     "watch": "npx tsc -w",
     "build": "npx tsc",
-    "start": "node ./build/src/main.js",
+    "start": "node --trace-warnings ./build/src/main.js",
     "test": "jest",
     "typesenseServer": "docker run -p 8108:8108 -v`pwd`/typesense:/typesense typesense/typesense:0.21.0 --config=/typesense/typesense-server.local.ini "
   }

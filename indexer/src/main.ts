@@ -63,8 +63,8 @@ switch (myArgs[0]) {
     fullIndexKindleHighlights(typesense)
     break;
   case 'indexTwitter':
-    deleteDocsByType("zettleDocuments", "Twitter-bm")
-    //fullIndexTwitterBookmarks(typesense);
+    await deleteDocsByType("zettleDocuments", "Twitter-bm")
+    fullIndexTwitterBookmarks(typesense);
     break;
     case 'health':
       let r = await typesense.health.retrieve();
