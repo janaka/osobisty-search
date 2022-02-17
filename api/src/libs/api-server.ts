@@ -105,14 +105,16 @@ var hapiServerOptions: Hapi.ServerOptions = {
   host: process.env.NODE_ENV === "development" ? HOST : "0.0.0.0",
   tls: nodeServerOptions,
   routes: {
-    cors: {
-      origin: ["*"],//origins,
-      headers: ["Accept", "Authorization", "Content-Type", "If-None-Match"],
-      additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Control", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding", "Origin"], // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
-    }
+    cors: false
   },
   debug: serverOptionsDebug
 }
+
+// {
+//   origin: ["*"],//origins,
+//   headers: ["Accept", "Authorization", "Content-Type", "If-None-Match"],
+//   additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Methods: POST, GET, PUT, DELETE, OPTIONS", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Control", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding", "Origin"], // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+// }
 
       //headers: [,"Accept", "Authorization", "Content-Type", "If-None-Match", ],
       //additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Contorl", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding"], // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
