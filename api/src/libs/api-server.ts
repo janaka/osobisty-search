@@ -107,6 +107,7 @@ var hapiServerOptions: Hapi.ServerOptions = {
   routes: {
     cors: {
       origin: origins,
+      headers: ["Accept", "Authorization", "Content-Type", "If-None-Match"],
       additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Contorl", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding", "Origin"], // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
     }
   },
