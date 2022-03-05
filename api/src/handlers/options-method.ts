@@ -12,7 +12,7 @@ export namespace optionsMethod {
     handler: (req: Request, h: any) => {
       console.log(`======options: ${req.route.path}`)
       const response = h.response({})
-      response.header('Access-Control-Allow-Origin',   'https://osobisty-search-ui.onrender.com, https://localhost:3001')
+      response.header('Access-Control-Allow-Origin',   'https://osobisty-search-ui.onrender.com') //, https://localhost:3001
       response.header('Access-Control-Allow-Headers',  'authorization')
       return response;
     }
