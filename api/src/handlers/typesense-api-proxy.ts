@@ -1,8 +1,10 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import { ProxyHandlerOptions, ProxyTarget } from '@hapi/h2o2'
 import { URLSearchParams } from 'url';
-import { type } from 'os';
-import { compile } from 'joi';
+import { IncomingMessage } from 'http';
+import wreck from '@hapi/wreck'
+
+
 
 interface TypesenseAuthorisationResult {
   IsAuthorised: boolean,
@@ -129,22 +131,35 @@ function mapTypesenseApiKey(permission: string): string {
 
 }
 
-// const onResponseHandler = async (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) => {
 
-//     const payload = await wreck.read(res, { json: true });   
-//     const promise = new Promise<ResponseObject>((resolve, reject) => {
-//       try {
-//         const response: ResponseObject = h.response(payload);
-//         console.log("response:", response)
-//         resolve(response);
-//       } catch (error) {
-//         console.error("error in onResponseHandler():", err)  
-//         reject(error)
-//       }
-//     });
 
-//     return promise;
-// }
+
+function isEven(n:number) {
+   return n % 2 == 0;
+}
+
+const onResponseHandler = (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) => {
+
+    console.log("onResponseHandler()")
+
+        const response: ResponseObject = h.response(res);
+
+        var key:string = "", value:string = ""
+        for (let index = 0; index < res.rawHeaders.length; index++) {
+
+          if (isEven(index)) {
+            key = res.rawHeaders[index];
+          } else {            
+            value = res.rawHeaders[index];
+          }
+          response.header(key, value)
+          
+        } 
+        response.header('Access-Control-Allow-Origin', 'https://osobisty-search-ui.onrender.com');
+        
+    return response;
+}
+
 
 
 /*
@@ -153,7 +168,10 @@ There isn't a built in way to check against the `permissions` claim in the JWT, 
 
 */
 
+// const onResponse1 = function (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) {
 
+//   return h.response(res).vary('Something');
+// };
 
 export const getRouteConfigTypesenseApi: ServerRoute =
 {
@@ -164,7 +182,7 @@ export const getRouteConfigTypesenseApi: ServerRoute =
       rejectUnauthorized: true, // make sure cert validation fails throw a 500
       passThrough: true, // pass all req and res headers
       mapUri: mapUriHandler,
-      //onResponse: onResponseHandler,
+      onResponse: onResponseHandler,
 
     }
   }
