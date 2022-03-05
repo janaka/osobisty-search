@@ -13,6 +13,6 @@ export default [
   postRouteConfigWebclippings, 
   getRouteConfigWebclippings,
   getRouteConfigTypesenseApi,
-  //optionsMethod.getRouteConfig,
+  optionsMethod.getRouteConfig,
   catchall.getRouteConfig
 ]
