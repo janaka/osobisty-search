@@ -111,11 +111,8 @@ var hapiServerOptions: Hapi.ServerOptions = {
   },
   debug: serverOptionsDebug
 }
-
-
-
-      //headers: [,"Accept", "Authorization", "Content-Type", "If-None-Match", ],
-      //additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Contorl", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding"], // defaults ['Accept', 'Authorization', 'Content-Type', 'If-None-Match']
+//headers: ["Accept", "Authorization", "Content-Type", "If-None-Match", ], // defaults 
+//additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Contorl", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding"], 
 
 console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
 
