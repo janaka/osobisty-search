@@ -118,6 +118,10 @@ console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
 
 let server: Server = Hapi.server(hapiServerOptions);
 
+server.events.on('response', function (request) {
+  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path);
+});
+
 // Autohrization logic
 const validateFunc = async (decoded: any) => {
   // any global validation should go here. 
@@ -191,6 +195,9 @@ export const init = async () => {
 // server.route(ping.getRouteConfig);
 
 // server.route(webclippings.postRouteConfig);
+
+
+
 
 process.on('unhandledRejection', (error) => {
   console.log("unhandledRejection:" + error);
