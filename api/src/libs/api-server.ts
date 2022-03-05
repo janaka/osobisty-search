@@ -1,4 +1,4 @@
-import Hapi, { Server, Request, RouteOptionsCors } from '@hapi/hapi';
+import Hapi, { Server, Request, RouteOptionsCors, ResponseObject } from '@hapi/hapi';
 import hapiswagger, * as HapiSwagger from 'hapi-swagger';
 import Inert from '@hapi/inert';
 import Vision from '@hapi/vision';
@@ -6,7 +6,7 @@ import H2o2 from '@hapi/h2o2';
 import HapiAuthJwt2 from 'hapi-auth-jwt2';
 import jwksRsa from 'jwks-rsa';
 import fs from 'fs';
-import os from 'os';
+
 
 import dotenv from 'dotenv';
 
@@ -14,7 +14,8 @@ import { frontMatterFieldCollection, serialiseFrontMatter } from './frontmatter.
 
 import routes from '../handlers/index.js'
 import { ServerOptions } from 'https';
-import { dirname } from 'path';
+
+
 
 dotenv.config();
 
@@ -107,6 +108,7 @@ var hapiServerOptions: Hapi.ServerOptions = {
   routes: {
     cors: {
       origin: origins,
+      credentials: true
     }
   },
   debug: serverOptionsDebug
@@ -119,7 +121,8 @@ console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
 let server: Server = Hapi.server(hapiServerOptions);
 
 server.events.on('response', function (request) {
-  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers).toString());
+  //let res: ResponseObject = request.response
+  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + '-->' );
 });
 
 // Autohrization logic
