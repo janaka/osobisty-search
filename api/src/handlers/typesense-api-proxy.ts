@@ -157,7 +157,7 @@ There isn't a built in way to check against the `permissions` claim in the JWT, 
 
 export const getRouteConfigTypesenseApi: ServerRoute =
 {
-  method: '*',
+  method: '*', // change this to exclude OPTIONS from being proxied
   path: '/typesense:80/{proxypath*}', // this `typesense:80` is a TypeSense client side hack so we have something to match the route
   handler: {
     proxy: {

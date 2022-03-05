@@ -122,7 +122,7 @@ let server: Server = Hapi.server(hapiServerOptions);
 
 server.events.on('response', function (request) {
   //let res: ResponseObject = request.response
-  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + '-->' );
+  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
 });
 
 // Autohrization logic
