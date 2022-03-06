@@ -9,7 +9,7 @@ export namespace optionsMethod {
     },
     handler: (req: Request, h: any) => {
     
-      if (globalThis.DEBUG) console.log(`======options: ${req.route.path}`);
+      if (globalThis.DEBUG) console.log(`OPTIONS: ${req.route.path}, isOriginMatch: ${req.info.cors.isOriginMatch}`);
 
       const response = h.response({})
       if (req.info.cors.isOriginMatch) {

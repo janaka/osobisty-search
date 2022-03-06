@@ -151,6 +151,7 @@ const onResponseHandler = (err: any, res: IncomingMessage, req: Request, h: Resp
     }
     response.header(key, value)
   }
+  if (globalThis.DEBUG) console.log(`onResponse(): isOriginMatch: ${req.info.cors.isOriginMatch}`)  
   if (req.info.cors.isOriginMatch) {
     response.header('Access-Control-Allow-Origin', req.info.host); //'https://osobisty-search-ui.onrender.com'
   }
