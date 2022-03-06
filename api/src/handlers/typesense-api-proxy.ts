@@ -152,13 +152,9 @@ const onResponseHandler = (err: any, res: IncomingMessage, req: Request, h: Resp
     response.header(key, value)
   }
   if (globalThis.DEBUG) console.log(`onResponse(): isOriginMatch: ${req.info.cors.isOriginMatch}`)  
-  if (req.info.cors.isOriginMatch) {
-    response.header('Access-Control-Allow-Origin', req.info.host); //'https://osobisty-search-ui.onrender.com'
-  }
 
   return response;
 }
-
 
 
 /*
@@ -166,11 +162,6 @@ const onResponseHandler = (err: any, res: IncomingMessage, req: Request, h: Resp
 There isn't a built in way to check against the `permissions` claim in the JWT, need to use  plugin. Permissions claim is what the app owner controls in the backend (Auth0).
 
 */
-
-// const onResponse1 = function (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) {
-
-//   return h.response(res).vary('Something');
-// };
 
 export const getRouteConfigTypesenseApi: ServerRoute =
 {

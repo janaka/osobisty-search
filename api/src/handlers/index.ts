@@ -3,7 +3,6 @@ import { ping } from './ping.js'
 import {postRouteConfigWebclippings} from  './webclippings-post.js'
 import {getRouteConfigWebclippings} from './webclippings-get.js'
 import { getRouteConfigTypesenseApi } from './typesense-api-proxy.js'
-import {optionsMethod} from './options-method.js'
 import { catchall } from './catch-all.js'
 
 
@@ -13,6 +12,5 @@ export default [
   postRouteConfigWebclippings, 
   getRouteConfigWebclippings,
   getRouteConfigTypesenseApi,
-  //optionsMethod.getRouteConfig,
   catchall.getRouteConfig
 ]
