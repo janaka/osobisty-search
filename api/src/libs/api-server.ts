@@ -25,7 +25,12 @@ const HOST = process.env.HOST;
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
 const SSL: boolean = process.env.SSL && (process.env.SSL.toLowerCase() === 'true') ? true : false;
-const DEBUG: boolean = process.env.DEBUG ? true : false;
+
+declare global {
+  var DEBUG: boolean;
+}
+
+globalThis.DEBUG = process.env.DEBUG ? true : false;
 
 
 
@@ -66,6 +71,7 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
 ];
 
 var origins: Array<string> = process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(", ") : ['']
+
 var nodeServerOptions: ServerOptions | boolean;
 //console.log(process.env)
 console.log("CORS orginis config:", origins.toString())
@@ -91,7 +97,7 @@ var serverOptionsDebug: false | {
   request?: false | string[] | undefined;
 } | undefined
 
-if (DEBUG) {
+if (globalThis.DEBUG) {
   serverOptionsDebug = {
     request: ['request']
   }
@@ -116,21 +122,24 @@ var hapiServerOptions: Hapi.ServerOptions = {
 //headers: ["Accept", "Authorization", "Content-Type", "If-None-Match", ], // defaults 
 //additionalHeaders: ["Accept-language", "Access-Control-Allow-Headers", "Access-Control-Allow-Origin", "Access-Control-Allow-Origin: https://osobisty-search-ui.onrender.com", "Cache-Contorl", "Access-Control-Request-Headers", "Accept-Language", "Accept-Encoding"], 
 
-console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
+if (globalThis.DEBUG) console.log("hapiServerOptions:", JSON.stringify(hapiServerOptions).toString())
 
 let server: Server = Hapi.server(hapiServerOptions);
-
-server.events.on('response', function (request) {
-  //let res: ResponseObject = request.response
-  console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
-});
+if (globalThis.DEBUG) {
+  server.events.on('response', function (request) {
+    console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
+  });
+}
 
 // Autohrization logic
 const validateFunc = async (decoded: any) => {
   // any global validation should go here. 
   // like checking if the user (by some identifier) is known and allowed 
-  console.log("decoded:")
-  console.log(decoded)
+  if (globalThis.DEBUG) {
+    console.log("decoded:")
+    console.log(decoded)  
+  }
+  
   decoded.entity = "user"
   const permissions = decoded.permissions;
   const scope = decoded.scope;

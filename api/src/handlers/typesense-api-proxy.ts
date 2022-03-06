@@ -22,22 +22,24 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
       const typesensehost: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
       const typesenseport: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "";
       var uri: string = protocol + '://' + typesensehost + ':' + typesenseport + '/' + proxypath;
-      console.log(proxyquery)
+      if (globalThis.DEBUG) console.log(proxyquery)
       if (proxyquery.toString().length > 0) {
         uri = uri + '?' + proxyquery.toString()
       }
-
-      console.log("Typesense Uri: " + request.method + " " + uri)
-      console.log("auth.credentials:", request.auth.credentials.permissions)
-      //console.log(request.info)
-      //console.log("Typesense req headers: ")
-      //console.log (request.raw.req.headers)
-      //console.log(request.auth.credentials)
-      //console.log(request.auth.artifacts)
-    
       const authresult = authoriseTypesenseRequest(request)
-      console.log(authresult)
-      console.log('----')
+
+      if (globalThis.DEBUG) {
+        console.log("Typesense Uri: " + request.method + " " + uri)
+        console.log("auth.credentials:", request.auth.credentials.permissions)
+        //console.log(request.info)
+        //console.log("Typesense req headers: ")
+        //console.log (request.raw.req.headers)
+        //console.log(request.auth.credentials)
+        //console.log(request.auth.artifacts)
+        console.log(authresult)
+        console.log('----')
+      }
+
       const proxytarget: ProxyTarget = {
         uri: uri,
         headers: {
@@ -119,7 +121,7 @@ function mapTypesenseApiKey(permission: string): string {
         console.error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!");
         throw new Error("Env variable `TYPESENSE_API_KEY_WRITE_ZETTLEDOCS` is empty!")
       }
-      break;     
+      break;
     default:
       apikey = "";
       console.warn("warning: mapTypesenseApiKey() no Typesense scope map match for " + permission);
@@ -131,33 +133,29 @@ function mapTypesenseApiKey(permission: string): string {
 
 }
 
-
-
-
-function isEven(n:number) {
-   return n % 2 == 0;
+function isEven(n: number) {
+  return n % 2 == 0;
 }
 
-const onResponseHandler = (err:any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) => {
+const onResponseHandler = (err: any, res: IncomingMessage, req: Request, h: ResponseToolkit, settings: ProxyHandlerOptions, ttl: number) => {
 
-    console.log("onResponseHandler()")
+  const response: ResponseObject = h.response(res);
 
-        const response: ResponseObject = h.response(res);
+  var key: string = "", value: string = ""
+  for (let index = 0; index < res.rawHeaders.length; index++) {
 
-        var key:string = "", value:string = ""
-        for (let index = 0; index < res.rawHeaders.length; index++) {
+    if (isEven(index)) {
+      key = res.rawHeaders[index];
+    } else {
+      value = res.rawHeaders[index];
+    }
+    response.header(key, value)
+  }
+  if (req.info.cors.isOriginMatch) {
+    response.header('Access-Control-Allow-Origin', req.info.host); //'https://osobisty-search-ui.onrender.com'
+  }
 
-          if (isEven(index)) {
-            key = res.rawHeaders[index];
-          } else {            
-            value = res.rawHeaders[index];
-          }
-          response.header(key, value)
-          
-        } 
-        response.header('Access-Control-Allow-Origin', 'https://osobisty-search-ui.onrender.com');
-        
-    return response;
+  return response;
 }
 
 

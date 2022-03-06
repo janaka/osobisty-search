@@ -1,6 +1,4 @@
-import { Request, ResponseObject} from '@hapi/hapi';
-
-
+import { Request } from '@hapi/hapi';
 
 export namespace optionsMethod {
   export const getRouteConfig: any = {
@@ -10,24 +8,15 @@ export namespace optionsMethod {
       auth: false
     },
     handler: (req: Request, h: any) => {
-      console.log(`======options: ${req.route.path}`)
+    
+      if (globalThis.DEBUG) console.log(`======options: ${req.route.path}`);
+
       const response = h.response({})
-      response.header('Access-Control-Allow-Origin',   'https://osobisty-search-ui.onrender.com') //, https://localhost:3001
-      response.header('Access-Control-Allow-Headers',  'authorization')
+      if (req.info.cors.isOriginMatch) {
+        response.header('Access-Control-Allow-Origin', req.info.host) //, https://localhost:3001
+        response.header('Access-Control-Allow-Headers', 'authorization')
+      }      
       return response;
     }
   }
 }
-
-
-// {
-//   method : 'OPTIONS',
-//   path: '/{any*}',
-//   handler : async (request, reply) => {
-//       console.log(`======options: ${request.route.path}`)
-//       const response = reply.response({})
-//       response.header('Access-Control-Allow-Origin',   '*')
-//       response.header('Access-Control-Allow-Headers',  '*')
-//       return response;
-//       }
-//   }
