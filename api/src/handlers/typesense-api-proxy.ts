@@ -181,7 +181,7 @@ export const getRouteConfigTypesenseApi: ServerRoute =
       rejectUnauthorized: true, // make sure cert validation fails throw a 500
       passThrough: true, // pass all req and res headers
       mapUri: mapUriHandler,
-      onResponse: onResponseHandler,
+      //onResponse: onResponseHandler,
 
     }
   }
