@@ -16,11 +16,14 @@ const mapUriHandler = (request: Request): Promise<ProxyTarget> => {
   try {
     const promise = new Promise<ProxyTarget>((resolve, reject) => {
 
-      const protocol = request.server.info.protocol;
+      let protocol: string = process.env.TYPESENSE_PROTOCOL ? process.env.TYPESENSE_PROTOCOL : request.server.info.protocol; 
       const proxypath = request.params.proxypath;
       const proxyquery = new URLSearchParams(request.query);
       const typesensehost: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
       const typesenseport: string = process.env.TYPESENSE_PORT ? process.env.TYPESENSE_PORT : "";
+
+      if (protocol!=="http" && protocol!=="https") throw "TYPESENSE_PROTOCOL is configured with an invalid value. Must be `http` or `https`"
+      
       var uri: string = protocol + '://' + typesensehost + ':' + typesenseport + '/' + proxypath;
       if (globalThis.DEBUG) console.log(proxyquery)
       if (proxyquery.toString().length > 0) {

@@ -2,34 +2,46 @@
 import Typesense from 'typesense';
 import matter from 'gray-matter';
 
-import {fullIndexZettkeDocuments} from './zettle.js'
-import {fullIndexKindleHighlights} from './kindle.js'
-import { fullIndexTwitterBookmarks} from './twitter.js'
+import { fullIndexZettkeDocuments } from './zettle.js'
+import { fullIndexKindleHighlights } from './kindle.js'
+import { fullIndexTwitterBookmarks } from './twitter.js'
 import fs from 'fs';
 import os from 'os';
 import 'dotenv/config';
 import { ConfigurationOptions } from 'typesense/lib/Typesense/Configuration';
 
 
-const TYPESENSE_HOST:string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
-const TYPESENSE_PORT:number = process.env.TYPESENSE_PORT ? Number(process.env.TYPESENSE_PORT) : 0;
-const TYPESENSE_KEY:string = process.env.TYPESENSE_KEY ? process.env.TYPESENSE_KEY : "";
-const TYPESENSE_TOKEN:string = process.env.TYPESENSE_TOKEN ? process.env.TYPESENSE_TOKEN : "";
+const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
+const TYPESENSE_PORT: number = process.env.TYPESENSE_PORT ? Number(process.env.TYPESENSE_PORT) : 0;
+const TYPESENSE_KEY: string = process.env.TYPESENSE_KEY ? process.env.TYPESENSE_KEY : "";
+const TYPESENSE_TOKEN: string = process.env.TYPESENSE_TOKEN ? process.env.TYPESENSE_TOKEN : "";
+const TYPESENSE_PROTOCOL: string = process.env.TYPESENSE_PROTOCOL ? process.env.TYPESENSE_PROTOCOL : "https";
 
-let configOptions:ConfigurationOptions = {
+let configOptions: ConfigurationOptions = {
   nodes: [
     {
       host: TYPESENSE_HOST,
       port: TYPESENSE_PORT,
-      protocol: 'https',
+      protocol: TYPESENSE_PROTOCOL,
     },
   ],
   apiKey: "asdflsdfasdfsadfasdfsdfasdfdsfa",
   connectionTimeoutSeconds: 2,
-  additionalHeaders: {
-    Authorization: `Bearer ${TYPESENSE_TOKEN}`,
+}
+
+if (TYPESENSE_KEY!=="") {
+  configOptions.apiKey = TYPESENSE_KEY
+} else {
+  if (TYPESENSE_TOKEN!=="") {
+    let tokenHeader: Record<string, string> = {
+      Authorization: `Bearer ${TYPESENSE_TOKEN}`,
+    }
+    configOptions.additionalHeaders = tokenHeader;
+  } else {
+    throw "One of TYPESENSE_KEY or TYPESENSE_KEY must be configured but both were empty";
   }
-} 
+}
+
 
 let typesense = new Typesense.Client(configOptions);
 //let d = await typesense.debug.retrieve()
@@ -66,12 +78,12 @@ switch (myArgs[0]) {
     await deleteDocsByType("zettleDocuments", "Twitter-bm")
     fullIndexTwitterBookmarks(typesense);
     break;
-    case 'health':
-      let r = await typesense.health.retrieve();
+  case 'health':
+    let r = await typesense.health.retrieve();
 
-      console.log("\x1b[36m%s\x1b[0m", r.status);
-      break;
-    case 'test1':
+    console.log("\x1b[36m%s\x1b[0m", "health status: " + r.ok);
+    break;
+  case 'test1':
     testFrontMatterWrite();
     break;
   case 'test2':
@@ -131,10 +143,10 @@ async function recreateCollections() {
       { name: 'id', type: 'string', facet: false },
       { name: 'type', type: 'string', facet: true },
       { name: 'content', type: 'string', facet: false }, //TODO: refactor `content` -> `notes_content`
-      { name: 'source_content', type: 'string', facet: false, optional:true},
+      { name: 'source_content', type: 'string', facet: false, optional: true },
       { name: 'title', type: 'string', facet: false, optional: true },
       { name: 'authors', type: 'string', facet: false, optional: true },
-      { name: 'tags', type: 'string', facet: true, optional: true },      
+      { name: 'tags', type: 'string', facet: true, optional: true },
       { name: 'date', type: 'string', facet: true, optional: true },
       { name: 'rank', type: 'int32', facet: false },
       //{ name: 'link', type: 'string'}, // we don't need to index this field, just persist in the database
@@ -165,12 +177,12 @@ async function testParseFrontMatter() {
 
 async function testTypesenseConnection() {
   try {
-    const z = await typesense.collections('zettleDocuments').retrieve()  
+    const z = await typesense.collections('zettleDocuments').retrieve()
     console.log(JSON.stringify(z))
   } catch (error) {
     console.error("Collection retrieve failed!", error)
   }
-  
+
 }
 
 async function testFrontMatterWrite() {
@@ -183,18 +195,18 @@ async function testFrontMatterWrite() {
   // fs.writeFilr to overwrite
   //let fileContents: string
 
- interface fmData { [key: string]: any }
+  interface fmData { [key: string]: any }
 
   const filepath = os.homedir + "/code-projects/zettelkasten/projects/osobisty personal universal search engine.md"
 
-  fs.readFile(filepath,"utf-8",(err:any, data:any) => {
+  fs.readFile(filepath, "utf-8", (err: any, data: any) => {
     if (err) throw err;
-    let dataStr:string = data;
-    let fmData:fmData = {}
+    let dataStr: string = data;
+    let fmData: fmData = {}
     const fmDelimiter = "---\n"
     const fmOpenPosition = fmDelimiter.length
-    const fmClosePostion = dataStr.indexOf(fmDelimiter,fmOpenPosition) 
-    
+    const fmClosePostion = dataStr.indexOf(fmDelimiter, fmOpenPosition)
+
     const fmSection = dataStr.slice(fmOpenPosition, fmClosePostion - 1)
     const contentSection = dataStr.slice(fmClosePostion + fmDelimiter.length)
     console.log(fmSection)
@@ -203,18 +215,18 @@ async function testFrontMatterWrite() {
     console.log("# elements: " + fmSectionArray.length)
     console.log("element 0: " + fmSectionArray[0])
 
-    fmSectionArray.forEach((e:string) =>{
+    fmSectionArray.forEach((e: string) => {
       //let fmField = e.split(":")
       const key: string = e.slice(0, e.indexOf(":")).trim()
-      const value: string = e.slice(e.indexOf(":")+1, e.length).trim()      
+      const value: string = e.slice(e.indexOf(":") + 1, e.length).trim()
 
       fmData[key] = value
     })
-    
-    console.log(fmData.title) 
-    console.log("id:"+ fmData.id)
+
+    console.log(fmData.title)
+    console.log("id:" + fmData.id)
     fmData.id = "234234"
-    console.log("id:"+ fmData.id)
+    console.log("id:" + fmData.id)
 
     let t: string = fmDelimiter
 
@@ -225,17 +237,17 @@ async function testFrontMatterWrite() {
     t += fmDelimiter
     t += contentSection
 
-console.log("============")
+    console.log("============")
     console.log(t)
 
-    
-    fs.writeFile(filepath, t,"utf-8", (err:any) =>{
+
+    fs.writeFile(filepath, t, "utf-8", (err: any) => {
       if (err) throw err
     })
 
 
   })
-  
+
 }
 
 

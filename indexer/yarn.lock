@@ -111,10 +111,10 @@ typescript@^4.4.2:
   resolved "https://registry.yarnpkg.com/typescript/-/typescript-4.5.5.tgz#d8c953832d28924a9e3d37c73d729c846c5896f3"
   integrity sha512-TCTIul70LyWe6IJWT8QSYeA54WQe8EjQFU4wY52Fasj5UKx88LNYKCgBEHcOMOrFF1rKGbD8v/xcNWVUq9SymA==
 
-typesense@^1.1.3:
-  version "1.1.3"
-  resolved "https://registry.yarnpkg.com/typesense/-/typesense-1.1.3.tgz#a6f64ea595e4d10bcd5e3a8a853901930b1fe8fb"
-  integrity sha512-oc+ZAuyrPvh3QBj00I5nOCTcLbjO+Oz1zkHINfhWd0d5ya287twJZeU9ynrx+5o8R1ELc4NGLrCywLoV7rZ/HA==
+typesense@1.2.2:
+  version "1.2.2"
+  resolved "https://registry.yarnpkg.com/typesense/-/typesense-1.2.2.tgz#f70ea67177d9ab26d1fc4760ecaa9c3f08473a37"
+  integrity sha512-MOKAIGTXbL0RkbHOvpr8RHP7it7UhCc0x4KJ8+p5lwh6Q9bSht6pJqMn6bXybomYA7CHVzIm4+IWVz6dHdUBow==
   dependencies:
     axios "^0.21.1"
     loglevel "^1.7.1"

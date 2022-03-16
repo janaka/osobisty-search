@@ -31,11 +31,15 @@ docker run -p 8108:8108 -v/<fqdn_path>/osobisty-search/indexer/data/typesense-da
 Check it's working
 
 ```shell
-curl http://localhost:8108/health
+curl https://localhost:8108/health
 ```
 
 `{"ok":true}`
 
+```shell
+curl https://localhost:3002/typesense:80/health \
+-H 'authorization: Bearer '
+```
 
 
 `curl -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" http://localhost:8108/collections`
@@ -43,7 +47,7 @@ curl http://localhost:8108/health
 `curl -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" "http://localhost:8108/collections/zettleDocuments/documents/search?q=paas&query_by=title"`
 
 ```shell
-curl "http://localhost:8108/multi_search?query_by=title" \
+curl "https://localhost:8108/multi_search?query_by=title" \
         -w json \
         -X POST \
         -H "Content-Type: application/json" \
@@ -60,24 +64,43 @@ curl "http://localhost:8108/multi_search?query_by=title" \
         }'
 ```
 
-Create scoped API key for search UI
+Create scoped API key for API [PROD]
 
 ```shell
-curl 'http://localhost:8108/keys' \
+curl 'https://localhost:3002/typesense:80/keys' \
     -X POST \
-    -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
     -H 'Content-Type: application/json' \
     -H 'authorization: Bearer sklfjskdhfksdhfblk34h3k4hb3k4h3k '\
     -d '{"description":"read:zettleDocuments","actions": ["document:get", "documents:search"], "collections": ["zettleDocuments"]}'
 ```
 
-Create scoped API key for Indexer
+Create scoped API key for API [LOCAL]
+
+```shell
+curl 'https://localhost:8108/keys' \
+    -X POST \
+    -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -d '{"description":"read:zettleDocuments","actions": ["document:get", "documents:search"], "collections": ["zettleDocuments"]}'
+```
+
+Create scoped API key for Indexer [PROD]
 
 ```shell
 curl 'https://localhost:3002/typesense:80/keys' \
     -X POST \
     -H 'Content-Type: application/json' \
     --header 'authorization: Bearer kjdshfkshdflkjhsdfskdfhsjskdkjdj \
+    -d '{"description":"Key for zettleDocuments Indexer app","actions": ["document:get", "documents:search", "documents:create", "documents:upsert","documents:update", "documents:delete", "collections:delete", "collections:create"], "collections": ["zettleDocuments"]}'
+```
+
+Create scoped API key for Indexer [LOCAL]
+
+```shell
+curl 'https://localhost:8108/keys' \
+    -X POST \
+    -H 'Content-Type: application/json' \
+    -H "X-TYPESENSE-API-KEY: ${TYPESENSE_API_KEY}" \
     -d '{"description":"Key for zettleDocuments Indexer app","actions": ["document:get", "documents:search", "documents:create", "documents:upsert","documents:update", "documents:delete", "collections:delete", "collections:create"], "collections": ["zettleDocuments"]}'
 ```
 
@@ -89,6 +112,8 @@ collections:create
 Note1: get the bearer by hitting the Auth0 endpoint. Grab from the curl command app from the console. In production we'll do this dynamically but locally we don't want the secret leaking.
 
 Note2: remember we don't hit Typesense directly anymore in prod, rather via the proxy. So stick to the same in local dev.
+
+Note3: self-signed certs don't work with Node. So locally we cannot hit Typesense via the API.
 ## Build and run
 
 - build `yarn build`

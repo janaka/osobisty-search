@@ -14,13 +14,13 @@
     "@babel/runtime": "^7.14.6",
     "dotenv": "^16.0.0",
     "gray-matter": "^4.0.3",
-    "typesense": "^1.1.3"
+    "typesense": "1.2.2"
   },
   "scripts": {
     "watch": "npx tsc -w",
     "build": "npx tsc",
     "start": "node --trace-warnings ./build/src/main.js",
     "test": "jest",
-    "typesenseServer": "docker run -p 8108:8108 -v`pwd`/typesense:/typesense typesense/typesense:0.21.0 --config=/typesense/typesense-server.local.ini "
+    "typesenseServer": "docker run -p 8108:8108 -v`pwd`/typesense:/typesense typesense/typesense:0.21.0 --config=/typesense/typesense-server.local.ini"
   }
 }

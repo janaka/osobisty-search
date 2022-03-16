@@ -21,7 +21,9 @@ import LogoutButton from './components/logoutButon';
 const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
 const TYPESENSE_HOST: string = process.env.REACT_APP_TYPESENSE_HOST ? process.env.REACT_APP_TYPESENSE_HOST : "";
 const TYPESENSE_PORT: string = process.env.REACT_APP_TYPESENSE_PORT ? process.env.REACT_APP_TYPESENSE_PORT : "";
+const TYPESENSE_PROTOCOL: string = process.env.REACT_APP_TYPESENSE_PROTOCOL ? process.env.REACT_APP_TYPESENSE_PROTOCOL : "https";
 
+if (TYPESENSE_PROTOCOL!=="http" && TYPESENSE_PROTOCOL!=="https") throw "TYPESENSE_PROTOCOL is configured with an invalid value. Must be `http` or `https`"
 if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
 
 function App() {
@@ -57,7 +59,7 @@ function App() {
       {
         host: typesenseHost, // this is a hack. The requests go out as http://localhost:3002/typesense:80/ 
         port: 80, // this stays as 80 even on TLS, part of the API proxy hack
-        protocol: 'https',
+        protocol: TYPESENSE_PROTOCOL,
       },
     ],
     additionalHeaders: {
