@@ -143,11 +143,11 @@ const validateFunc = async (decoded: any) => {
   decoded.entity = "user"
   const permissions = decoded.permissions;
   const scope = decoded.scope;
-  var isValid: boolean = true;
+  var isValid: boolean = false;
 
-  // TODO: check user ID is authorized here.
-
-  // ideally we want to check permission at the route level but need to use plugin for that
+  
+  // ideally we want to check permission at the route handler level but need to use a plugin for that. 
+  // Only consent scoped are support sort of OOTB
   if (scope.includes("read:zettleDocuments")) {
     if ((permissions.includes("user") || permissions.includes("machine")) && (permissions.includes("read:zettleDocuments") || permissions.includes("admin:typesense"))) {
       isValid = true;
