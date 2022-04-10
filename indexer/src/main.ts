@@ -101,7 +101,10 @@ switch (myArgs[0]) {
     console.log("`yarn start indexZettle` to index Zettle content");
     console.log("`yarn start indexTwitter` to index Twitter content");
     console.log("`yarn start indexKindle` to index Kindle content");
-    console.log("`yarn start test` to test parse MD file");
+    console.log("`yarn start health` hit the Typesense health endpoint using typesense.health.retrieve()");
+    console.log("`yarn start test1` to test write MD frontmatter file");
+    console.log("`yarn start test2` to test read parse MD frontmatter file");
+    console.log("`yarn start test3` to test Typesense connection by calling typesense.collections('zettleDocuments').retrieve()");
 }
 
 
