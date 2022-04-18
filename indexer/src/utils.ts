@@ -18,3 +18,21 @@ export function dateTimeNowUtc(): string {
 
   return dateStr
 }
+
+/**
+ * Sleep for `time` 
+ * @param time to sleep in milliseconds
+ * @returns 
+ */
+export function delay(time: number) {
+  return new Promise(resolve => setTimeout(resolve, time));
+} 
+/**
+ * Generate a random number between the range
+ * @param min 
+ * @param max 
+ * @returns random number
+ */
+export function randomIntFromInterval(min: number, max: number) { // min and max included 
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}

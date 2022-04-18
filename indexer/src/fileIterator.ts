@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { delay, randomIntFromInterval } from './utils.js'
 
 /* 
 *   Generic recursive file iterator for search engine indexing.
@@ -7,7 +8,7 @@ import fs from 'fs';
 *   `fileExtFilter` - filter to only run indexerFunction on files with a matching extention.
 *   `rootDir` - the root director for the repository of docs. used to calculate relative paths for files for `link` property in the index.
 */
-export async function fileIterator(rootDir: string, fileDir:string, fileExtFilter: string, indexerFunction: (rootDir: string, fileDir:string, filename: string, typesenseClient: any) => void, typesenseClient: any) {
+export async function fileIterator(rootDir: string, fileDir: string, fileExtFilter: string, indexerFunction: (rootDir: string, fileDir: string, filename: string, typesenseClient: any) => void, typesenseClient: any) {
   // loopthrough directories recursively and index all *.md files
   fs.readdir(fileDir, { withFileTypes: true }, (err: any, files: fs.Dirent[]) => {
     if (err) {
@@ -25,7 +26,7 @@ export async function fileIterator(rootDir: string, fileDir:string, fileExtFilte
       } else {
         console.log("dir:" + file.name)
         if (!file.name.startsWith(".")) {
-          
+
           fileIterator(rootDir, fileDir + file.name + "/", fileExtFilter, indexerFunction, typesenseClient)
         }
       }
