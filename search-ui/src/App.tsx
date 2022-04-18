@@ -212,7 +212,7 @@ function Search(props: any) {
     console.log(query)
     let searchParams = {
       'q': query,
-      'query_by': 'title, tags, content, authors, type',
+      'query_by': 'title, tags, note_content, source_content, authors, type',
       'facet_by': 'type, tags',
       'prioritize_exact_match': true,
       'per_page': '20'
