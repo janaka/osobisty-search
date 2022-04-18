@@ -327,7 +327,7 @@ function Results(props: any) {
                     : <span className="search-result-module">none</span>
                   }
                   {hit.document.title && <span className="search-result-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "title") }}></span>}
-                  <span className="search-result-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "content") }}></span>
+                  <span className="search-result-content" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hit, "note_content") }}></span>
                 </li>
               ))
             ))
@@ -399,7 +399,7 @@ function DocPreview(props: any) {
             <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "tags") }}></span></div>
             {props.hitData.document.link && <div className="data-row"><span className="field-heading">Link:</span><span className="field-value">{props.hitData.document.type.toString().startsWith("zettle") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}</span></div>}
           </div>
-          {props.hitData.document.content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "content")) }}></div>}
+          {props.hitData.document.note_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "note_content")) }}></div>}
           {props.hitData.document.source_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "source_content")) }}></div>}
           {/* {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> } */}
         </div>

@@ -27,7 +27,7 @@ let configOptions: ConfigurationOptions = {
     },
   ],
   apiKey: "asdflsdfasdfsadfasdfsdfasdfdsfa",
-  connectionTimeoutSeconds: 3,
+  connectionTimeoutSeconds: 5,
 }
 
 if (TYPESENSE_KEY !== "") {
@@ -98,7 +98,8 @@ switch (myArgs[0]) {
     break;
 
 
-  case 'indexKindle':
+  case 'reindexKindle':
+    await deleteDocsByType("zettleDocuments", "Kindle")
     fullIndexKindleHighlights(typesense)
     break;
   case 'reindexTwitter':
@@ -125,9 +126,9 @@ switch (myArgs[0]) {
     console.log("`yarn start delete-by-type <type_name>` only drop docs of `type`=<type_name>");
     console.log("`yarn start recreate-collections` to drop all collections and recreate");
     console.log("`yarn start indexAll` to index all content");
-    console.log("`yarn start indexZettle` to index Zettle content");
-    console.log("`yarn start indexTwitter` to re-index (delete then index) Twitter content");
-    console.log("`yarn start indexKindle` to index Kindle content");
+    console.log("`yarn start reindexZettle` to index Zettle content");
+    console.log("`yarn start reindexTwitter` to re-index (delete then index) Twitter content");
+    console.log("`yarn start reindexKindle` to index Kindle content");
     console.log("`yarn start health` hit the Typesense health endpoint using typesense.health.retrieve()");
     console.log("`yarn start test1` to test write MD frontmatter file");
     console.log("`yarn start test2` to test read parse MD frontmatter file");
@@ -203,7 +204,7 @@ async function recreateCollections() {
     fields: [
       { name: 'id', type: 'string', facet: false },
       { name: 'type', type: 'string', facet: true },
-      { name: 'content', type: 'string', facet: false }, //TODO: refactor `content` -> `notes_content`
+      { name: 'note_content', type: 'string', facet: false }, 
       { name: 'source_content', type: 'string', facet: false, optional: true },
       { name: 'title', type: 'string', facet: false, optional: true },
       { name: 'authors', type: 'string', facet: false, optional: true },

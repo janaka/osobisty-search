@@ -1,6 +1,7 @@
 import {fileIterator} from './fileIterator.js'
 import fs from 'fs';
-import {dateTimeNowUtc} from './utils.js'
+import {dateTimeNowUtc, delay, randomIntFromInterval} from './utils.js'
+import { IZettleDocTypesenseSchema } from './IZettleDocTypesenseSchema.js';
 
 export async function fullIndexTwitterBookmarks(typesenseClient:any) {
   //indexTwitterBookmarks("/Users/janakaabeywardhana/code-projects/zettelkasten/fleeting/twitter-bookmarks.json")
@@ -22,7 +23,7 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
       twitterBookmarks.data.bookmark_timeline.timeline.instructions[0].entries.forEach(async (entry: any) => {
         c = c + 1;
         if (entry.content.entryType == "TimelineTimelineItem") {
-          console.log("\x1b[36m%s\x1b[0m", c + ": " + entry.entryId)
+          
           if (entry.content.itemContent.tweet_results.result) {
             //console.log(entry.content.itemContent.tweet_results.result.legacy.full_text)
             const screenName = entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.screen_name
@@ -30,17 +31,19 @@ async function indexTwitterBookmarks(twitterBookmarksRootDir: string, fileDir:st
             // Tweet Link Ex.1 https://twitter.com/QuinnyPig/status/1091041507342086144?s=20
             // Ex.2 https://twitter.com/b0rk/status/1091554624711081985?s=20
             const tweetLink = "https://twitter.com/" + screenName + "/status/" + tweetRestId + "?s=20"
-            let twitterBookmark = {
+            let twitterBookmark: IZettleDocTypesenseSchema = {
               type: "Twitter-bm",
               authors: entry.content.itemContent.tweet_results.result.core.user_results.result.legacy.name + " (@" + screenName + ")",
-              content: "", //notes
+              note_content: "",
               source_content: entry.content.itemContent.tweet_results.result.legacy.full_text,
               date: entry.content.itemContent.tweet_results.result.legacy.created_at,
               link: tweetLink,
               index_date: dateTimeNowUtc(),
               rank: 1
             }
+            await delay(randomIntFromInterval(2500, 5000));
             await typesenseClient.collections(schemaName).documents().create(twitterBookmark);
+            console.log("\x1b[36m%s\x1b[0m", c + ": " + entry.entryId)
           } else {
             console.log(">>>>>>>>>> tweet_results is empty")
           }
