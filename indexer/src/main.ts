@@ -9,6 +9,7 @@ import fs from 'fs';
 import os from 'os';
 import 'dotenv/config';
 import { ConfigurationOptions } from 'typesense/lib/Typesense/Configuration';
+import { DocumentSchema, SearchResponseHit } from 'typesense/lib/Typesense/Documents'
 
 
 const TYPESENSE_HOST: string = process.env.TYPESENSE_HOST ? process.env.TYPESENSE_HOST : "";
@@ -26,13 +27,13 @@ let configOptions: ConfigurationOptions = {
     },
   ],
   apiKey: "asdflsdfasdfsadfasdfsdfasdfdsfa",
-  connectionTimeoutSeconds: 2,
+  connectionTimeoutSeconds: 3,
 }
 
-if (TYPESENSE_KEY!=="") {
+if (TYPESENSE_KEY !== "") {
   configOptions.apiKey = TYPESENSE_KEY
 } else {
-  if (TYPESENSE_TOKEN!=="") {
+  if (TYPESENSE_TOKEN !== "") {
     let tokenHeader: Record<string, string> = {
       Authorization: `Bearer ${TYPESENSE_TOKEN}`,
     }
@@ -68,13 +69,39 @@ switch (myArgs[0]) {
     fullIndexZettkeDocuments(typesense)
     fullIndexTwitterBookmarks(typesense)
     break;
-  case 'indexZettle':
+  case 'reindexZettle':
+    await deleteDocsByType("zettleDocuments", "zettle-project")
+    await deleteDocsByType("zettleDocuments", "zettle-fleeting")
+    await deleteDocsByType("zettleDocuments", "zettle-literature")
+    await deleteDocsByType("zettleDocuments", "zettle-recipe")
+    await deleteDocsByType("zettleDocuments", "zettle-unknown")
+    await deleteDocsByType("zettleDocuments", "zettle-permanent")
+    await deleteDocsByType("zettleDocuments", "zettle-journal")
+    await deleteDocsByType("zettleDocuments", "zettle-todo")
+    await deleteDocsByType("zettleDocuments", "zettle-keyword")
+    await deleteDocsByType("zettleDocuments", "zettle-feature")
+    await deleteDocsByType("zettleDocuments", "zettle-meta")
     fullIndexZettkeDocuments(typesense)
     break;
+  case 'reportIndexZettle':
+    await countDocsByType("zettleDocuments", "zettle-project")
+    await countDocsByType("zettleDocuments", "zettle-fleeting")
+    await countDocsByType("zettleDocuments", "zettle-literature")
+    await countDocsByType("zettleDocuments", "zettle-recipe")
+    await countDocsByType("zettleDocuments", "zettle-unknown")
+    await countDocsByType("zettleDocuments", "zettle-permanent")
+    await countDocsByType("zettleDocuments", "zettle-journal")
+    await countDocsByType("zettleDocuments", "zettle-todo")
+    await countDocsByType("zettleDocuments", "zettle-keyword")
+    await countDocsByType("zettleDocuments", "zettle-feature")
+    await countDocsByType("zettleDocuments", "zettle-meta")
+    break;
+
+
   case 'indexKindle':
     fullIndexKindleHighlights(typesense)
     break;
-  case 'indexTwitter':
+  case 'reindexTwitter':
     await deleteDocsByType("zettleDocuments", "Twitter-bm")
     fullIndexTwitterBookmarks(typesense);
     break;
@@ -99,7 +126,7 @@ switch (myArgs[0]) {
     console.log("`yarn start recreate-collections` to drop all collections and recreate");
     console.log("`yarn start indexAll` to index all content");
     console.log("`yarn start indexZettle` to index Zettle content");
-    console.log("`yarn start indexTwitter` to index Twitter content");
+    console.log("`yarn start indexTwitter` to re-index (delete then index) Twitter content");
     console.log("`yarn start indexKindle` to index Kindle content");
     console.log("`yarn start health` hit the Typesense health endpoint using typesense.health.retrieve()");
     console.log("`yarn start test1` to test write MD frontmatter file");
@@ -131,8 +158,39 @@ async function deleteCollection(name: string) {
 
 async function deleteDocsByType(collectionName: string, typeName: string) {
   try {
-    let r = await typesense.collections(collectionName).documents().delete({ filter_by: 'type:=' + typeName.trim() })
+    let r = await typesense.collections(collectionName).documents().delete({ filter_by: 'type: ' + typeName.trim() })
     console.log("\x1b[36m%s\x1b[0m", r.num_deleted + " " + typeName + " docs deleted!");
+  } catch (err: any) {
+    //console.error(err);
+  }
+}
+
+async function countDocsByType(collectionName: string, typeName: string) {
+  try {
+    let r = await typesense.collections(collectionName).documents().search({ q: '*', query_by: 'type', filter_by: 'type: ' + typeName.trim() })
+    console.log("\x1b[36m%s\x1b[0m", r.found + " " + typeName + " docs!");
+  } catch (err: any) {
+    //console.error(err);
+  }
+}
+
+async function listDocsByType(collectionName: string, typeName: string) {
+  try {
+    let r = await typesense.collections(collectionName).documents().search({ q: '*', query_by: 'type', filter_by: 'type: ' + typeName.trim() });
+    interface doc extends DocumentSchema{
+      id: string;
+      title: string;
+      link: string
+    }
+
+    if (r.hits) {
+      for (let i = 0; i < r.hits.length; i++) {
+        console.log(r.hits[i]);
+      }
+    }
+
+    console.log("\x1b[36m%s\x1b[0m", r.found + " " + typeName + " docs!");
+
   } catch (err: any) {
     //console.error(err);
   }
@@ -198,58 +256,58 @@ async function testFrontMatterWrite() {
   // fs.writeFilr to overwrite
   //let fileContents: string
 
-  interface fmData { [key: string]: any }
+  // interface fmData { [key: string]: any }
 
-  const filepath = os.homedir + "/code-projects/zettelkasten/projects/osobisty personal universal search engine.md"
+  // const filepath = os.homedir + "/code-projects/zettelkasten/projects/osobisty personal universal search engine.md"
 
-  fs.readFile(filepath, "utf-8", (err: any, data: any) => {
-    if (err) throw err;
-    let dataStr: string = data;
-    let fmData: fmData = {}
-    const fmDelimiter = "---\n"
-    const fmOpenPosition = fmDelimiter.length
-    const fmClosePostion = dataStr.indexOf(fmDelimiter, fmOpenPosition)
+  // fs.readFile(filepath, "utf-8", (err: any, data: any) => {
+  //   if (err) throw err;
+  //   let dataStr: string = data;
+  //   let fmData: fmData = {}
+  //   const fmDelimiter = "---\n"
+  //   const fmOpenPosition = fmDelimiter.length
+  //   const fmClosePostion = dataStr.indexOf(fmDelimiter, fmOpenPosition)
 
-    const fmSection = dataStr.slice(fmOpenPosition, fmClosePostion - 1)
-    const contentSection = dataStr.slice(fmClosePostion + fmDelimiter.length)
-    console.log(fmSection)
+  //   const fmSection = dataStr.slice(fmOpenPosition, fmClosePostion - 1)
+  //   const contentSection = dataStr.slice(fmClosePostion + fmDelimiter.length)
+  //   console.log(fmSection)
 
-    const fmSectionArray = fmSection.split("\n")
-    console.log("# elements: " + fmSectionArray.length)
-    console.log("element 0: " + fmSectionArray[0])
+  //   const fmSectionArray = fmSection.split("\n")
+  //   console.log("# elements: " + fmSectionArray.length)
+  //   console.log("element 0: " + fmSectionArray[0])
 
-    fmSectionArray.forEach((e: string) => {
-      //let fmField = e.split(":")
-      const key: string = e.slice(0, e.indexOf(":")).trim()
-      const value: string = e.slice(e.indexOf(":") + 1, e.length).trim()
+  //   fmSectionArray.forEach((e: string) => {
+  //     //let fmField = e.split(":")
+  //     const key: string = e.slice(0, e.indexOf(":")).trim()
+  //     const value: string = e.slice(e.indexOf(":") + 1, e.length).trim()
 
-      fmData[key] = value
-    })
+  //     fmData[key] = value
+  //   })
 
-    console.log(fmData.title)
-    console.log("id:" + fmData.id)
-    fmData.id = "234234"
-    console.log("id:" + fmData.id)
+  //   console.log(fmData.title)
+  //   console.log("id:" + fmData.id)
+  //   fmData.id = "234234"
+  //   console.log("id:" + fmData.id)
 
-    let t: string = fmDelimiter
+  //   let t: string = fmDelimiter
 
-    for (const key in fmData) {
-      t += key + ": " + fmData[key] + "\n"
-    };
+  //   for (const key in fmData) {
+  //     t += key + ": " + fmData[key] + "\n"
+  //   };
 
-    t += fmDelimiter
-    t += contentSection
+  //   t += fmDelimiter
+  //   t += contentSection
 
-    console.log("============")
-    console.log(t)
-
-
-    fs.writeFile(filepath, t, "utf-8", (err: any) => {
-      if (err) throw err
-    })
+  //   console.log("============")
+  //   console.log(t)
 
 
-  })
+  //   fs.writeFile(filepath, t, "utf-8", (err: any) => {
+  //     if (err) throw err
+  //   })
+
+
+  // })
 
 }
 
