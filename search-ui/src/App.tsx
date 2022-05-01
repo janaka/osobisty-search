@@ -15,6 +15,7 @@ import './App.css';
 import { func } from 'prop-types';
 import LoginButton from './components/loginButton';
 import LogoutButton from './components/logoutButon';
+import { threadId } from 'worker_threads';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -23,7 +24,7 @@ const TYPESENSE_HOST: string = process.env.REACT_APP_TYPESENSE_HOST ? process.en
 const TYPESENSE_PORT: string = process.env.REACT_APP_TYPESENSE_PORT ? process.env.REACT_APP_TYPESENSE_PORT : "";
 const TYPESENSE_PROTOCOL: string = process.env.REACT_APP_TYPESENSE_PROTOCOL ? process.env.REACT_APP_TYPESENSE_PROTOCOL : "https";
 
-if (TYPESENSE_PROTOCOL!=="http" && TYPESENSE_PROTOCOL!=="https") throw "TYPESENSE_PROTOCOL is configured with an invalid value. Must be `http` or `https`"
+if (TYPESENSE_PROTOCOL !== "http" && TYPESENSE_PROTOCOL !== "https") throw "TYPESENSE_PROTOCOL is configured with an invalid value. Must be `http` or `https`"
 if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
 
 function App() {
@@ -53,7 +54,7 @@ function App() {
 
 
   const typesenseHost = `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`
-  
+
   const tsSearchClient = new TypesenseSearchClient({
     nodes: [
       {
@@ -306,6 +307,23 @@ function Search(props: any) {
 
 function Results(props: any) {
   // const [selectedRowUI, setSelectedRowUI] = useState("");
+
+  // const moveFocus = (key: any): void => {
+
+  //   const active = document.activeElement;
+  //   if (active!==null) {
+  //     if (key === 40 && active.nextSibling) {
+  //       active.nextSibling;
+  //     }
+  //     if (key === 38 && active.previousSibling) {
+  //       active.previousSibling.focus();
+  //     }
+  //   }
+
+  // }
+
+  //useKeyboardShortcut([String.fromCharCode(40), String.fromCharCode(38)], moveFocus, { overrideSystem: false })
+
   return (
     <div className="search-results">
       {props.data && props.data.results.length > 0 && props.data.results[0].hits.length > 0

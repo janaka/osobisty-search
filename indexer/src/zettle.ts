@@ -26,7 +26,8 @@ async function indexZettleDoc(zettleRootDir: string, fileDir: string, filename: 
     let mddoc = GreyMatterFileToTsZettleDoc(mdfile, relDir, filename)
     await delay(randomIntFromInterval(2500, 5000));
     await typesenseClient.collections(schemaName).documents().create(mddoc);
-    console.log("title:" + mdfile.data.title + " tags:" + mdfile.data.tags);
+    console.log("title:" + mddoc.title + " tags:" + mddoc.tags);
+  
   } catch (err: any) {
     console.error("\x1b[33m", "issue with doc: `" + fileDir + filename + "`");
 
@@ -40,6 +41,7 @@ function GreyMatterFileToTsZettleDoc(mdfile: matter.GrayMatterFile<string>, relD
   let title: string = makeFilenameSearchFriendly(filename);
 
   if (mdfile.data.title == null || undefined) {
+    // No title attribute in frontmatter. Get the H1.
     let mdparse = SimpleMarkdown.defaultBlockParse;
     let syntaxTree = mdparse(mdfile.content);
 

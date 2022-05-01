@@ -106,6 +106,10 @@ switch (myArgs[0]) {
     await deleteDocsByType("zettleDocuments", "Twitter-bm")
     fullIndexTwitterBookmarks(typesense);
     break;
+  case 'reportRuntimeConfig':
+    console.log(typesense.configuration);
+    break;
+
   case 'health':
     let r = await typesense.health.retrieve();
 
@@ -129,6 +133,8 @@ switch (myArgs[0]) {
     console.log("`yarn start reindexZettle` to index Zettle content");
     console.log("`yarn start reindexTwitter` to re-index (delete then index) Twitter content");
     console.log("`yarn start reindexKindle` to index Kindle content");
+    console.log("`yarn start reportIndexZettle` to report zettle document counts by type");
+    console.log("`yarn start reportRuntimeConfig` to report the server connection details that are being used at runtime by the Typesense client");
     console.log("`yarn start health` hit the Typesense health endpoint using typesense.health.retrieve()");
     console.log("`yarn start test1` to test write MD frontmatter file");
     console.log("`yarn start test2` to test read parse MD frontmatter file");
