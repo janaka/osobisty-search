@@ -16,6 +16,7 @@ import { func } from 'prop-types';
 import LoginButton from './components/loginButton';
 import LogoutButton from './components/logoutButon';
 import { threadId } from 'worker_threads';
+import EditView from './components/slate-plate/editView';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -416,10 +417,12 @@ function DocPreview(props: any) {
             <div className="data-row"><span className="field-heading">Date:</span><span className="field-value">{props.hitData.document.date} </span></div>
             <div className="data-row"><span className="field-heading">Tags:</span><span className="field-value" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "tags") }}></span></div>
             {props.hitData.document.link && <div className="data-row"><span className="field-heading">Link:</span><span className="field-value">{props.hitData.document.type.toString().startsWith("zettle") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}</span></div>}
+            
           </div>
           {props.hitData.document.note_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "note_content")) }}></div>}
           {props.hitData.document.source_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "source_content")) }}></div>}
           {/* {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> } */}
+          <EditView id={props.hitData.document.id} editContent={props.hitData.document.note_content}/>
         </div>
       }
     </div>
