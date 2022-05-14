@@ -17,6 +17,7 @@ import LoginButton from './components/loginButton';
 import LogoutButton from './components/logoutButon';
 import { threadId } from 'worker_threads';
 import EditView from './components/slate-plate/editView';
+import { PlateProvider } from '@udecode/plate';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -76,7 +77,7 @@ function App() {
   useEffect(() => {
     const getDocCount = async () => {
       //let response = tsSearchClient.collections("zettleDocuments").retrieve();
-      let collection = tsSearchClient.collections("zettleDocuments");
+      const collection = tsSearchClient.collections("zettleDocuments");
       //let response = collection.documents.length;
       console.log(collection.documents.length);
       setDocCount(collection.documents.length.toString());
@@ -86,8 +87,6 @@ function App() {
 
     if (darkMode) {
       document.body.classList.add("dark")
-    } else {
-
     }
 
   }, []);
@@ -169,10 +168,10 @@ function Search(props: any) {
   useKeyboardShortcut(["/"], backslashkeyHandler, { overrideSystem: false })
 
 
-  let query = useQuery();
+  const query = useQuery();
   // const q = query.get("q")
 
-  let q = query.get("q")
+  const q = query.get("q")
 
   useEffect(() => {
     searchInputBox.current && searchInputBox.current.focus();
@@ -212,7 +211,7 @@ function Search(props: any) {
 
   function commonSearchParams(query: any) {
     console.log(query)
-    let searchParams = {
+    const searchParams = {
       'q': query,
       'query_by': 'title, tags, note_content, source_content, authors, type',
       'facet_by': 'type, tags',
@@ -236,7 +235,7 @@ function Search(props: any) {
     console.log("doSearch():")
     console.log("query input text: " + queryInput)
     if (queryInput == null || undefined) return
-    let response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
+    const response = await typesenseClient.multiSearch.perform(searchReq(), commonSearchParams(queryInput));
     console.log(response);
     if ('error' in response.results[0]) {
       console.error("Typesense backend returned an error", response.results[0])
@@ -264,7 +263,7 @@ function Search(props: any) {
           autoFocus={props.autoFocus}
           className="search-box-input"
           onChange={async (e) => {
-            let r: any = null;
+            const r: any = null;
             try {
               if (e.target.value && e.target.value.length > 0) {
                 setSearchInputBoxValue(e.target.value)
@@ -403,7 +402,7 @@ function DocPreview(props: any) {
               href={props.hitData.document.type.startsWith("zettle-") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}
               // eslint-disable-next-line react/jsx-no-target-blank
               target="_blank"
-              className="button doc-preview-open"
+              className="button doc-preview-open" rel="noreferrer"
             >
               <span className="desktop">open </span>→
             </a>}
@@ -422,7 +421,10 @@ function DocPreview(props: any) {
           {props.hitData.document.note_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "note_content")) }}></div>}
           {props.hitData.document.source_content && <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: addHtmlFormatting(addHightlightMarkup(props.hitData, "source_content")) }}></div>}
           {/* {props.hitData.document.type=="Twitter-bm" && <EmbedTweet tweetUrl={props.hitData.document.link} /> } */}
+          {/* need <PlateProvider> for the state handling to work properly */}
+          <PlateProvider id={props.hitData.document.id} > 
           <EditView id={props.hitData.document.id} editContent={props.hitData.document.note_content}/>
+          </PlateProvider>
         </div>
       }
     </div>
@@ -453,11 +455,11 @@ function Suggestions() {
         <p className="">
           Osobisty means <em>private</em> in Polish.</p>
         <p>
-          Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="">Janaka</a>.
-          It's heavily influenced by <a href="https://thesephist.com/" target="_blank">Linus Lee's</a>
-          <a href="https://github.com/thesephist/monocle" target="_blank">Monolce</a>, the UI design is a clone.
-          It's built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend.
-          Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
+          Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="" rel="noreferrer">Janaka</a>.
+          It&apos;s heavily influenced by <a href="https://thesephist.com/" target="_blank" rel="noreferrer">Linus Lee&apos;s</a>
+          <a href="https://github.com/thesephist/monocle" target="_blank" rel="noreferrer">Monolce</a>, the UI design is a clone.
+          It&apos;s built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend.
+          Osobisty searches across Janaka&apos;s content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle hilights.
         </p>
         <p>Read more about why I built Osobisty here.</p>
       </div>

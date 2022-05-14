@@ -1,25 +1,15 @@
 // @refresh reset
 import React, { useState, useMemo, useEffect } from 'react'
 // Import the core binding
-import { withYjs, slateNodesToInsertDelta, YjsEditor, withYHistory } from '@slate-yjs/core';
+import { withYjs, slateNodesToInsertDelta, YjsEditor } from '@slate-yjs/core';
 import * as Y from 'yjs';
 // Import the Slate editor factory.
-import { createEditor, BaseEditor, Descendant, Editor } from 'slate';
+import { createEditor, BaseEditor, Descendant } from 'slate';
 import { HistoryEditor } from 'slate-history';
 // Import the Slate components and React plugin.
-import { ReactEditor, Slate, Editable, withReact } from 'slate-react';
+import { ReactEditor, withReact } from 'slate-react';
 import {
-  createBlockquotePlugin,
-  createBoldPlugin,
-  createCodeBlockPlugin,
-  createCodePlugin,
-  createHeadingPlugin,
-  createItalicPlugin,
-  createParagraphPlugin,
   createPlugins,
-  createBasicElementsPlugin,
-  createStrikethroughPlugin,
-  createUnderlinePlugin,
   createImagePlugin,
   createLinkPlugin,
   createListPlugin,
@@ -28,10 +18,14 @@ import {
   Plate,
   PlateEditor,
   withPlate,
-  ELEMENT_PARAGRAPH
-} from '@udecode/plate'
+  usePlateEditorState,
+  PlateProvider} from '@udecode/plate'
+import { createMDPreviewPlugin } from './createMDPreviewPlugin'
 import { PLUGINS } from './plugins';
 import { EditableProps } from 'slate-react/dist/components/editable';
+import markdown from 'remark-parse';
+import slate from 'remark-slate';
+import unified from 'unified';
 
 
 
@@ -70,17 +64,6 @@ declare module 'slate' {
 
 
 
-/**
- * @param {string} [name]
- * @return {YXmlText}
- *
- * @public
- */
-function getXmlText(ydoc: Y.Doc, name: string = ''): Y.XmlText {
-  // @ts-ignore
-  return ydoc.get(name, Y.XmlText);
-}
-
 const EditView = (props: any) => {
 
   const docId = props.id;
@@ -106,37 +89,51 @@ const EditView = (props: any) => {
     createListPlugin(),
     createTablePlugin(),
     createDeserializeMdPlugin(),
+    createMDPreviewPlugin(),
   ]);
 
-  const initialValue: Descendant[] = [{
-    type: 'paragraph',
-    children: [{ text: 'Let starts this doc with a para!' }],
-  },]
+  //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
 
-  //TODO: use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
-
-  const [value, setValue] = useState<Descendant[]>([]);
-
+  
+  let initialValue: any = [];
   useMemo(
-    () => {
-      setValue(initialValue);
+    async () => {
+
+      await unified()
+        .use(markdown)
+        .use(slate)
+        .process(docEditContent, (_, nodes) => {
+          initialValue = nodes.result
+        });
+
+      console.log("remark-slate `result`:", initialValue)
+      //console.log("remark-slate `value`:", value)
+
     }, [docId]
   );
+
+  const [value, setValue] = useState<Descendant[]>(initialValue);
+  
+
 
   const editor = useMemo(() => {
     const yDoc = new Y.Doc();
     const sharedRoot = yDoc.get(docId, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
+
+    console.log("remark-slate `value`:", value)
     // Load the initial value into the yjs document      
-    sharedRoot.applyDelta(slateNodesToInsertDelta(initialValue));
+    sharedRoot.applyDelta(slateNodesToInsertDelta(value));
     //sharedType1.insert(0, docEditContent);
     //sharedType1.insert(0, "docId=" + docId);
     console.log("reset `editor` for docId=" + docId)
-    console.log("`sharedRoot` init value:", sharedRoot.toJSON())
+    console.log("`sharedRoot` init value:", sharedRoot)
+
+    // the order below is important
     return withReact(
       withYjs(
         withPlate(
           createEditor(),
-          { id: docId, plugins: plugins, disableCorePlugins: false }
+          { id: docId, plugins:plugins, disableCorePlugins: false }
         ),
         sharedRoot,
         { autoConnect: false }
@@ -175,10 +172,6 @@ const EditView = (props: any) => {
     // );
   }, [docId])
 
-  // Setup the binding
-
-  //const editor: CustomEditor = useMemo(() => withYjs(withReact(withPlate(createEditor(), { id: docId, plugins: plugins, disableCorePlugins: false })), sharedType), []);
-  //const editor: Editor = useMemo(() => withYjs(withReact(createEditor()), sharedType), []);
 
 
 
@@ -203,15 +196,16 @@ const EditView = (props: any) => {
       id={docId}
       editor={editor}
       editableProps={editableProps}
-      //value={value} // if this isn't set Plate isn't initialised when useing yjs.
-      initialValue= {initialValue} //{[{ children: [{ text: '' }] }]}
-      //plugins={plugins}
+      //value={value}
+      value={initialValue} //{[{ children: [{ text: '' }] }]}
+      plugins={plugins}
       onChange={(newValue) => {
         setValue(newValue)
         console.log("`sharedRoot` onChange():", editor.sharedRoot.toJSON())
       }}
 
     />
+
   );
 };
 
