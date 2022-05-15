@@ -27,7 +27,11 @@ import {
   TEditor,
   TEditableProps,
   createPlateUI,
-  createHeadingPlugin} from '@udecode/plate'
+  createHeadingPlugin,
+  ELEMENT_H1,
+  AutoformatBlockRule,
+  unwrapList,
+  ELEMENT_LINK} from '@udecode/plate'
 import { createMDPreviewPlugin } from './createMDPreviewPlugin'
 import { PLUGINS } from './plugins';
 import { EditableProps } from 'slate-react/dist/components/editable';
@@ -35,11 +39,16 @@ import markdown from 'remark-parse';
 import slate from 'remark-slate';
 import unified from 'unified';
 import { withTYjs } from './withTYjs';
+import { plateNodeTypes } from './remarkslate-nodetypes';
+import { link } from 'fs';
 
 
-//FIXME: plugins don;t seem to work. It's possible it's becuase Plate/Slate isn't react 18 compactible. 
-// however it doesn't seem to be processing the text. HTML doesn;t have any mark up.
 
+// - formatting plugins default type names don't match the slate-remark ones
+// - autoformat plugin needs rules hooking up
+
+export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
+  unwrapList(editor);
 
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
@@ -64,10 +73,25 @@ const EditView = (props: any) => {
   const plugins = createPlugins([
     // ...PLUGINS.basicNodes,
     createHeadingPlugin(),
-    createAutoformatPlugin(),
+    createAutoformatPlugin(
+      {
+        options: {
+          rules: [
+            {
+              mode: 'block',
+              type: ELEMENT_H1,
+              match: '# ',
+              preFormat: clearBlockFormat,
+            },
+            //...autoformatRules,
+          ],
+          
+        },
+      }
+    ),
     // createImagePlugin(),
-    // createLinkPlugin(),
-    // createListPlugin(),
+    createLinkPlugin({key: ELEMENT_LINK, type: 'link'},),
+    createListPlugin({key: 'list'}),
     // createTablePlugin(),
     // createDeserializeMdPlugin(),
     // createMDPreviewPlugin(),
@@ -87,7 +111,7 @@ const EditView = (props: any) => {
 
       await unified()
         .use(markdown)
-        .use(slate)
+        .use(slate, {nodeTypes: plateNodeTypes})
         .process(docEditContent, (_, nodes) => {
           initialValue = nodes.result
         });
@@ -117,7 +141,7 @@ const EditView = (props: any) => {
       withTYjs(
         withPlate(
           createTEditor(),
-          { id: docId, plugins, disableCorePlugins: false }
+          { id: docId, disableCorePlugins: false }
         ),
         sharedRoot,
         { autoConnect: false }

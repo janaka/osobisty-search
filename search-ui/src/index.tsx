@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM, { render } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 //import { useHistory } from 'react-router-dom';
 import './index.css';
@@ -20,10 +20,8 @@ const container = document.getElementById("root");
 //   history.push(appState?.returnTo || window.location.pathname);
 // };
 
-const root = createRoot(container!); // react 18
-
-//ReactDOM
-root.render(
+//*** React17
+render(
   <Auth0Provider
     domain={auth0Domain}
     clientId={auth0ClientId}
@@ -34,6 +32,23 @@ root.render(
   >
     <App />
   </Auth0Provider>,
- // container
-);
+  container);
+
+
+//*** React18
+
+// const root = createRoot(container!); // react 18
+// root.render(
+//   <Auth0Provider
+//     domain={auth0Domain}
+//     clientId={auth0ClientId}
+//     redirectUri={window.location.origin}
+//     audience={audience}
+//     scope="read:zettleDocuments" // scoped are used for consent. if not consented the api access token generation for this scope will fail. 
+//   //onRedirectCallback={onRedirectCallback}
+//   >
+//     <App />
+//   </Auth0Provider>,
+//   // container
+// );
 
