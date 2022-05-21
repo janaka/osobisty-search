@@ -1,6 +1,4 @@
-# search-ui
-
-_This project was generated with [create-instantsearch-app](https://github.com/algolia/create-instantsearch-app) by [Algolia](https://algolia.com)._
+# Search UI
 
 ## Get started
 
@@ -25,10 +23,12 @@ Open http://localhost:3000 to see your app.
 
 Search UI SPA
 
-Typesense search engine
+Typesense - search engine backen
 
 Backend API proxy for auth + CORS
 
 
 UI SPA -> API -> Typesense
+
+
 

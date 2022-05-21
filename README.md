@@ -1,6 +1,12 @@
 # Osobisty Search
 
-Personal Search Engine for private information
+Personal Search Engine for private information.
+
+Osobisty means private in Polish.
+
+Osobisty is a universal, personal search engine by [Janaka](https://janaka.dev). It's heavily influenced by [Linus Lee's](https://thesephist.com/) [Monolce](https://github.com/thesephist/monocle) project, the UI design is a clone. It's built with React (UI), NodeJS (crawlers + indexers), Typescript, and [Typesene](https://typesense.org) for the full-text index search engine in the backend. Osobisty searches across Janaka's content; Zettlekasten, Blogs, Twitter boommarks, Chrome bookmarks, and Kindle highlights.
+
+Read more about why I built Osobisty [here](https://janaka.dev/introducing-osobisty-universal-personal-search-engine/).
 
 ## Requirement
 

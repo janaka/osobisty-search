@@ -31,7 +31,8 @@ import {
   ELEMENT_H1,
   AutoformatBlockRule,
   unwrapList,
-  ELEMENT_LINK} from '@udecode/plate'
+  ELEMENT_LINK
+} from '@udecode/plate'
 import { createMDPreviewPlugin } from './createMDPreviewPlugin'
 import { PLUGINS } from './plugins';
 import { EditableProps } from 'slate-react/dist/components/editable';
@@ -44,7 +45,7 @@ import { link } from 'fs';
 
 
 
-// - formatting plugins default type names don't match the slate-remark ones
+// - formatting plugins default `type` names don't match the slate-remark mappings ones
 // - autoformat plugin needs rules hooking up
 
 export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
@@ -52,10 +53,12 @@ export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
 
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
-const EditView = (props: any) => {
 
-  const docId = props.id;
-  const docEditContent = props.editContent;
+const EditView = ({id, editContent}:{id:string, editContent:string}) => {
+
+  
+  const docId = id;
+  const docEditContent = editContent;
   // Create a yjs document and get the shared type
   console.log("docId=" + docId);
 
@@ -85,33 +88,33 @@ const EditView = (props: any) => {
             },
             //...autoformatRules,
           ],
-          
+
         },
       }
     ),
     // createImagePlugin(),
-    createLinkPlugin({key: ELEMENT_LINK, type: 'link'},),
-    createListPlugin({key: 'list'}),
+    createLinkPlugin({ key: ELEMENT_LINK, type: 'link' },),
+    createListPlugin({ key: 'list' }),
     // createTablePlugin(),
     // createDeserializeMdPlugin(),
     // createMDPreviewPlugin(),
   ],
-  {
-    // Plate components
-    components: createPlateUI(),
-  }
+    {
+      // Plate components
+      components: createPlateUI(),
+    }
   );
 
   //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
 
-  
+
   let initialValue: any = [];
   useMemo(
     async () => {
 
       await unified()
         .use(markdown)
-        .use(slate, {nodeTypes: plateNodeTypes})
+        .use(slate, { nodeTypes: plateNodeTypes })
         .process(docEditContent, (_, nodes) => {
           initialValue = nodes.result
         });
@@ -123,7 +126,7 @@ const EditView = (props: any) => {
   );
 
   const [value, setValue] = useState<TElement[]>(initialValue);
-  
+
   const editor = useMemo(() => {
     const yDoc = new Y.Doc();
     const sharedRoot = yDoc.get(docId, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
@@ -133,7 +136,7 @@ const EditView = (props: any) => {
     sharedRoot.applyDelta(slateNodesToInsertDelta(value));
     //console.log("reset `editor` for docId=" + docId)
     //console.log("`sharedRoot` init value:", sharedRoot)
-    
+
 
 
     // the order below is important
@@ -170,30 +173,21 @@ const EditView = (props: any) => {
   }, [editor]);
 
   return (
-    // <Slate
-    //   editor={editor}
-    //   value={value}
-    //   onChange={setValue}
-    // >
-    //   <Editable />
-    // </Slate>
+      <Plate
+        id={docId}
+        //editor={editor}
+        //editableProps={{...editableProps}}
+        initialValue={value}
+        //value={initialValue} //{[{ children: [{ text: '' }] }]}
+        plugins={plugins}
 
-    <Plate
-      id={docId}
-      //editor={editor}
-      //editableProps={{...editableProps}}
-      initialValue={value}
-      //value={initialValue} //{[{ children: [{ text: '' }] }]}
-      plugins={plugins}
-       
-      onChange={(newValue) => {
-        //setValue(newValue)
-        console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-        console.log("`newValue` onChange():", newValue)
-      }}
+        onChange={(newValue) => {
+          //setValue(newValue)
+          console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
+          console.log("`newValue` onChange():", newValue)
+        }}
 
-    />
-
+      />
   );
 };
 
