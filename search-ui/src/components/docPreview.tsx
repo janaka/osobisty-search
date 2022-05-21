@@ -6,7 +6,7 @@ import EditView from './slate-plate/editView';
 
 export function DocPreview(props: any) {
   
-  const [editMode, setEditMode] = useState("readonly")
+  const [editMode, setEditMode] = useState("editmd")
   return (
     <div>
       {props.hitData &&

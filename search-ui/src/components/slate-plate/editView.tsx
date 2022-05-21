@@ -9,29 +9,16 @@ import { HistoryEditor } from 'slate-history';
 // Import the Slate components and React plugin.
 import { ReactEditor, withReact } from 'slate-react';
 import {
-  createPlugins,
-  createImagePlugin,
-  createLinkPlugin,
-  createListPlugin,
-  createTablePlugin,
-  createDeserializeMdPlugin,
-  createAutoformatPlugin,
   Plate,
   PlateEditor,
   withPlate,
-  usePlateEditorState,
-  PlateProvider,
   createTEditor,
   withTReact,
   TElement,
-  TEditor,
   TEditableProps,
-  createPlateUI,
-  createHeadingPlugin,
-  ELEMENT_H1,
   AutoformatBlockRule,
   unwrapList,
-  ELEMENT_LINK
+
 } from '@udecode/plate'
 import { createMDPreviewPlugin } from './createMDPreviewPlugin'
 import { PLUGINS } from './plugins';
@@ -42,21 +29,18 @@ import unified from 'unified';
 import { withTYjs } from './withTYjs';
 import { plateNodeTypes } from './remarkslate-nodetypes';
 import { link } from 'fs';
+import { autoformatRules } from './autoformat/autoformatRules';
 
 
 
 // - formatting plugins default `type` names don't match the slate-remark mappings ones
 // - autoformat plugin needs rules hooking up
 
-export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
-  unwrapList(editor);
-
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
+const EditView = ({ id, editContent }: { id: string, editContent: string }) => {
 
-const EditView = ({id, editContent}:{id:string, editContent:string}) => {
 
-  
   const docId = id;
   const docEditContent = editContent;
   // Create a yjs document and get the shared type
@@ -65,45 +49,9 @@ const EditView = ({id, editContent}:{id:string, editContent:string}) => {
   const editableProps: TEditableProps<TElement[]> = {
     autoFocus: false,
     spellCheck: false,
-    placeholder: 'Type…',
-    style: {
-      padding: '15px',
-      height: 'auto'
-    },
+    placeholder: "Type…",
+    className: "doc-preview-content",
   };
-
-
-  const plugins = createPlugins([
-    // ...PLUGINS.basicNodes,
-    createHeadingPlugin(),
-    createAutoformatPlugin(
-      {
-        options: {
-          rules: [
-            {
-              mode: 'block',
-              type: ELEMENT_H1,
-              match: '# ',
-              preFormat: clearBlockFormat,
-            },
-            //...autoformatRules,
-          ],
-
-        },
-      }
-    ),
-    // createImagePlugin(),
-    createLinkPlugin({ key: ELEMENT_LINK, type: 'link' },),
-    createListPlugin({ key: 'list' }),
-    // createTablePlugin(),
-    // createDeserializeMdPlugin(),
-    // createMDPreviewPlugin(),
-  ],
-    {
-      // Plate components
-      components: createPlateUI(),
-    }
-  );
 
   //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
 
@@ -144,7 +92,7 @@ const EditView = ({id, editContent}:{id:string, editContent:string}) => {
       withTYjs(
         withPlate(
           createTEditor(),
-          { id: docId, disableCorePlugins: false }
+          { id: docId, plugins: PLUGINS.allNodes, disableCorePlugins: false }
         ),
         sharedRoot,
         { autoConnect: false }
@@ -173,21 +121,21 @@ const EditView = ({id, editContent}:{id:string, editContent:string}) => {
   }, [editor]);
 
   return (
-      <Plate
-        id={docId}
-        //editor={editor}
-        //editableProps={{...editableProps}}
-        initialValue={value}
-        //value={initialValue} //{[{ children: [{ text: '' }] }]}
-        plugins={plugins}
 
-        onChange={(newValue) => {
-          //setValue(newValue)
-          console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-          console.log("`newValue` onChange():", newValue)
-        }}
+    <Plate
+      id={docId}
+      editor={editor}
+      editableProps={{ ...editableProps }}
+      initialValue={value}
+      //value={initialValue} //{[{ children: [{ text: '' }] }]}
+      //plugins={plugins} // when the `editor` instance is provided this doesn't apply
+      onChange={(newValue) => {
+        //setValue(newValue)
+        console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
+        console.log("`newValue` onChange():", newValue)
+      }}
 
-      />
+    />
   );
 };
 
