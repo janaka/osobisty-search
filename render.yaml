@@ -13,12 +13,6 @@ services:
         - search-ui/public/**
         - search-ui/package.json
         - search-ui/tsconfig.json
-      ignoredPaths:
-        - api/**
-        - chrome-extensions/**
-        - editor-ui/**
-        - indexer/**
-        - infra/**
     routes:
       - type: rewrite
         source: /*
@@ -51,12 +45,6 @@ services:
         - api/src/**
         - api/package.json
         - api/tsconfig.json
-      ignoredPaths:
-        - search-ui/**
-        - chrome-exstensions/**
-        - editor-ui/**
-        - indexer/**
-        - infra/**  
     startCommand: node ./api/build/src/index.js
     envVars:
       - key: NODE_ENV
@@ -99,12 +87,6 @@ services:
     buildFilter:
       paths:
         - infra/typesense/**  
-      ignoredPaths:
-        - search-ui/**
-        - api/**
-        - chrome-exstensions/**
-        - editor-ui/**
-        - indexer/**
     envVars:
       - key: TYPESENSE_API_KEY
         sync: false # placeholder for a value to be added in the dashboard
