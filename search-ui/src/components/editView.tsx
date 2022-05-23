@@ -20,16 +20,16 @@ import {
   unwrapList,
 
 } from '@udecode/plate'
-import { createMDPreviewPlugin } from './createMDPreviewPlugin'
-import { PLUGINS } from './plugins';
+import { createMDPreviewPlugin } from './slate-plate/createMDPreviewPlugin'
+import { PLUGINS } from './slate-plate/plugins';
 import { EditableProps } from 'slate-react/dist/components/editable';
 import markdown from 'remark-parse';
 import slate from 'remark-slate';
 import unified from 'unified';
-import { withTYjs } from './withTYjs';
-import { plateNodeTypes } from './remarkslate-nodetypes';
+import { withTYjs } from './slate-plate/withTYjs';
+import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
 import { link } from 'fs';
-import { autoformatRules } from './autoformat/autoformatRules';
+import { autoformatRules } from './slate-plate/autoformat/autoformatRules';
 
 export enum TEditMode {
   ReadOnly = "readonly",

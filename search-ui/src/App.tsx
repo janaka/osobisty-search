@@ -16,7 +16,7 @@ import { func } from 'prop-types';
 import LoginButton from './components/loginButton';
 import LogoutButton from './components/logoutButon';
 import { threadId } from 'worker_threads';
-import EditView from './components/slate-plate/editView';
+import EditView from './components/editView';
 import { PlateProvider } from '@udecode/plate';
 import { addHightlightMarkup } from './utils/addHighlightMarkup';
 import { DocPreview } from './components/docPreview';

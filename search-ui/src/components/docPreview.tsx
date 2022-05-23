@@ -2,7 +2,7 @@ import { PlateProvider } from '@udecode/plate';
 import React, { useState } from 'react';
 import { addHightlightMarkup } from '../utils/addHighlightMarkup';
 import { addHtmlFormatting } from '../utils/addHtmlFormatting';
-import EditView, { TEditMode } from './slate-plate/editView';
+import EditView, { TEditMode } from './editView';
 
 export function DocPreview(props: any) {
 
