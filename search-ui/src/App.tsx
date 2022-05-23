@@ -496,7 +496,7 @@ function EmbedTweet(props: any) {
     }
   })
 
-  if (error) return <p>There is an error. {console.error(error)}</p>
+  if (error) return <p>There is an error!!! {console.error(error)}</p>
   if (!data) return <p>Loading...</p>
   return (
     <div className="doc-preview-content" dangerouslySetInnerHTML={{ __html: data[0].html }}>
