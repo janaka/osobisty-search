@@ -2,11 +2,12 @@ import { PlateProvider } from '@udecode/plate';
 import React, { useState } from 'react';
 import { addHightlightMarkup } from '../utils/addHighlightMarkup';
 import { addHtmlFormatting } from '../utils/addHtmlFormatting';
-import EditView from './slate-plate/editView';
+import EditView, { TEditMode } from './slate-plate/editView';
 
 export function DocPreview(props: any) {
-  
-  const [editMode, setEditMode] = useState("editmd")
+
+  const [editMode, setEditMode] = useState<TEditMode>(TEditMode.ReadOnly)
+
   return (
     <div>
       {props.hitData &&
@@ -30,42 +31,40 @@ export function DocPreview(props: any) {
               <span className="desktop">open </span>→
             </a>}
             <button
-              title="Close preview"
+              title="Read Only"
               className="button"
-              onClick={() => (setEditMode("readonly"))}
+              onClick={() => (setEditMode(TEditMode.ReadOnly))}
             >
               Read Only
             </button>
             <button
-              title="Close preview"
+              title="Edit MD"
               className="button"
-              onClick={() => (setEditMode("editmd"))}
+              onClick={() => (setEditMode(TEditMode.EditMd))}
             >
               Edit MD
             </button>
             <button
-              title="Close preview"
+              title="Edit Raw"
               className="button"
-              onClick={() => (setEditMode("editraw"))}
+              onClick={() => (setEditMode(TEditMode.EditRaw))}
             >
               Edit Raw
             </button>
             <div className="doc-preview-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "title") }}>
             </div>
           </div>
-          
-          {editMode == "readonly" &&
-          <ReadonlyView hitData={props.hitData} />  
-          }
-          {editMode == "editmd" &&
-            <PlateProvider id={props.hitData.document.id} >
+
+          {editMode == TEditMode.ReadOnly ?
+            <ReadonlyView hitData={props.hitData} />
+
+            : <PlateProvider id={props.hitData.document.id} >
               {/* need <PlateProvider> for the state handling to work properly */}
-              <EditView id={props.hitData.document.id} editContent={props.hitData.document.note_content} />
+              <EditView id={props.hitData.document.id} editContent={props.hitData.document.note_content} editMode={editMode} />
             </PlateProvider>
+
           }
-          {editMode == "editraw" && 
-          <div>edit raw</div>
-          }
+
         </div>
       }
     </div>

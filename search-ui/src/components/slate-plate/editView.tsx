@@ -31,18 +31,23 @@ import { plateNodeTypes } from './remarkslate-nodetypes';
 import { link } from 'fs';
 import { autoformatRules } from './autoformat/autoformatRules';
 
-
-
-// - formatting plugins default `type` names don't match the slate-remark mappings ones
-// - autoformat plugin needs rules hooking up
+export enum TEditMode {
+  ReadOnly = "readonly",
+  EditMd = "editmd",
+  EditRaw = "editraw",
+}
 
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
-const EditView = ({ id, editContent }: { id: string, editContent: string }) => {
+const EditView = ({ id, editContent, editMode }: { id: string, editContent: string, editMode: TEditMode}) => {
 
 
   const docId = id;
   const docEditContent = editContent;
+
+  // TODO: handle loading and saving the zettle document from file via the API
+
+
   // Create a yjs document and get the shared type
   console.log("docId=" + docId);
 
@@ -62,7 +67,7 @@ const EditView = ({ id, editContent }: { id: string, editContent: string }) => {
 
       await unified()
         .use(markdown)
-        .use(slate, { nodeTypes: plateNodeTypes })
+        .use(slate, { nodeTypes: plateNodeTypes }) // map remark-slate to Plate node `type`
         .process(docEditContent, (_, nodes) => {
           initialValue = nodes.result
         });
