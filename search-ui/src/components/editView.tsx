@@ -3,11 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react'
 // Import the core binding
 import { withYjs, slateNodesToInsertDelta, YjsEditor } from '@slate-yjs/core';
 import * as Y from 'yjs';
-// Import the Slate editor factory.
-import { BaseEditor } from 'slate';
-import { HistoryEditor } from 'slate-history';
-// Import the Slate components and React plugin.
-import { ReactEditor, withReact } from 'slate-react';
+import { WebrtcProvider } from 'y-webrtc'
 import {
   Plate,
   PlateEditor,
@@ -20,16 +16,12 @@ import {
   unwrapList,
 
 } from '@udecode/plate'
-import { createMDPreviewPlugin } from './slate-plate/createMDPreviewPlugin'
 import { PLUGINS } from './slate-plate/plugins';
-import { EditableProps } from 'slate-react/dist/components/editable';
 import markdown from 'remark-parse';
 import slate from 'remark-slate';
 import unified from 'unified';
 import { withTYjs } from './slate-plate/withTYjs';
 import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
-import { link } from 'fs';
-import { autoformatRules } from './slate-plate/autoformat/autoformatRules';
 
 export enum TEditMode {
   ReadOnly = "readonly",
@@ -83,7 +75,8 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
   const editor = useMemo(() => {
     const yDoc = new Y.Doc();
     const sharedRoot = yDoc.get(docId, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
-
+    //const provider = new WebrtcProvider("osobisty"+docId, yDoc, { signaling: ['ws://localhost:4444'], password: null , awareness: null, maxConns: null, filterBcConns: null, peerOpts: null})
+    const provider = new WebrtcProvider("osobisty"+docId, yDoc);
     //console.log("remark-slate `value`:", value)
     // Load the initial value into the yjs document      
     sharedRoot.applyDelta(slateNodesToInsertDelta(value));
@@ -104,7 +97,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
       )
     );
 
-    // withTYjs(
+    // withTYjs(s
     //   withTReact(
     //     withPlate(
     //       createTEditor(),
