@@ -4,6 +4,10 @@
  import http from 'http'
  import {setupWSConnection} from './utils.js';
 
+// The "noServer" mode allows the WebSocket server to be completely detached from the HTTP/S server. 
+// This makes it possible, for example, to share a single HTTP/S server between multiple WebSocket servers.
+// https://github.com/websockets/ws/blob/master/doc/ws.md
+
  const wss = new WebSocketServer({ noServer: true })
  
  
@@ -20,9 +24,7 @@
  server.on('upgrade', (request:any, socket:any, head:any) => {
    // You may check auth of request here..
    // See https://github.com/websockets/ws#client-authentication
-   /**
-    * @param {any} ws
-    */
+
    const handleAuth = (ws:any) => {
      wss.emit('connection', ws, request)
    }

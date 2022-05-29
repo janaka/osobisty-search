@@ -1,4 +1,4 @@
-import { ELEMENT_BLOCKQUOTE, ELEMENT_CODE_BLOCK, ELEMENT_H1, ELEMENT_H2, ELEMENT_H3, ELEMENT_H4, ELEMENT_H5, ELEMENT_H6, ELEMENT_LI, ELEMENT_LINK, ELEMENT_OL, ELEMENT_PARAGRAPH, ELEMENT_UL, MARK_BOLD, MARK_CODE, MARK_ITALIC, MARK_STRIKETHROUGH } from "@udecode/plate";
+import { ELEMENT_BLOCKQUOTE, ELEMENT_CODE_BLOCK, ELEMENT_H1, ELEMENT_H2, ELEMENT_H3, ELEMENT_H4, ELEMENT_H5, ELEMENT_H6, ELEMENT_IMAGE, ELEMENT_LI, ELEMENT_LINK, ELEMENT_OL, ELEMENT_PARAGRAPH, ELEMENT_UL, MARK_BOLD, MARK_CODE, MARK_ITALIC, MARK_STRIKETHROUGH } from "@udecode/plate";
 import { InputNodeTypes } from "remark-slate";
 
 // Override the default remark-slate node type names to match Plate defaults
@@ -25,5 +25,5 @@ export const plateNodeTypes: InputNodeTypes = {
   delete_mark: MARK_STRIKETHROUGH, //'strikeThrough',
   inline_code_mark: MARK_CODE, //'code',
   thematic_break: 'thematic_break',
-  image: 'img',
+  image: ELEMENT_IMAGE,
 };

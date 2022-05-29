@@ -24,14 +24,16 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 // disable gc when using snapshots!
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'
 const persistenceDir = process.env.YPERSISTENCE
-/**
- * @type {{bindState: function(string,WSSharedDoc):void, writeState:function(string,WSSharedDoc):Promise<any>, provider: any}|null}
- */
-let persistence: { bindState: (arg0: string, arg1: WSSharedDoc) => void; writeState: (arg0: string, arg1: WSSharedDoc) => Promise<any>; provider: any } | null = null
+
+
+
+interface IPersistence { bindState: (docName: string, yDoc: WSSharedDoc) => void; writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>; provider: any }
+
+let persistence: IPersistence | null = null;
+
 if (typeof persistenceDir === 'string') {
   console.info('Persisting documents to "' + persistenceDir + '"')
-  
-  
+    
   const ldb = new LeveldbPersistence(persistenceDir)
   persistence = {
     provider: ldb,
@@ -48,29 +50,13 @@ if (typeof persistenceDir === 'string') {
   }
 }
 
-/**
- * @param {{bindState: function(string,WSSharedDoc):void,
- * writeState:function(string,WSSharedDoc):Promise<any>,provider:any}|null} persistence_
- */
-export const setPersistence = (persistence_: {
-    bindState: (arg0: string, arg1: WSSharedDoc) => void
-    writeState: (arg0: string, arg1: WSSharedDoc) => Promise<any>; provider: any
-  } | null) => {
+export const setPersistence = (persistence_: IPersistence) => {
   persistence = persistence_
 }
 
-/**
- * @return {null|{bindState: function(string,WSSharedDoc):void,
-  * writeState:function(string,WSSharedDoc):Promise<any>}|null} used persistence layer
-  */
-export const getPersistence = (): null | {
-  bindState: (arg0: string, arg1: WSSharedDoc) => void
-  writeState: (arg0: string, arg1: WSSharedDoc) => Promise<any>
-} | null => persistence
+export const getPersistence = (): IPersistence | null => persistence
 
-/**
- * @type {Map<string,WSSharedDoc>}
- */
+
 // exporting docs so that others can use it
 export const docs: Map<string, WSSharedDoc> = new Map()
 
@@ -100,7 +86,7 @@ export class WSSharedDoc extends Y.Doc {
   mux: mutex.mutex
   awareness: awarenessProtocol.Awareness
   /**
-   * @param {string} name
+   * @param {string} name: unique name for the document
    */
   constructor (name: string) {
     super({ gc: gcEnabled })
@@ -153,7 +139,7 @@ export class WSSharedDoc extends Y.Doc {
 /**
  * Gets a Y.Doc by name, whether in memory or on disk
  *
- * @param {string} docname - the name of the Y.Doc to find or create
+ * @param {string} docname - the name of the Y.Doc to find or create. This is the unique key.
  * @param {boolean} gc - whether to allow gc on the doc (applies only when created)
  * @return {WSSharedDoc}
  */
@@ -164,6 +150,8 @@ export const getYDoc = (docname: string, gc: boolean = true): WSSharedDoc => map
     persistence.bindState(docname, doc)
   }
   docs.set(docname, doc)
+  console.log("doc added: ", docname)
+  console.log("total docs: ", docs.entries.length)
   return doc
 })
 
@@ -204,10 +192,6 @@ const messageListener = (conn: any, doc: WSSharedDoc, message: Uint8Array) => {
  */
 const closeConn = (doc: WSSharedDoc, conn: any) => {
   if (doc.conns.has(conn)) {
-    /**
-     * @type {Set<number>}
-     */
-    // @ts-ignore
     const controlledIds: Set<number> = doc.conns.get(conn)
     doc.conns.delete(conn)
     awarenessProtocol.removeAwarenessStates(doc.awareness, Array.from(controlledIds), null)
