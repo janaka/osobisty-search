@@ -18,8 +18,11 @@ import {
   unwrapList,
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
-import markdown from 'remark-parse';
-import slate from 'remark-slate';
+import { remark } from 'remark'
+import remarkParse from 'remark-parse';
+import remarkUnwrapImages from 'remark-unwrap-images'
+import remarkSlate from 'remark-slate';
+import remarkFrontmatter from 'remark-frontmatter'
 import unified from 'unified';
 import { withTYjs } from './slate-plate/withTYjs';
 import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
@@ -43,20 +46,15 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
 
 
   const docId = id;
-  const docEditContent = editContent;
+  let docEditContent = editContent;
 
-  // "Purchase date: \
-  // Purchased from: Craig Hardy \
-  // Sold date: 27 Sept 2021 \
-  // \
-  // ![ownership transfer confirmation](../attachments/2021-09-27-14-04-23.png) \
-  // Insurance cancelled 27 sept 2021 14:38. £109.55 will be refunded ![insurance cancellation](../attachments/2021-09-27-14-38-23.png) \
-  // \
-  // ## Anela @ Drax about CTO opportunity" //editContent;
 
   // TODO: handle loading and saving the zettle document from file via the API
   // use the indexdb provider for offline strage in the browser together with 
   // websocket provider to sync to backend for persistence. 
+
+  // FIXME: parsing MD with image links crashes. "Cannot read properties of undefined (reading 'map')" in ImageElement.tsx 108:1
+
 
   console.log("START");
   // Create a yjs document and get the shared type
@@ -69,37 +67,12 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     className: "doc-preview-content",
   };
 
-  //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
+
 
 
   let initialValue: any = [{ type: 'p', children: [{ text: 'initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
 
   let docFromTypesense: any = [];
-
-  useMemo(
-    async () => {
-
-      try {
-        await unified()
-          .use(markdown)
-          .use(slate, { nodeTypes: plateNodeTypes }) // map remark-slate to Plate node `type`
-          // .process(fetch('test.md'), (err, file) => {
-          //   if (err) throw err;
-          //   console.log({ file });
-          // });
-          .process(docEditContent, (_, nodes) => {
-            docFromTypesense = nodes.result //TODO: replace with load from backend via wsprovider
-          });
-      } catch (error) {
-        throw error;
-      }
-
-
-      console.log("remark-slate `result`:", docFromTypesense)
-      //console.log("remark-slate `value`:", value)
-
-    }, [docId]
-  );
 
 
   const [value, setValue] = useState<TElement[]>([]);
@@ -148,7 +121,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
   })
 
   // `synced` fires before `sync`
-  wsProvider.on('synced', (isSynced: boolean) => {
+  wsProvider.on('synced', async (isSynced: boolean) => {
     console.log("synced: ", isSynced);
     console.log(sharedRoot);
     console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
@@ -156,8 +129,34 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
       //TODO: this logic moves to the server 
       console.log("New doc, load initial value")
       //setValue(docFromTypesense);
+      try {
+        let res = await fetch('test.md', { mode: 'no-cors' })
+        let data = await res.text()
+        //console.log("test.md data: ", data)
+        docEditContent = data // uncomment this line to use test.md. Move this to a unit test.
 
-      sharedRoot.applyDelta(slateNodesToInsertDelta(docFromTypesense));
+        //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
+        // remark plugins https://github.com/remarkjs/remark/blob/main/doc/plugins.md
+
+        const vfile = await remark()
+          .use(remarkParse)
+          .use(remarkFrontmatter, ['yaml'])
+          .use(remarkUnwrapImages)
+          .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`
+          .process(docEditContent)
+
+        docFromTypesense = vfile.result
+
+        console.log("remark-slate `result`:", docFromTypesense)
+        const delta = slateNodesToInsertDelta(docFromTypesense)
+        console.log("delta: ", delta)
+        sharedRoot.applyDelta(delta);
+      } catch (error) {
+        console.error(error)
+      }
+
+
+
       //sharedRoot.applyDelta(slateNodesToInsertDelta(value));
     } else {
       console.log("doc existing on server. Wait for sync.")
@@ -191,7 +190,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
         { autoConnect: false }
       )
     );
-  }, [wsProvider.doc])
+  }, [docId])
 
 
   //https://signaling.simplewebrtc.com:443/
@@ -225,7 +224,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
       value={value} //{[{ children: [{ text: '' }] }]}
       //plugins={plugins} // when the `editor` instance is provided this doesn't apply
       onChange={(newValue) => {
-        console.log("Plate onChange()")
+        console.log("Plate onChange() fired")
         setValue(newValue)
         // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
         // console.log("`newValue` onChange():", newValue)

@@ -25,5 +25,5 @@ export const plateNodeTypes: InputNodeTypes = {
   delete_mark: MARK_STRIKETHROUGH, //'strikeThrough',
   inline_code_mark: MARK_CODE, //'code',
   thematic_break: 'thematic_break',
-  image: ELEMENT_IMAGE,
+  image: ELEMENT_IMAGE,  
 };
