@@ -4,6 +4,8 @@ import {postRouteConfigWebclippings} from  './webclippings-post.js'
 import {getRouteConfigWebclippings} from './webclippings-get.js'
 import { getRouteConfigTypesenseApi } from './typesense-api-proxy.js'
 import { catchall } from './catch-all.js'
+import { getRouteConfigYjsWsDocuments } from './documents-yjs-ws.js'
+import { getRouteConfigPingWs } from './ping-ws.js'
 
 
 // add all routeConfigs to array which is used for route registration in main index.js
@@ -12,5 +14,7 @@ export default [
   postRouteConfigWebclippings, 
   getRouteConfigWebclippings,
   getRouteConfigTypesenseApi,
-  catchall.getRouteConfig
+  catchall.getRouteConfig,
+  getRouteConfigYjsWsDocuments,
+  getRouteConfigPingWs
 ]

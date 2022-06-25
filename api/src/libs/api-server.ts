@@ -6,9 +6,11 @@ import H2o2 from '@hapi/h2o2';
 import HapiAuthJwt2 from 'hapi-auth-jwt2';
 import jwksRsa from 'jwks-rsa';
 import fs from 'fs';
-
+import HAPIWebSocket from 'hapi-plugin-websocket';
 
 import dotenv from 'dotenv';
+
+import ws from 'ws'
 
 import { frontMatterFieldCollection, serialiseFrontMatter } from './frontmatter.js'
 
@@ -52,6 +54,9 @@ const swaggerOptions: HapiSwagger.RegisterOptions = {
 };
 
 const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
+  {
+    plugin: HAPIWebSocket
+  },
   {
     plugin: HapiAuthJwt2
   },
@@ -126,8 +131,12 @@ if (globalThis.DEBUG) console.log("hapiServerOptions:", JSON.stringify(hapiServe
 
 let server: Server = Hapi.server(hapiServerOptions);
 if (globalThis.DEBUG) {
+  server.events.on('request', function (request, event, tag) {
+    console.log('Request event fired for: ' + 'channel:' + event.channel + ' ' + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers) + ' error: ' + event.error);
+  });
+
   server.events.on('response', function (request) {
-    console.log(request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
+    console.log("Response event fired for: " + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
   });
 }
 
@@ -203,13 +212,6 @@ export const init = async () => {
   await server.initialize();
   return server;
 }
-
-// server.route(ping.getRouteConfig);
-
-// server.route(webclippings.postRouteConfig);
-
-
-
 
 process.on('unhandledRejection', (error) => {
   console.log("unhandledRejection:" + error);

@@ -43,18 +43,12 @@ export enum TEditMode {
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
 const EditView = ({ id, editContent, editMode }: { id: string, editContent: string, editMode: TEditMode }) => {
-
-
-  const docId = id;
-  let docEditContent = editContent;
-
-
   // TODO: handle loading and saving the zettle document from file via the API
   // use the indexdb provider for offline strage in the browser together with 
   // websocket provider to sync to backend for persistence. 
 
-  // FIXME: parsing MD with image links crashes. "Cannot read properties of undefined (reading 'map')" in ImageElement.tsx 108:1
-
+  const docId = id;
+  let docEditContent = editContent;
 
   console.log("START");
   // Create a yjs document and get the shared type
@@ -67,16 +61,11 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     className: "doc-preview-content",
   };
 
-
-
-
   let initialValue: any = [{ type: 'p', children: [{ text: 'initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
 
   let docFromTypesense: any = [];
 
-
   const [value, setValue] = useState<TElement[]>([]);
-
 
   // const webrtcOpts = {
   //   // Specify signaling servers. The client will connect to every signaling server concurrently to find other peers as fast as possible.
@@ -106,18 +95,22 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
 
   const docName = "osobisty" + docId
 
-
-
   const wsProvider = useMemo(() => {
     console.log("room name: ", docName)
     const yDoc = new Y.Doc();
-    return new WebsocketProvider('ws://localhost:1234', docName, yDoc) // sync to backend for persistence 
+
+    // const ws = new WebSocket('wss://127.0.0.1:3002/documents/osobisty1034')
+    // ws.addEventListener('error', function (event) {
+    //   console.log('WebSocket error: ', event);
+    // });
+
+    return new WebsocketProvider('wss://127.0.0.1:3002/documents', docName, yDoc) // sync to backend for persistence 
 
   }, [docName])
 
   wsProvider.on('status', (event: any) => {
     console.log(`wsProvider server connect status(docName:${docName}):`, event.status) // logs "connected" or "disconnected"
-
+    console.log(event)
   })
 
   // `synced` fires before `sync`
@@ -142,7 +135,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
           .use(remarkParse)
           .use(remarkFrontmatter, ['yaml'])
           .use(remarkUnwrapImages)
-          .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`
+          .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
           .process(docEditContent)
 
         docFromTypesense = vfile.result
@@ -159,7 +152,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
 
       //sharedRoot.applyDelta(slateNodesToInsertDelta(value));
     } else {
-      console.log("doc existing on server. Wait for sync.")
+      console.log("doc exists on server. Wait for sync.")
       //sharedRoot.doc?.load();
       //console.log("sharedRoot !==`null` or `length !== 0`")
     }
@@ -233,5 +226,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     />
   );
 };
+
+
 
 export default EditView;

@@ -32,7 +32,7 @@ Sold date: 27 Sept 3455
 ## ADsdf @ 345 about CTO opportunity
 
 Works with PE backed companies.
-
+ 
 Change transformation management specialist. Consultancy.
 
 50-60 ppl
