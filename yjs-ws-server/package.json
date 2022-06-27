@@ -27,7 +27,7 @@
   "scripts": {
     "watch": "npx tsc -w",
     "build": "npx tsc",
-    "start": "HOST=localhost PORT=1234 node --trace-warnings ./build/server.js",
+    "start": "HOST=localhost PORT=12345 node --trace-warnings ./build/server.js",
     "test": "jest"
   }
 }

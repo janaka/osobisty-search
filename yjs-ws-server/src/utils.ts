@@ -25,7 +25,7 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'
 const persistenceDir = process.env.YPERSISTENCE
 
-
+let sendcount = 0;
 
 interface IPersistence { bindState: (docName: string, yDoc: WSSharedDoc) => void; writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>; provider: any }
 
@@ -216,6 +216,9 @@ const send = (doc: WSSharedDoc, conn: any, m: Uint8Array) => {
     closeConn(doc, conn)
   }
   try {
+    sendcount++;
+    console.log("send() called. total calls=", sendcount)
+    console.log(m)
     conn.send(m, /** @param {any} err */ (err: any) => { err != null && closeConn(doc, conn) })
   } catch (e) {
     closeConn(doc, conn)

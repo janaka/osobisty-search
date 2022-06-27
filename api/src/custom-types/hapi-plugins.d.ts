@@ -1,13 +1,13 @@
 import {IHapiWebsocketPluginState} from '../libs/IHapiWebsocketPluginState';
-import {IHapiWebsocketPluginSpecificConfiguration} from '../libs/IHapiWebsocketPluginSpecificConfiguration';
+import {IHapiWebsocketPluginSpecificConfiguration} from '../libs/IHapiWebsocketPluginSpecificOptions';
 
 declare module '@hapi/hapi' {
   export interface PluginsStates {
     websocket: IHapiWebsocketPluginState;
   }
 
-  export interface PluginSpecificConfiguration {
-    websocket: IHapiWebsocketPluginSpecificConfiguration;
+  export interface PluginSpecificOptions {
+    websocket: IHapiWebsocketPluginSpecificOptions;
   }
 }
 

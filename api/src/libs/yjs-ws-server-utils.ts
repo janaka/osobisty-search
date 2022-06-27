@@ -1,7 +1,7 @@
 import * as Y from 'yjs';
 import * as syncProtocol from 'y-protocols/sync';
 import * as awarenessProtocol from 'y-protocols/awareness';
-import {LeveldbPersistence} from 'y-leveldb';
+import { LeveldbPersistence } from 'y-leveldb';
 
 import * as encoding from 'lib0/encoding';
 import * as decoding from 'lib0/decoding';
@@ -13,6 +13,7 @@ import ws from 'ws';
 import debounce from 'lodash.debounce';
 
 import { callbackHandler, isCallbackSet } from './yjs-ws-server-callback.js';
+import { close } from 'fs';
 
 
 const CALLBACK_DEBOUNCE_WAIT = Number(process.env.CALLBACK_DEBOUNCE_WAIT) || 2000
@@ -27,15 +28,26 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'
 const persistenceDir = process.env.YPERSISTENCE
 
+let sendcount: number = 0;
+
+//TODO: this file a mess. Needs refactoring at somepoint.
 
 
-interface IPersistence { bindState: (docName: string, yDoc: WSSharedDoc) => void; writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>; provider: any }
+interface IPersistence {
+  bindState: (docName: string, yDoc: WSSharedDoc) => void;
+  writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>;
+  provider: any
+}
 
 let persistence: IPersistence | null = null;
+//TODO: 
+// We want to support two different persistance instances. 1) levelDB for the _inbox_ and _todo_ docs. 2) md files for the rest.
+// change the property `persistence` to two properties, one for each.
+
 
 if (typeof persistenceDir === 'string') {
   console.info('Persisting documents to "' + persistenceDir + '"')
-    
+
   const ldb = new LeveldbPersistence(persistenceDir)
   persistence = {
     provider: ldb,
@@ -48,7 +60,7 @@ if (typeof persistenceDir === 'string') {
         ldb.storeUpdate(docName, update)
       })
     },
-    writeState: async (docName, ydoc) => {}
+    writeState: async (docName, ydoc) => { }
   }
 }
 
@@ -78,7 +90,9 @@ const updateHandler = (update: Uint8Array, origin: any, doc: WSSharedDoc) => {
   encoding.writeVarUint(encoder, messageSync)
   syncProtocol.writeUpdate(encoder, update)
   const message = encoding.toUint8Array(encoder)
-  doc.wsConns.forEach((_: any, ws: ws) => send(doc, ws, message))
+  doc.wsConns.forEach((_: any, ws: ws) => {
+    send(doc, ws, message)
+  })
 }
 
 export class WSSharedDoc extends Y.Doc {
@@ -90,7 +104,7 @@ export class WSSharedDoc extends Y.Doc {
   /**
    * @param {string} name: unique name for the document
    */
-  constructor (name: string) {
+  constructor(name: string) {
     super({ gc: gcEnabled })
     this.name = name
     this.mux = mutex.createMutex()
@@ -142,7 +156,7 @@ export class WSSharedDoc extends Y.Doc {
  * Gets a Y.Doc by name, whether in memory or on disk
  *
  * @param {string} docname - the name of the Y.Doc to find or create. This is the unique key.
- * @param {boolean} gc - whether to allow gc on the doc (applies only when created)
+ * @param {boolean} gc - whether to allow garbage collection on the doc (applies only when created)
  * @return {WSSharedDoc}
  */
 export const getYDoc = (docname: string, gc: boolean = true): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
@@ -218,8 +232,14 @@ const send = (doc: WSSharedDoc, conn: ws, m: Uint8Array) => {
     closeConn(doc, conn)
   }
   try {
-    conn.send(m, /** @param {any} err */ (err: any) => { err != null && closeConn(doc, conn) })
+    sendcount++;
+    console.log("send() called. Total calls=", sendcount); 
+    // console.log(m)
+    // const decoder = decoding.createDecoder(m)
+    // decoding.readVarUint(decoder)
+    conn.send(m, (err: any) => { err != null && closeConn(doc, conn) })
   } catch (e) {
+    console.error(e)
     closeConn(doc, conn)
   }
 }
@@ -231,13 +251,13 @@ const pingTimeout = 30000
  * @param {any} req
  * @param {any} opts 
  */
-export const setupWSConnection = (ws: ws, req:any, { docName = req.url.slice(1).split('?')[0], gc = true }: any = {}) => {
+export const setupWSConnection = (ws: ws, req: any, { docName = req.url.slice(1).split('?')[0], gc = true }: any = {}) => {
   ws.binaryType = 'arraybuffer'
   // get doc, initialize if it does not exist yet
   const doc = getYDoc(docName, gc)
   doc.wsConns.set(ws, new Set())
   // listen and reply to events
-  ws.on('message', /** @param {ArrayBuffer} message */ (message: ArrayBuffer) => messageListener(ws, doc, new Uint8Array(message)))
+  ws.on('message', (message: ArrayBuffer) => messageListener(ws, doc, new Uint8Array(message)))
 
   // Check if connection is still alive
   let pongReceived = true

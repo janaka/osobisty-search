@@ -12,7 +12,7 @@
  
  
  const host = process.env.HOST || 'localhost'
- const port = process.env.PORT || 1234
+ const port = process.env.PORT || 12345
  
  const server = http.createServer((request:any, response:any) => {
    response.writeHead(200, { 'Content-Type': 'text/plain' })

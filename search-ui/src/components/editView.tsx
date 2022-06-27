@@ -105,6 +105,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     // });
 
     return new WebsocketProvider('wss://127.0.0.1:3002/documents', docName, yDoc) // sync to backend for persistence 
+    //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
 
   }, [docName])
 
@@ -113,11 +114,24 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     console.log(event)
   })
 
+  wsProvider.on('connection-error', (WSErrorEvent: any) => {
+    console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
+  })
+
+  if (wsProvider.ws!==null) {
+    wsProvider.ws.onmessage = (event) => {
+      console.log("message received: ", event)
+    }
+  }
+  
+  let sharedRoot: YXmlText | null = null;
+
   // `synced` fires before `sync`
   wsProvider.on('synced', async (isSynced: boolean) => {
     console.log("synced: ", isSynced);
-    console.log(sharedRoot);
+    console.log("Obj `sharedRoot`=",sharedRoot);
     console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
+  
     if (sharedRoot !== null && sharedRoot.length == 0) {
       //TODO: this logic moves to the server 
       console.log("New doc, load initial value")
@@ -159,7 +173,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
 
   })
 
-  let sharedRoot: YXmlText | null = null;
+  
 
   const editor = useMemo(() => {
 
