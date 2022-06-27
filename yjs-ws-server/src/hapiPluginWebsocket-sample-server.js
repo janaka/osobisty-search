@@ -8,7 +8,7 @@ import Websocket from "ws"
 ;(async () => {
     /*  create new HAPI service  */
     //const server = new Server({ address: "127.0.0.1", port: 12345 })
-    const server = new Server({ address: "localhost", port: 12345 })
+    const server = new Server({ address: "127.0.0.1", port: 12345 })
 
     /*  register HAPI plugins  */
     await server.register(HAPIWebSocket)
@@ -22,6 +22,8 @@ import Websocket from "ws"
             if (username === "foo" && password === "bar") {
                 isValid = true
                 credentials = { username }
+            } else {
+                isValid = true
             }
             return { isValid, credentials }
         }

@@ -1,9 +1,11 @@
 import {IHapiWebsocketPluginState} from './IHapiWebsocketPluginState'
 
-export interface IHapiWebsocketPluginSpecificConfiguration {
-  only?: boolean;
-  initially?: boolean;
-  subprotocol?: string;
+// defaults: https://github.com/rse/hapi-plugin-websocket/blob/84a11a6fb6dde3e0cc3d2ffb36cbf0386624927e/hapi-plugin-websocket.js#L63
+
+export interface IHapiWebsocketPluginSpecificOptions {
+  only?: boolean; //default false
+  initially?: boolean; //default false
+  subprotocol?: string; //default null
   connect?: (
     this: IHapiWebsocketPluginState['ctx'],
     pluginState: IHapiWebsocketPluginState
@@ -12,7 +14,7 @@ export interface IHapiWebsocketPluginSpecificConfiguration {
     this: IHapiWebsocketPluginState['ctx'],
     pluginState: IHapiWebsocketPluginState
   ) => void;
-  frame?: boolean;
+  frame?: boolean; // default false
   frameEncoding?: 'json' | string;
   frameRequest?: 'REQUEST' | string;
   frameResponse?: 'RESPONSE' | string;
@@ -28,5 +30,5 @@ export interface IHapiWebsocketPluginSpecificConfiguration {
     pluginState: IHapiWebsocketPluginState,
     fame: any
   ) => void;
-  autoping?: number;
+  autoping?: number; // default 0
  }
