@@ -16,6 +16,15 @@ Read more about why I built Osobisty [here](https://janaka.dev/introducing-osobi
   - Zettelkasten
   - Web Bookmarks
 
+## Repo strucrure 
+
+root
+|- api - all backend endpoints (REST and WebSocket) are served from this single backend
+|- chrome-extension - experiement building web page context functinality such as symantic search and page notes. Will probably host the Inbox and TODO
+|- indexer - Builds the search index in Typesense from different sources like MD notes, Twitter bookmark exports, Kindle note exports etc.
+|- infra - config for Render.com infra setup
+|- search-ui - UI providing search as you type and note editing functionality.
+
 ## Typesense search engine
 
 ```shell
