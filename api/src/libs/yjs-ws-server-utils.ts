@@ -1,7 +1,9 @@
 import * as Y from 'yjs';
+import { XmlText } from 'yjs';
 import * as syncProtocol from 'y-protocols/sync';
 import * as awarenessProtocol from 'y-protocols/awareness';
-import { LeveldbPersistence } from 'y-leveldb';
+import { slateNodesToInsertDelta } from '@slate-yjs/core'
+
 
 import * as encoding from 'lib0/encoding';
 import * as decoding from 'lib0/decoding';
@@ -13,7 +15,25 @@ import ws from 'ws';
 import debounce from 'lodash.debounce';
 
 import { callbackHandler, isCallbackSet } from './yjs-ws-server-callback.js';
-import { close } from 'fs';
+
+import fs from 'fs';
+import os from 'os'
+import { LeveldbPersistence } from 'y-leveldb';
+
+import { unified, ProcessCallback } from 'unified';
+import { VFile } from 'vfile'
+import { remark } from 'remark'
+import remarkParse from 'remark-parse'
+import remarkSlate from 'remark-slate';
+import {remarkToSlate} from 'remark-slate-transformer'
+import remarkUnwrapImages from 'remark-unwrap-images';
+import remarkFrontmatter from 'remark-frontmatter';
+import { plateNodeTypes, plateNodeTypesHeadingObjectKey, remarkToSlateOverrides } from './remarkslate-nodetypes.js';
+import { File } from '@babel/types';
+import { Node } from 'slate';
+
+
+
 
 
 const CALLBACK_DEBOUNCE_WAIT = Number(process.env.CALLBACK_DEBOUNCE_WAIT) || 2000
@@ -39,7 +59,8 @@ interface IPersistence {
   provider: any
 }
 
-let persistence: IPersistence | null = null;
+let levelDbPersistence: IPersistence | null = null;
+let fixedFilePersistence: IPersistence | null = null;
 //TODO: 
 // We want to support two different persistance instances. 1) levelDB for the _inbox_ and _todo_ docs. 2) md files for the rest.
 // change the property `persistence` to two properties, one for each.
@@ -49,7 +70,8 @@ if (typeof persistenceDir === 'string') {
   console.info('Persisting documents to "' + persistenceDir + '"')
 
   const ldb = new LeveldbPersistence(persistenceDir)
-  persistence = {
+
+  levelDbPersistence = {
     provider: ldb,
     bindState: async (docName, ydoc) => {
       const persistedYdoc = await ldb.getYDoc(docName)
@@ -64,11 +86,11 @@ if (typeof persistenceDir === 'string') {
   }
 }
 
-export const setPersistence = (persistence_: IPersistence) => {
-  persistence = persistence_
+export const setLevelDbPersistence = (persistence_: IPersistence) => {
+  levelDbPersistence = persistence_
 }
 
-export const getPersistence = (): IPersistence | null => persistence
+export const getLevelDbPersistence = (): IPersistence | null => levelDbPersistence
 
 
 // exporting docs so that others can use it
@@ -160,18 +182,127 @@ export class WSSharedDoc extends Y.Doc {
  * @return {WSSharedDoc}
  */
 export const getYDoc = (docname: string, gc: boolean = true): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
-  const doc = new WSSharedDoc(docname)
-  doc.gc = gc
-  if (persistence !== null) {
-    persistence.bindState(docname, doc)
+  const sharedDoc = new WSSharedDoc(docname)
+  sharedDoc.gc = gc
+  console.log("getYDoc(" + docname + ")")
+  switch (docname) {
+    case "osobistyinbox":
+
+      break;
+    case "osobistytodo":
+
+      break;
+
+    case "osobistysimpletestmd":
+      console.log("bind osobistysimpletestmd")
+      testMdBindState(docname, sharedDoc)
+
+
+      break;
+      case "osobistycomplextestmd":
+        console.log("bind osobistycomplextestmd")
+        testMdBindState(docname, sharedDoc)
+  
+  
+        break;
+    default:
+      if (levelDbPersistence !== null) {
+        levelDbPersistence.bindState(docname, sharedDoc)
+      }
+      break;
   }
-  docs.set(docname, doc)
+
+
+  docs.set(docname, sharedDoc) // add to docs collection
+
   console.log("doc added: ", docname)
-  console.log("total docs: ", docs.entries.length)
-  return doc
+  console.log("total docs: ", docs.size)
+  return sharedDoc
 })
 
+/**
+ * Bind (read and write) to test.md which is a document used to test + debug editor functionality
+ * @param docName 
+ * @param ydoc 
+ */
+const testMdBindState = (docName: string, ydoc: Y.Doc) => {
+  //const persistedYdoc = await ldb.getYDoc(docName)
 
+  const rawPersistedTestMd = loadTestMdFileFromDisk(docName + ".md")
+
+  if (rawPersistedTestMd !== undefined) {
+    try {
+      //console.log(rawPersistedTestMd)
+
+
+      //.use(remarkFrontmatter, ['yaml'])
+      //.use(remarkUnwrapImages)
+      //.use(slate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
+      //remark()
+      unified()
+        .use(remarkParse)
+        .use(remarkFrontmatter, ['yaml'])
+        .use(remarkUnwrapImages)
+        .use(remarkToSlate,{
+          // If you use TypeScript, install `@types/mdast` for autocomplete.
+          overrides: remarkToSlateOverrides
+        })
+        .process(rawPersistedTestMd, (error, vfile) => {
+
+          if (error) throw (error)
+
+          console.log("ydoc.get(`" + docName + "`, Y.XmlText)")
+          let sharedroot: XmlText = ydoc.get(docName, Y.XmlText) as Y.XmlText
+
+          let initialValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+
+          if (!vfile) throw ("vfile empty")
+          if (!vfile.result) throw("remark-slate ain't doing it's thing")
+
+          console.log("remark-slate `result`:", vfile.result)
+          const slateTestMd: Node[] = vfile.result as Node[];
+
+          
+
+          // if (slateTestMd == null || undefined) throw ("Coverting raw MD to slateMD failed! object returned was null or undefined!")
+
+          const delta = slateNodesToInsertDelta(slateTestMd)
+
+          sharedroot.applyDelta(delta);
+        });
+
+      //
+
+
+
+
+
+
+
+      ydoc.on('update', update => {
+        // write updates back to test.md for persistence.
+        //ldb.storeUpdate(docName, update)
+        console.log("ydoc.onupdate fired!")
+      })
+    } catch (error) {
+      console.error(error)
+    }
+
+    //sharedRoot.applyDelta(delta);
+    //const docRoot = ydoc.get(docName, Y.XmlText) as Y.XmlText
+
+    //docRoot.applyDelta(delta)
+
+    //const newUpdates = Y.encodeStateAsUpdate(ydoc)
+    //ldb.storeUpdate(docName, newUpdates)
+
+
+  } else {
+    throw ("test.md load failed");
+  }
+
+
+}
 
 /**
  * @param {any} conn websocket conneciton
@@ -211,9 +342,9 @@ const closeConn = (doc: WSSharedDoc, conn: ws) => {
     const controlledIds: Set<number> = doc.wsConns.get(conn)
     doc.wsConns.delete(conn)
     awarenessProtocol.removeAwarenessStates(doc.awareness, Array.from(controlledIds), null)
-    if (doc.wsConns.size === 0 && persistence !== null) {
+    if (doc.wsConns.size === 0 && levelDbPersistence !== null) {
       // if persisted, we store state and destroy ydocument
-      persistence.writeState(doc.name, doc).then(() => {
+      levelDbPersistence.writeState(doc.name, doc).then(() => {
         doc.destroy()
       })
       docs.delete(doc.name)
@@ -233,7 +364,7 @@ const send = (doc: WSSharedDoc, conn: ws, m: Uint8Array) => {
   }
   try {
     sendcount++;
-    console.log("send() called. Total calls=", sendcount); 
+    console.log("send() called. Total calls=", sendcount);
     // console.log(m)
     // const decoder = decoding.createDecoder(m)
     // decoding.readVarUint(decoder)
@@ -251,7 +382,7 @@ const pingTimeout = 30000
  * @param {any} req
  * @param {any} opts 
  */
-export const setupWSConnection = (ws: ws, req: any, { docName = req.url.slice(1).split('?')[0], gc = true }: any = {}) => {
+export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.slice(1).split('?')[0], gc: boolean = true) => {
   ws.binaryType = 'arraybuffer'
   // get doc, initialize if it does not exist yet
   const doc = getYDoc(docName, gc)
@@ -259,6 +390,7 @@ export const setupWSConnection = (ws: ws, req: any, { docName = req.url.slice(1)
   // listen and reply to events
   ws.on('message', (message: ArrayBuffer) => messageListener(ws, doc, new Uint8Array(message)))
 
+  // TODO: check if we can use the hapi-websocket built in ping/pong
   // Check if connection is still alive
   let pongReceived = true
   const pingInterval = setInterval(() => {
@@ -301,3 +433,22 @@ export const setupWSConnection = (ws: ws, req: any, { docName = req.url.slice(1)
     }
   }
 }
+
+
+function loadTestMdFileFromDisk(filename: string): string | undefined {
+  try {
+    const dataRootPath = os.homedir + "/code-projects/osobisty-search/api/data/test"
+    const s: string = fs.readFileSync(dataRootPath + "/" + filename, "utf-8")
+    //let c: T | undefined = this.deserialize(s);
+    return s;
+  } catch (error) {
+    const e = error as NodeJS.ErrnoException
+    if (e.code === "ENOENT") {
+      console.log("test.md file doesn't exist so returning `undefined`. Likely legit. " + error)
+      return undefined
+    } else {
+      throw new Error("Failed. " + error)
+    }
+  }
+}
+

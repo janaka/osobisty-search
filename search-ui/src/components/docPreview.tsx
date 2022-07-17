@@ -58,11 +58,12 @@ export function DocPreview(props: any) {
           {editMode == TEditMode.ReadOnly ?
             <ReadonlyView hitData={props.hitData} />
 
-            : <PlateProvider id={props.hitData.document.id} >
+            : 
+            
+            <PlateProvider id={props.hitData.document.id} >
               {/* need <PlateProvider> for the state handling to work properly */}
               <EditView id={props.hitData.document.id} editContent={props.hitData.document.note_content} editMode={editMode} />
             </PlateProvider>
-
           }
 
         </div>

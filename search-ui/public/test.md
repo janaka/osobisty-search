@@ -2,7 +2,7 @@
 type: journal
 lastmodified: 2021-09-27T09:46:07
 ---
-# Monday, September 27, 2021
+# Tuesday, September 26, 3010
 
 ## Work
 
@@ -21,7 +21,7 @@ l;sj dfljs dfl;j sdfl;j sd;f  llskdjfsladfj ;lskdfjls dfljs d;lfj asdlfjl;sllksd
 VIN (build number) sdfsdfsd. [VX220 build list 6000-6999](https://docs.google.com/spreadsheets/d/1Zldsfskjhdskfhskdfhqxvb_Q0sK_OnFq_Y3W8ZxV_Q4Y/edit#gid=0)
 Purchase date:
 Purchased from: sdfsd sdfsd
-Sold date: 27 Sept 3455
+Sold date: 26 Sept 3455
 
 ![ownership transfer confirmation](../attachments/2021-09-27-14-04-23.png)
 

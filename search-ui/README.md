@@ -65,7 +65,15 @@ flowchart TD;
     api1-->db2[(IndexDB for Inbox and TODO)];
 ```
 
+## TODO
 
+
+- Get test.MD loading/saving properly from backend. merge branch into main 
+- create branch for adding Inbox and TODO as fixed docs persisted using IndexDB
+- switch on auth-over-websocket on the /documents endpoint
+
+- implement loading notes from MD when in edit mode.
+- implement persisting changes to MD notes back into the file.
 
 
 

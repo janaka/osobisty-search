@@ -13,6 +13,11 @@
   },
   "dependencies": {
     "lib0": "^0.2.51",
+    "remark": "^14.0.2",
+    "remark-html": "^15.0.1",
+    "remark-slate-transformer": "^0.7.1",
+    "tslib": "^2.4.0",
+    "unified": "^10.1.2",
     "ws": "^8.6.0"
   },
   "scripts": {

@@ -47,18 +47,22 @@ export function SearchResults(props: any) {
           }
         </ol>
         :
-        <div><Suggestions /></div>
+        <div><Suggestions setSelectedHitFunc={props.setSelectedHit}/></div>
 
       }
     </div >
   )
 }
 
-function Suggestions() {
+function Suggestions(props:any) {
   return (
     <div className="search-results search-results-empty">
-      <h2 className="empty-state-heading">Suggestions</h2><div className="search-results-suggestions">
-        <button className="search-results-suggestion">PaaS</button></div>
+      <h2 className="empty-state-heading">Suggestions</h2>
+      <div className="search-results-suggestions">
+        <button className="search-results-suggestion">PaaS</button>
+        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'simpletestmd'}}) }>Simple Test.md</button>
+        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'complextestmd'}}) }>Complex Test.md</button>
+      </div>
       <h2 className="empty-state-heading">Key bindings</h2><div className="keyboard-map">
         <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">
           <kbd className="">Tab</kbd></div><div className="keybinding-detail">Next search result</div></li>

@@ -23,14 +23,14 @@ import remarkParse from 'remark-parse';
 import remarkUnwrapImages from 'remark-unwrap-images'
 import remarkSlate from 'remark-slate';
 import remarkFrontmatter from 'remark-frontmatter'
-import unified from 'unified';
+import {unified} from 'unified';
 import { withTYjs } from './slate-plate/withTYjs';
 import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
 import * as awarenessProtocol from 'y-protocols/awareness'
 import * as random from 'lib0/random'
 import * as math from 'lib0/math'
 import { deltaInsertToSlateNode } from '@slate-yjs/core/dist/utils/convert';
-import { YXmlText } from 'yjs/dist/src/internals';
+import { XmlText } from 'yjs';
 
 
 
@@ -47,7 +47,8 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
   // use the indexdb provider for offline strage in the browser together with 
   // websocket provider to sync to backend for persistence. 
 
-  const docId = id;
+  let docId = id;
+  
   let docEditContent = editContent;
 
   console.log("START");
@@ -61,7 +62,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     className: "doc-preview-content",
   };
 
-  let initialValue: any = [{ type: 'p', children: [{ text: 'initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
+  let initialValue: any = [{ type: 'p', children: [{ text: 'New doc. client-side initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
 
   let docFromTypesense: any = [];
 
@@ -104,7 +105,7 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     //   console.log('WebSocket error: ', event);
     // });
 
-    return new WebsocketProvider('wss://127.0.0.1:3002/documents', docName, yDoc) // sync to backend for persistence 
+    return new WebsocketProvider('wss://localhost:3002/documents', docName, yDoc) // sync to backend for persistence 
     //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
 
   }, [docName])
@@ -119,65 +120,20 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
   })
 
   if (wsProvider.ws!==null) {
-    wsProvider.ws.onmessage = (event) => {
-      console.log("message received: ", event)
-    }
+    // wsProvider.ws.onmessage = (event) => {
+    //   console.log("message received: ", event)
+    //   wsProvider.ws?.onmessage
+    // }
   }
   
-  let sharedRoot: YXmlText | null = null;
-
-  // `synced` fires before `sync`
-  wsProvider.on('synced', async (isSynced: boolean) => {
-    console.log("synced: ", isSynced);
-    console.log("Obj `sharedRoot`=",sharedRoot);
-    console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
-  
-    if (sharedRoot !== null && sharedRoot.length == 0) {
-      //TODO: this logic moves to the server 
-      console.log("New doc, load initial value")
-      //setValue(docFromTypesense);
-      try {
-        let res = await fetch('test.md', { mode: 'no-cors' })
-        let data = await res.text()
-        //console.log("test.md data: ", data)
-        docEditContent = data // uncomment this line to use test.md. Move this to a unit test.
-
-        //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
-        // remark plugins https://github.com/remarkjs/remark/blob/main/doc/plugins.md
-
-        const vfile = await remark()
-          .use(remarkParse)
-          .use(remarkFrontmatter, ['yaml'])
-          .use(remarkUnwrapImages)
-          .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
-          .process(docEditContent)
-
-        docFromTypesense = vfile.result
-
-        console.log("remark-slate `result`:", docFromTypesense)
-        const delta = slateNodesToInsertDelta(docFromTypesense)
-        console.log("delta: ", delta)
-        sharedRoot.applyDelta(delta);
-      } catch (error) {
-        console.error(error)
-      }
-
-
-
-      //sharedRoot.applyDelta(slateNodesToInsertDelta(value));
-    } else {
-      console.log("doc exists on server. Wait for sync.")
-      //sharedRoot.doc?.load();
-      //console.log("sharedRoot !==`null` or `length !== 0`")
-    }
-
-  })
-
-  
+  let sharedRoot: XmlText | null = null;
 
   const editor = useMemo(() => {
 
-    sharedRoot = wsProvider.doc.get(docId, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
+    console.log("wsProvider.doc.get(`" + docName + "`, Y.XmlText)")
+    // define top level type as yXmlText
+    sharedRoot = wsProvider.doc.get(docName, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
+
     //console.log("just created: ", sharedRoot)
     //console.log("after provider: ", sharedRoot.toDelta())
 
@@ -191,16 +147,71 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
       withTYjs(
         withPlate(
           createTEditor(),
-          { id: docId, plugins: PLUGINS.allNodes, disableCorePlugins: false }
+          { id: docName, plugins: PLUGINS.allNodes, disableCorePlugins: false }
         ),
         sharedRoot,
         { autoConnect: false }
       )
     );
-  }, [docId])
+  }, [docName])
+
+        //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
+        // remark plugins https://github.com/remarkjs/remark/blob/main/doc/plugins.md
+
+        // unified()
+        //   .use(remarkParse)
+        //   .use(remarkSlate)
+        //   // .use(remarkFrontmatter, ['yaml'])
+        //   // .use(remarkUnwrapImages)
+        //   // .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
+        //   .process('[my link](https://github.com)', (err, file) => {
+        //     if (err) throw err;
+        //     if (!file) throw("`file` is undefined")
+        //     console.log("remark-slate test: output:",file.result);
+        //   })
+
+        // docFromTypesense = vfile.result
+
+        // console.log("remark-slate `result`:", docFromTypesense)
 
 
-  //https://signaling.simplewebrtc.com:443/
+
+  // `synced` fires before `sync`
+  wsProvider.on('synced', async (isSynced: boolean) => {
+    console.log("synced: ", isSynced);
+    console.log("Obj `sharedRoot`=",sharedRoot);
+    console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
+  
+    if (sharedRoot !== null && sharedRoot.length == 0) {
+      console.log("Server didn't return data")
+      console.log("New doc, client-sideload initial value")
+      //setValue(docFromTypesense);
+      try {
+        
+
+        //const delta = slateNodesToInsertDelta(initialValue)
+        //console.log("delta: ", delta)
+        //sharedRoot.applyDelta(delta);
+      } catch (error) {
+        console.error(error)
+      }
+
+
+
+      //sharedRoot.applyDelta(slateNodesToInsertDelta(value));
+    } else if (sharedRoot==null) {
+      
+    } else {
+      
+      console.log("where the server side content?")
+      //sharedRoot.doc?.load();
+      //console.log("sharedRoot !==`null` or `length !== 0`")
+    }
+
+  })
+
+  
+
 
 
 
@@ -208,8 +219,6 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
   useEffect(() => {
     wsProvider.connect();
     console.log("connect wsProvider")
-
-
     return () => wsProvider.disconnect();
   }, [wsProvider]);
 

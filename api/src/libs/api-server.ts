@@ -133,18 +133,18 @@ if (globalThis.DEBUG) console.log("hapiServerOptions:", JSON.stringify(hapiServe
 
 let server: Server = Hapi.server(hapiServerOptions);
 if (globalThis.DEBUG) {
-  // server.events.on('log', function (event, tags) {
-  //   console.log('log: ', event);
-  // });
-  // server.events.on('request', function (request, event, tags) {
-  //   //console.log('Request event fired for: ' + 'channel:' + event.channel + ' ' + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers) + ' error: ' + event.error);
-  //   console.log('Request event fired for: ' + event);
-  // });
+  server.events.on('log', function (event, tags) {
+    console.log('log: ', event);
+  });
+  server.events.on('request', function (request, event, tags) {
+    //console.log('Request event fired for: ' + 'channel:' + event.channel + ' ' + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers) + ' error: ' + event.error);
+    console.log('Request event fired for: ' + event);
+  });
 
-  // server.events.on('response', function (request) {
-  //   //console.log("Response event fired for: " + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
-  //   console.log("\x1b[35m","Response event fired for ReqID: `" + request.info.id + "`");
-  // });
+  server.events.on('response', function (request) {
+    //console.log("Response event fired for: " + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
+    console.log("\x1b[35m","Response event fired for ReqID: `" + request.info.id + "`");
+  });
 }
 
 
