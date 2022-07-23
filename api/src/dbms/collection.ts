@@ -91,10 +91,10 @@ class Collection {
   }
 
   private loadDocumentsIndexFromDisk(): Array<DocumentPointer> {
-    const cp = this._documentsIndexFileAdaptor.loadFromDisk()
-    if (cp === undefined) throw new Error("Collection index data load from fisk failed!")
+    const dp: Array<DocumentPointer> | undefined = this._documentsIndexFileAdaptor.loadFromDisk()
+    if (dp === undefined) throw new Error("Collection index data load from fisk failed!")
 
-    return cp
+    return dp
   }
 
 }

@@ -84,7 +84,7 @@ class Dbms {
   }
 
   private loadCollectionsIndexFromDisk(): Array<CollectionPointer> {
-    const cp = this._collectionsIndexFileAdaptor.loadFromDisk()
+    const cp: Array<CollectionPointer> | undefined = this._collectionsIndexFileAdaptor.loadFromDisk()
     if (cp === undefined) throw new Error("Collection index data load from fisk failed!")
 
     return cp
