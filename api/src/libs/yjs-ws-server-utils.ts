@@ -283,7 +283,7 @@ const pingTimeout = 30000
  * 
  * @param path path where data is persisted
  */
-const initLevelDbConneciton = (path: string): IPersistence => {
+const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> => {
 
   if (typeof path === 'string' && levelDbPersistence == null) {
     console.log('Persisting document state to "' + path + '"')
