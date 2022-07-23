@@ -1,4 +1,4 @@
-import {Collection, Dbms, DbmsConfig, Document, JsonFileAdaptor} from '../../src/dbms/dbms.js'
+import Dbms, {DbmsConfig} from '../../src/dbms/dbms.js'
 import os from 'os'
 
 describe('Dbms Basics', () => {
