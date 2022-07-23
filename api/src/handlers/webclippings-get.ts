@@ -2,7 +2,8 @@ import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hap
 import joi, { object } from 'joi';
 import os from 'os';
 import { URL } from 'url';
-import { Dbms, DbmsConfig, Collection, Document, JsonFileAdaptor } from '../dbms/dbms.js'
+import Dbms, {DbmsConfig} from '../dbms/dbms.js'
+import Document from '../dbms/document.js';
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';
 
