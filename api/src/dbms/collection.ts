@@ -12,6 +12,10 @@ export interface CollectionPointer {
 
 //TODO: type collections to a particular document format like json, yaml, or text 
 // so we don't have to pass the fileadapter to each document instance
+/**
+ * A collection of `Document`s of type `Map`
+ * 
+ */
 class Collection {
   private _documents: Map<string, Document>;
   private _documentsIndexFileAdaptor: JsonFileAdaptor<Array<DocumentPointer>>;

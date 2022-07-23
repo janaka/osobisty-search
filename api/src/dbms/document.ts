@@ -10,10 +10,12 @@ export interface DocumentPointer {
 }
 
 /**
- * Collection is a container for a JS object.
- * Think of it as a colleciton of documents.
- * But we aren't going to be oppinionated about the stucture.
- * Consumers will use standard functionality such as Array.push
+ * Document is a thin wrapper for a JS object.
+ * 
+ * We aren't going to be oppinionated about the stucture.
+ * This means you can create a type to represent any format of data.
+ * Then handle the format specific (de)serialisation needs by creating FileAdaptor by inheriting the `BaseFileAdaptor`
+ * 
  */
 class Document {
   private _dbms: Dbms;
