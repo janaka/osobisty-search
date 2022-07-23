@@ -43,6 +43,7 @@ export class Dbms {
       this.Collections.set(c.name, c);
       return c;
     }
+
   }
 
 
@@ -57,6 +58,13 @@ export class Dbms {
       this._collections = c;
     }
     return this._collections
+  }
+
+/**
+ * Call this when shutting down app to clean up
+ */
+  destroy(): void {
+    // TODO: add clean up code, close any connection, filehandles etc.  
   }
 
   private saveCollectionsIndexToDisk(collections: Map<string, Collection>) {
