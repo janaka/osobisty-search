@@ -1,9 +1,18 @@
 import fs from 'fs';
+
+interface IBaseFileAdaptor<T> {
+  serialize(data: T): string;
+  deserialize(data: string): T;
+  saveToDisk(data: T): Promise<void>;
+  loadFromDisk(): T | undefined;
+  fileExists(): boolean;
+}
+
 /**
  * Inherit to implement file format specific adaptor classes. Example: json or yaml or Markdown + FrontMatter. 
  * Collection instances use this to manage persistance.
  */
- abstract class BaseFileAdaptor<T> {
+ abstract class BaseFileAdaptor<T> implements IBaseFileAdaptor<T> {
   _fqfilename: string;
 
   filename: string;
@@ -37,7 +46,7 @@ import fs from 'fs';
    * Save data of type `T` to disk at what ever structure implemented in by the `serializer()` method.
    * @param data as `object`
    */
-  async saveToDisk(data: T) {
+  async saveToDisk(data: T): Promise<void> {
     const s: string = this.serialize(data);
     //TODO: do we need to control append vs replace content?
     
