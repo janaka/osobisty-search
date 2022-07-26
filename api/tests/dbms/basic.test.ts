@@ -1,11 +1,15 @@
 import Dbms, {DbmsConfig} from '../../src/dbms/dbms.js'
 import os from 'os'
+import { JsonFileAdaptorFactory } from '../../src/dbms/baseFileAdaptor.js';
 
 describe('Dbms Basics', () => {
 
   const dbconfig:DbmsConfig = {
     dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test",
     metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
+    fileAdaptorFactory: new JsonFileAdaptorFactory<object>()
+    // diskStorageFactory: new diskStorageFactory(),
+    // jsonSerialiserFactory: new jsonSerialiserFactory()
   }
   
   let db: Dbms;

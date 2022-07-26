@@ -1,11 +1,13 @@
 import Collection, { CollectionPointer } from './collection.js';
 import { JsonFileAdaptor } from './jsonFileAdaptor.js';
-import { IBaseFileAdaptor } from './baseFileAdaptor.js';
+import { IAbstractFileAdaptorFactory, IBaseFileAdaptor } from './baseFileAdaptor.js';
 
 export interface DbmsConfig {
   dataRootPath: string;
   metaDataRootPath: string;
+  fileAdaptorFactory: IAbstractFileAdaptorFactory<any>;
 }
+
 
 /**
  * Embedded Javascript database manager with persistence in any textfile based structure like JSON, YAML, MarkDown
@@ -94,6 +96,60 @@ class Dbms {
 }
 
 export default Dbms;
+
+
+interface ISerialiser<T> {
+  /**
+   * Data Json object to string. 
+   */
+  serialize(data: T): string
+
+   /**
+    * Data string to Json object
+    */
+   deserialize(data: string): T
+}
+
+interface IStorageAdaptor<T>{
+  /**
+   * 
+   * @param data 
+   */
+  save(data: T): Promise<void>
+}
+
+interface IAbstractStorageAdatorFactory<T> {
+  GetInstance(): IStorageAdaptor<T>;
+}
+
+interface IAbstractSerialiserFactory<T> {
+  GetInstance(): ISerialiser<T>
+}
+
+class JsonSerialiserFactory<T> implements IAbstractSerialiserFactory<T> {
+  GetInstance(): ISerialiser<T> {
+    return new JsonSerialiser()
+  }
+}
+
+class JsonSerialiser<T> implements ISerialiser<T> {
+  serialize(data: T): string {
+    throw new Error('Method not implemented.');
+  }
+  deserialize(data: string): T {
+    throw new Error('Method not implemented.');
+  }
+  
+}
+
+class StorageAdaptor {
+  constructor() {
+  }
+
+  StoreSomething(data: string, path: string):string {
+    return data
+  }
+}
 
 
 // const safeJsonParse = <T>(guard: (o: any) => o is T) => 

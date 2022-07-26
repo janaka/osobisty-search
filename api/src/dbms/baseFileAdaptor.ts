@@ -1,4 +1,5 @@
 import fs from 'fs';
+import { JsonFileAdaptor } from './jsonFileAdaptor';
 
 export interface IBaseFileAdaptor<T> {
   serialize(data: T): string;
@@ -119,3 +120,15 @@ export interface IBaseFileAdaptor<T> {
 }
 
 export default BaseFileAdaptor
+
+
+export interface IAbstractFileAdaptorFactory<T>{
+  GetInstance(path:string, filename: string): IBaseFileAdaptor<T>
+}
+
+export class JsonFileAdaptorFactory<T> implements IAbstractFileAdaptorFactory<T>{
+  GetInstance(path:string, filename: string): IBaseFileAdaptor<T> {
+    return new JsonFileAdaptor<T>(path, filename)
+  }
+
+}

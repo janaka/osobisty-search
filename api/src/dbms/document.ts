@@ -1,4 +1,5 @@
-import BaseFileAdaptor from "./baseFileAdaptor.js";
+import { threadId } from "worker_threads";
+import BaseFileAdaptor, { IBaseFileAdaptor } from "./baseFileAdaptor.js";
 import Dbms from "./dbms";
 import { JsonFileAdaptor } from "./jsonFileAdaptor.js";
 
@@ -20,7 +21,7 @@ export interface DocumentPointer {
 class Document {
   private _dbms: Dbms;
   private _data: object | undefined;
-  private _documentFileAdaptor: BaseFileAdaptor<object>;
+  private _documentFileAdaptor: IBaseFileAdaptor<object>;
   private _fqpath: string;
   private _reldirname: string;
 
@@ -39,8 +40,8 @@ class Document {
     //this._data;
 
     //console.log("2: "+ this._fqpath)
-
-    this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
+    this._documentFileAdaptor = this._dbms.config.fileAdaptorFactory.GetInstance(this._fqpath, this.filename)
+    //this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
     //this._documentFileAdaptor = new this._dbms.config.fileAdaptor<object>(this._fqpath, this.filename);
     
   }
