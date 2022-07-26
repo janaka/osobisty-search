@@ -5,8 +5,7 @@ describe('Dbms Basics', () => {
 
   const dbconfig:DbmsConfig = {
     dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test",
-    metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta"
-  
+    metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
   }
   
   let db: Dbms;
@@ -16,7 +15,7 @@ describe('Dbms Basics', () => {
   });
 
   afterAll(async () => {
-    db.destroy;
+    db.destroy();
   });
 
 

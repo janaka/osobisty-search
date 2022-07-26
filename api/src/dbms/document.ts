@@ -41,6 +41,8 @@ class Document {
     //console.log("2: "+ this._fqpath)
 
     this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
+    //this._documentFileAdaptor = new this._dbms.config.fileAdaptor<object>(this._fqpath, this.filename);
+    
   }
 
   /**

@@ -1,5 +1,6 @@
-import Collection, {CollectionPointer } from './collection.js';
+import Collection, { CollectionPointer } from './collection.js';
 import { JsonFileAdaptor } from './jsonFileAdaptor.js';
+import { IBaseFileAdaptor } from './baseFileAdaptor.js';
 
 export interface DbmsConfig {
   dataRootPath: string;
@@ -63,9 +64,9 @@ class Dbms {
     return this._collections
   }
 
-/**
- * Call this when shutting down app to clean up
- */
+  /**
+   * Call this when shutting down app to clean up
+   */
   destroy(): void {
     // TODO: add clean up code, close any connection, filehandles etc.  
   }

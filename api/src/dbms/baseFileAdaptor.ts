@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-interface IBaseFileAdaptor<T> {
+export interface IBaseFileAdaptor<T> {
   serialize(data: T): string;
   deserialize(data: string): T;
   saveToDisk(data: T): Promise<void>;
@@ -11,6 +11,7 @@ interface IBaseFileAdaptor<T> {
 /**
  * Inherit to implement file format specific adaptor classes. Example: json or yaml or Markdown + FrontMatter. 
  * Collection instances use this to manage persistance.
+ * <T> is the type of the object being handled
  */
  abstract class BaseFileAdaptor<T> implements IBaseFileAdaptor<T> {
   _fqfilename: string;
