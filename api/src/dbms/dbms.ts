@@ -1,7 +1,7 @@
 import Collection, { CollectionPointer } from './collection.js';
-import { IStorageAdapter } from './IStorageAdapter';
-import { JsonSerializer } from './JsonSerializer';
-import { IAbstractSerializerFactory } from "./IAbstractSerializerFactory";
+import { IStorageAdapter } from './IStorageAdapter.js';
+import { JsonSerializer } from './JsonSerializer.js';
+import { IAbstractSerializerFactory } from "./IAbstractSerializerFactory.js";
 import { IAbstractStorageAdapterFactory } from './IAbstractStorageAdapterFactory.js';
 import {Mutex} from 'async-mutex';
 
@@ -34,7 +34,7 @@ export interface DbmsConfig {
 /**
  * Embedded Javascript database manager with persistence in any textfile based structure like JSON, YAML, MarkDown
  */
-class Dbms {
+export class Dbms {
   private _collections: Map<string, Collection>;
   private _collectionsIndexFileName: string = "/collections-index.json";
   private _collectionIndexStorageAdaptor: IStorageAdapter;

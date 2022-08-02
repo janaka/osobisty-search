@@ -1,5 +1,5 @@
-import { IAbstractSerializerFactory } from './IAbstractSerializerFactory';
-import { ISerializer } from './ISerializer';
+import { IAbstractSerializerFactory } from './IAbstractSerializerFactory.js';
+import { ISerializer } from './ISerializer.js';
 
 export class MarkdownFrontMatterSerializer implements ISerializer {
   readonly defaultFileExtension: string = ".json";

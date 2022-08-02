@@ -1,8 +1,8 @@
 import Dbms from "./dbms.js";
-import { JsonSerializer } from "./JsonSerializer";
-import { IStorageAdapter } from "./IStorageAdapter";
-import Document, { DocumentPointer } from "./document";
-import { DiskStorageAdapter } from "./DiskStorageAdapter";
+import { JsonSerializer } from "./JsonSerializer.js";
+import { IStorageAdapter } from "./IStorageAdapter.js";
+import Document, { DocumentPointer } from "./document.js";
+import { DiskStorageAdapter } from "./DiskStorageAdapter.js";
 import fs from 'fs'
 import { Mutex } from "async-mutex";
 

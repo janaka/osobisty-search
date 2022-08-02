@@ -2,10 +2,9 @@ import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hap
 import joi, { object } from 'joi';
 import os from 'os';
 import { URL } from 'url';
-import Dbms, {DbmsConfig} from '../dbms/dbms.js'
-import { JsonSerialiserFactory } from "../dbms/JsonSerializer";
-import { DiskStorageAdaptorFactory } from "../dbms/DiskStorageAdapter";
-import Document from '../dbms/document.js';
+import {Dbms, DbmsConfig, Document} from '../dbms/index.js'
+import { JsonSerialiserFactory } from "../dbms/JsonSerializer.js";
+import { DiskStorageAdaptorFactory } from "../dbms/DiskStorageAdapter.js";
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';
 

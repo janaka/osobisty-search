@@ -62,6 +62,7 @@ function Suggestions(props:any) {
         <button className="search-results-suggestion">PaaS</button>
         <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'simpletestmd'}}) }>Simple Test.md</button>
         <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'complextestmd'}}) }>Complex Test.md</button>
+        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'inboxmd'}}) }>Inbox</button>
       </div>
       <h2 className="empty-state-heading">Key bindings</h2><div className="keyboard-map">
         <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">
@@ -82,7 +83,7 @@ function Suggestions(props:any) {
         <p className="">
           Osobisty means <em>private</em> in Polish.</p>
         <p>
-          Osobisty is a universal, personal search engine by <a href="https://janaka.dev" target="_blank" className="" rel="noreferrer">Janaka</a>.
+          Osobisty is a Zettlekasten/2nd brain with fast universal search by <a href="https://janaka.dev" target="_blank" className="" rel="noreferrer">Janaka</a>.
           It&apos;s heavily influenced by <a href="https://thesephist.com/" target="_blank" rel="noreferrer">Linus Lee&apos;s</a>&nbsp;
           <a href="https://github.com/thesephist/monocle" target="_blank" rel="noreferrer">Monolce</a> project, the UI design is a clone.
           It&apos;s built with React (UI), NodeJS (crawlers + indexers), Typescript, and <a href="https://typesense.org">Typesene</a> for the full-text index and search engine in the backend.

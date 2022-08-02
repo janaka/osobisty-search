@@ -1,10 +1,9 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import joi, { object, ValidationError } from 'joi';
 import os from 'os';
-import Dbms, {DbmsConfig} from '../dbms/dbms.js'
+import {Dbms, DbmsConfig, Document} from '../dbms/index.js'
 import { JsonSerialiserFactory } from "../dbms/JsonSerializer.js";
 import { DiskStorageAdaptorFactory } from "../dbms/DiskStorageAdapter.js";
-import Document from '../dbms/document.js';
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { WebClipPageDbSchema, WebClipDbSchema } from './webclippageDBSchema.js';
 import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';

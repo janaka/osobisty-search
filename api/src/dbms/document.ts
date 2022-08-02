@@ -1,6 +1,6 @@
-import Dbms from "./dbms";
-import { ISerializer } from "./ISerializer";
-import { IStorageAdapter } from "./IStorageAdapter";
+import Dbms from "./dbms.js";
+import { ISerializer } from "./ISerializer.js";
+import { IStorageAdapter } from "./IStorageAdapter.js";
 import { Mutex } from 'async-mutex';
 export interface DocumentPointer {
   [index: string]: string,
@@ -17,7 +17,7 @@ export interface DocumentPointer {
  * Then handle the format specific (de)serialisation needs by creating FileAdaptor by inheriting the `BaseFileAdaptor`
  * 
  */
-class Document {
+export class Document {
   private _dbms: Dbms;
   private _data: object | undefined;
   //private _documentFileAdaptor: IBaseFileAdaptor<object>;

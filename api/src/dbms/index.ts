@@ -1,4 +1,4 @@
-export * from './dbms';
-export * from './collection';
-export * from './document';
+export * from './dbms.js';
+export * from './collection.js';
+export * from './document.js';
 

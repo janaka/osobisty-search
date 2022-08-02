@@ -1,4 +1,4 @@
-import { ISerializer } from "./ISerializer";
+import { ISerializer } from "./ISerializer.js";
 
 
 /**
