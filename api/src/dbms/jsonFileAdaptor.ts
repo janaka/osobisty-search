@@ -1,4 +1,4 @@
-import BaseFileAdaptor, { IBaseFileAdaptor } from './baseFileAdaptor.js'
+import BaseFileAdaptor, { IBaseFileAdaptor } from './baseFileAdapter.js'
 
 /**
  * Persist objects as JSON string without modifying the structure.

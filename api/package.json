@@ -30,6 +30,7 @@
     "@types/hapi__vision": "^5.5.3",
     "@types/jest": "^27.0.2",
     "@types/morgan": "^1.9.3",
+    "async-mutex": "^0.3.2",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",
     "hapi-auth-jwt2": "^10.2.0",

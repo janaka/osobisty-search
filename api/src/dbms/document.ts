@@ -1,8 +1,9 @@
-import { threadId } from "worker_threads";
-import BaseFileAdaptor, { IBaseFileAdaptor } from "./baseFileAdaptor.js";
-import Dbms from "./dbms";
-import { JsonFileAdaptor } from "./jsonFileAdaptor.js";
 
+import BaseFileAdaptor, { IBaseFileAdaptor } from "./baseFileAdapter.js";
+import Dbms from "./dbms";
+import { ISerializer } from "./ISerializer";
+import { IStorageAdapter } from "./IStorageAdapter";
+import { Mutex } from 'async-mutex';
 export interface DocumentPointer {
   [index: string]: string,
   name: string,
@@ -21,39 +22,61 @@ export interface DocumentPointer {
 class Document {
   private _dbms: Dbms;
   private _data: object | undefined;
-  private _documentFileAdaptor: IBaseFileAdaptor<object>;
+  //private _documentFileAdaptor: IBaseFileAdaptor<object>;
+  private _storageAdaptor: IStorageAdapter;
+  private _dataSerializer: ISerializer;
   private _fqpath: string;
   private _reldirname: string;
-
+  private readonly _documentMutex: Mutex;
   /**
-   * Unique name of the document. Also the naming convention for the persisted file.
+   * Unique name of the document. Also the naming convension for the persisted file.
    */
   readonly name: string;
   readonly filename: string;
 
-  constructor(name: string, dbms: Dbms, reldirname: string) {
-    this._dbms = dbms;
-    this.name = name;
-    this._reldirname = reldirname
-    this.filename = "/" + name + ".json";
-    this._fqpath = this._dbms.config.dataRootPath + this._reldirname
-    //this._data;
-
-    //console.log("2: "+ this._fqpath)
-    this._documentFileAdaptor = this._dbms.config.fileAdaptorFactory.GetInstance(this._fqpath, this.filename)
-    //this._documentFileAdaptor = new JsonFileAdaptor<object>(this._fqpath, this.filename);
-    //this._documentFileAdaptor = new this._dbms.config.fileAdaptor<object>(this._fqpath, this.filename);
-    
-  }
 
   /**
-   * Document data
+   * @param filename1 filename including extension, no leading slash e..g `something.json` . If the file exists at the
+   * @reldirname it will be bound. Else new file created.
+   * @param dbms reference to the dbms singleton instance.
+   * @param reldirname relative directory where this file is/will be located. Include leader slash
+   */
+  constructor(filename1: string, dbms: Dbms, reldirname: string);
+  /**
+   * 
+   * @param {string} name Unique name of the document. Also the naming convension for the persisted file unless @filename1 (see below). File extension is set by the serializer.
+   * @param {Dbms} dbms 
+   * @param {string} reldirname path to the data @filename relative to the datarootpath configured for the single Dbms instance. Include leading slash.
+   * @param {string} filename1 (optional) filename including extension, no leading slash e..g `something.json` . If the file exists at the
+   * @reldirname it will be bound. Else new file created. The name part of the file name will be assigned to property name ignoring the constructure param @name
+   */
+  constructor(name: string, dbms: Dbms, reldirname: string, filename1?: string) {
+    this._dbms = dbms;
+    this._dataSerializer = this._dbms.config.dataSerializerFactory.GetInstance();
+    this._storageAdaptor = this._dbms.config.storageAdaptorFactory.GetInstance(this._dataSerializer)
+    this.name = filename1 ? filename1.split(".")[0] : name;
+    this._reldirname = reldirname
+    this.filename = filename1 ? "/" + filename1 : "/" + name + this._dataSerializer.defaultFileExtension;
+    this._fqpath = this._dbms.config.dataRootPath + this._reldirname
+    this._documentMutex = new Mutex();
+
+
+    if (this._storageAdaptor.fileExists(this._fqpath, this.filename)) {
+      this._data = this._storageAdaptor.loadFromDisk(this._fqpath, this.filename)
+    }
+
+
+  }
+
+
+  /**
+   * Document data, that is the deserialized contents of the file. 
    */
   get data(): object | undefined {
-    //TODO: figure out async
-    if (this._data == undefined || this._data === null) {
-      this._data = this._documentFileAdaptor.loadFromDisk();
-    }
+
+    // if (this._data == undefined || this._data === null) {
+    //   this._storageAdaptor.loadFromDisk(this._fqpath, this.filename)
+    // }
     return this._data;
   }
 
@@ -65,12 +88,16 @@ class Document {
    * Persist changes to file on disk
    */
   async save() {
-    if (this._data !== undefined) {
-      this._documentFileAdaptor.saveToDisk(this._data)
-      console.log("`Document.save() fired`")
-    } else {
-      console.log("`data` property is `undefined` so nothing saved to disk")
-    }
+    await this._documentMutex.runExclusive(async () => {
+      if (this._data !== undefined) {
+        //this._documentFileAdaptor.saveToDisk(this._data)
+        this._storageAdaptor.saveToDisk(this._data, this._fqpath, this.filename)
+        console.log("`Document.save() fired`")
+      } else {
+        console.info("`data` property is `undefined` so nothing saved to disk")
+      }
+    })
+    
   }
 
 }

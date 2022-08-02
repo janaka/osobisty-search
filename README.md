@@ -1,6 +1,6 @@
-# Osobisty Search
+# Osobisty
 
-Personal Search Engine for private information.
+Is a Zettlekasten / second brain type system. It includes fast search as you type functionality (aka a personal information search engine)
 
 Osobisty means private in Polish.
 
@@ -10,11 +10,14 @@ Read more about why I built Osobisty [here](https://janaka.dev/introducing-osobi
 
 ## Requirement
 
-- Privacy guaranteed
+- Content privacy and security by design
+  - Accessible from personal and work devices
+  - No local filesystem content storage
 - Search across multiple sources
   - Blogs
   - Zettelkasten
   - Web Bookmarks
+- Content is highly portable
 
 ## Repo strucrure 
 

@@ -3,6 +3,8 @@ import joi, { object } from 'joi';
 import os from 'os';
 import { URL } from 'url';
 import Dbms, {DbmsConfig} from '../dbms/dbms.js'
+import { JsonSerialiserFactory } from "../dbms/JsonSerializer";
+import { DiskStorageAdaptorFactory } from "../dbms/DiskStorageAdapter";
 import Document from '../dbms/document.js';
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';
@@ -10,7 +12,9 @@ import { generateClippingPageFilename } from '../models/generateClippingPageFile
 const dbConfig: DbmsConfig = {
   // TODO: move these paths into  config / .env
   dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
-  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
+  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta",
+  storageAdaptorFactory: new DiskStorageAdaptorFactory(),
+  dataSerializerFactory: new JsonSerialiserFactory(),
 }
 
 interface resSchema {
