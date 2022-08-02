@@ -1,11 +1,20 @@
+/**
+ * A more intuitive API for a collection of type {Map}.
+ */
 interface Map<K, V> {
   /**
-   * More intuitive API for adding items to the collections
-   * @param name unique name for the document also used for the Map `key`
+   * This method is an alias for set()
+   * @param {K} name unique name for the document also used for the Map `key`
    * @param data (optional) document data payload
-   * @returns instance of `V`
+   * @returns {V} instance of type {V}
    */
-  //add: (value: V) => V; 
-  add: (name: K, data?: object) => V;
+  add: (name: K, data?:object) => V;
+
+  /**
+   * This method is an alias for delete()
+   * @param {string} name - name of the item to remove from the colletion
+   */
+  remove: (name: K) => boolean;
+
   
 }

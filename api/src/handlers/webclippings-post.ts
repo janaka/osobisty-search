@@ -1,8 +1,10 @@
 import { Request, ResponseObject, ResponseToolkit, ServerRoute } from '@hapi/hapi';
 import joi, { object, ValidationError } from 'joi';
-import fs from 'fs';
 import os from 'os';
-import { Dbms, DbmsConfig, Collection, Document, JsonFileAdaptor } from '../dbms/dbms.js'
+import Dbms, {DbmsConfig} from '../dbms/dbms.js'
+import { JsonSerialiserFactory } from "../dbms/JsonSerializer.js";
+import { DiskStorageAdaptorFactory } from "../dbms/DiskStorageAdapter.js";
+import Document from '../dbms/document.js';
 import { generateIdFromText } from '../dbms/idFromText.js';
 import { WebClipPageDbSchema, WebClipDbSchema } from './webclippageDBSchema.js';
 import { generateClippingPageFilename } from '../models/generateClippingPageFilename.js';
@@ -11,7 +13,9 @@ import { URL } from 'url';
 const dbConfig: DbmsConfig = {
   // TODO: move these paths into  config / .env
   dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod",
-  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta"
+  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/prod/meta",
+  storageAdaptorFactory: new DiskStorageAdaptorFactory(),
+  dataSerializerFactory: new JsonSerialiserFactory(),
 }
 
 interface reqClipSchema {
