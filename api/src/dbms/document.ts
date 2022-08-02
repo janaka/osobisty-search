@@ -1,5 +1,3 @@
-
-import BaseFileAdaptor, { IBaseFileAdaptor } from "./baseFileAdapter.js";
 import Dbms from "./dbms";
 import { ISerializer } from "./ISerializer";
 import { IStorageAdapter } from "./IStorageAdapter";

@@ -1,16 +1,13 @@
 import Collection, { CollectionPointer } from './collection.js';
-import { JsonFileAdaptor } from './jsonFileAdaptor.js';
 import { IStorageAdapter } from './IStorageAdapter';
-import { DiskStorageAdapter } from './DiskStorageAdapter';
-import { ISerializer } from './ISerializer';
 import { JsonSerializer } from './JsonSerializer';
 import { IAbstractSerializerFactory } from "./IAbstractSerializerFactory";
 import { IAbstractStorageAdapterFactory } from './IAbstractStorageAdapterFactory.js';
 import {Mutex} from 'async-mutex';
 
 //TODO: 
-// - FIX index serializaiton issue - async writes
-// - delete bsaeFileAdaptor and jsonFileAdapter.
+// - reconsider how to handle new docs vs existing docs 1) binding 2) remove/delete handling the file deletion.
+//   - consider adding an explicit file delete option rather than implicit when removed from the collection.
 // - check that serializer and storageAdaptor are static
 // - write a few more test cases
 // - ADD MardownSerializer
