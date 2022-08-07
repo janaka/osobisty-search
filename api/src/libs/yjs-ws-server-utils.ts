@@ -34,6 +34,11 @@ import { File } from '@babel/types';
 import { Node } from 'slate';
 import { InsertDelta } from '@slate-yjs/core/dist/model/types.js';
 import e from 'cors';
+import { Dbms, DbmsConfig, Document } from '../dbms/index.js';
+import { DiskStorageAdaptorFactory } from '../dbms/DiskStorageAdapter.js';
+import { JsonSerialiserFactory } from '../dbms/JsonSerializer.js';
+import Collection from '../dbms/collection.js';
+import { SlateMarkdownFrontMatterSerialiserFactory } from '../dbms/SlateMarkdownFrontmatterSerializer.js';
 
 
 
@@ -57,6 +62,17 @@ let sendcount: number = 0;
 //TODO: this file a mess. Needs refactoring at somepoint.
 
 
+
+let dbconfig1: DbmsConfig = {
+  dataRootPath: os.homedir + "/code-projects/osobisty-search/api/test/prod",
+  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
+  //storageAdaptor: new DiskStorageAdaptor(new JsonSerializer()),
+  storageAdaptorFactory: new DiskStorageAdaptorFactory(),
+  dataSerializerFactory: new SlateMarkdownFrontMatterSerialiserFactory(),
+}
+
+let db1: Dbms = new Dbms(dbconfig1);
+
 interface IPersistence<T> {
   bindState: (docName: string, yDoc: WSSharedDoc) => void;
   writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>;
@@ -66,16 +82,9 @@ interface IPersistence<T> {
 
 // Document change state history is stored in a persistent cache so we can recover from server restarts.
 // We are using a local levelDB instnace for now. 
-// when scaling out the backend this will have to be shared storate of some sort.
+// when scaling out the backend this will have to be shared storage of some sort.
 let levelDbPersistence: IPersistence<LeveldbPersistence> | null = null;
-let fixedFilePersistence: IPersistence<any>;
 
-fixedFilePersistence = {
-  provider: null,
-  bindState: testMdBindState,
-  writeState: async (docName, ydoc) => { }
-
-}
 
 export const setLevelDbPersistence = (persistence_: IPersistence<LeveldbPersistence>) => {
   levelDbPersistence = persistence_
@@ -247,7 +256,7 @@ const closeConn = (doc: WSSharedDoc, conn: ws) => {
       levelDbPersistence.writeState(doc.name, doc).then(() => {
         doc.destroy()
       })
-      
+
       docs.delete(doc.name)
     }
   }
@@ -287,13 +296,13 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
 
   if (typeof path === 'string' && levelDbPersistence == null) {
     console.log('Persisting document state to "' + path + '"')
-    let mdfileDelta 
+    let mdfileDelta
     const ldb = new LeveldbPersistence(path)
 
     const ldbBindState = async (docName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
       const persistedYdoc = await ldb.getYDoc(docName) // get persisted state
       console.log("leveldb state length ", persistedYdoc.store.clients.size)
-      if (persistedYdoc.store.clients.size==0) {
+      if (persistedYdoc.store.clients.size == 0) {
         mdfileDelta = loadFileAsSlateDelta(docName)
         const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
         doc.applyDelta(mdfileDelta)
@@ -391,14 +400,26 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
 function loadFileAsSlateDelta(docName: string): InsertDelta | null {
 
   console.log("ydoc.get(`" + docName + "`, Y.XmlText)")
-  //let sharedroot: XmlText = ydoc.get(docName, Y.XmlText) as Y.XmlText
 
+  let zettleroot: Collection | undefined;
+  if (!db1.Collections.has("zettlekasten/root")) {
+    db1.Collections.add("zettlekasten/root")
+  }
 
+  zettleroot = db1.Collections.get("zettlekasten/root")
 
-  //  console.log("load test file ", sharedroot.length)
+  let inboxmd: Document | undefined;
+  if (!zettleroot?.Documents.has(docName)) {
+    zettleroot?.Documents.add(docName)
+  }
 
+  inboxmd = zettleroot?.Documents.get(docName);
 
-  const rawPersistedTestMd = loadTestMdFileFromDisk(docName + ".md")
+if (inboxmd && !inboxmd.data) {
+  inboxmd.data = "";
+}
+
+  const rawPersistedTestMd = inboxmd?.data; //loadTestMdFileFromDisk(docName + ".md")
   let delta: InsertDelta | null = null;
 
 
@@ -419,14 +440,14 @@ function loadFileAsSlateDelta(docName: string): InsertDelta | null {
 
           if (error) throw (error)
 
-          let initialValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+          let initialValue: Array<any> = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
 
           if (!vfile) throw ("vfile empty")
 
           if (!vfile.result) throw ("remark-slate ain't doing it's thing")
 
           console.log("remark-slate `result`:", vfile.result)
-          const slateTestMd: Node[] = vfile.result as Node[];
+          const slateTestMd: Array<Node> = vfile.result as Array<Node>;
 
           delta = slateNodesToInsertDelta(slateTestMd)
 
@@ -448,7 +469,7 @@ function loadFileAsSlateDelta(docName: string): InsertDelta | null {
   //   //ldb.storeUpdate(docName, update)
   //   console.log("ydoc.onupdate fired!")
   // })
-return delta
+  return delta
 }
 
 

@@ -1,19 +1,20 @@
 
 
-export interface ISerializer {
+export interface ISerializer<T> {
   /**
-   * Data Json object to string.
+   * Data type T to string.
    */
-  serialize(data: object): string;
+  serialize(data: T): string;
 
   /**
-   * Data string to Json object
+   * Data string to type T
    */
-  deserialize(data: string): object;
+  deserialize(data: string): T;
 
   /**
    * Default file extension for this format.
    * Implement as a static property
    */
   defaultFileExtension: string;
+
 }

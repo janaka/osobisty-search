@@ -19,10 +19,10 @@ export interface DocumentPointer {
  */
 export class Document {
   private _dbms: Dbms;
-  private _data: object | undefined;
+  private _data: any | undefined;
   //private _documentFileAdaptor: IBaseFileAdaptor<object>;
   private _storageAdaptor: IStorageAdapter;
-  private _dataSerializer: ISerializer;
+  private _dataSerializer: ISerializer<any>;
   private _fqpath: string;
   private _reldirname: string;
   private readonly _documentMutex: Mutex;
@@ -70,7 +70,7 @@ export class Document {
   /**
    * Document data, that is the deserialized contents of the file. 
    */
-  get data(): object | undefined {
+  get data(): any | undefined {
 
     // if (this._data == undefined || this._data === null) {
     //   this._storageAdaptor.loadFromDisk(this._fqpath, this.filename)
@@ -78,7 +78,7 @@ export class Document {
     return this._data;
   }
 
-  set data(data: object | undefined) {
+  set data(data: any | undefined) {
     this._data = data
   }
 

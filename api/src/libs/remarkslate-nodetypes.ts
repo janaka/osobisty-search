@@ -1,5 +1,42 @@
-import { InputNodeTypes } from "remark-slate";
+//import { InputNodeTypes } from "remark-slate";
 import { OverridedMdastBuilders } from "remark-slate-transformer/lib/transformers/mdast-to-slate";
+import { OverridedSlateBuilders } from "remark-slate-transformer/lib/transformers/slate-to-mdast";
+import slate from 'slate';
+import type {
+  Parent,
+  Literal,
+  Root,
+  Paragraph,
+  Heading,
+  ThematicBreak,
+  Blockquote,
+  List,
+  ListItem,
+  Table,
+  TableRow,
+  TableCell,
+  HTML,
+  Code,
+  YAML,
+  Definition,
+  FootnoteDefinition,
+  Text,
+  Emphasis,
+  Strong,
+  Delete,
+  InlineCode,
+  Break,
+  Link,
+  Image,
+  LinkReference,
+  ImageReference,
+  Footnote,
+  FootnoteReference,
+  Resource,
+  Association,
+  Reference,
+  Alternative,
+}  from 'mdast';
 
 // Override the default remark-slate node type names to match Plate defaults
 // <remark-slate type>:<plate type>;
@@ -36,7 +73,7 @@ const MARK_STRIKETHROUGH = 'strikethrough';
 
 export type plateNodeTypesHeadingObjectKey = keyof typeof plateNodeTypes.heading;
 
-export const plateNodeTypes: InputNodeTypes = {
+export const plateNodeTypes = {
   paragraph: ELEMENT_PARAGRAPH,
   block_quote: ELEMENT_BLOCKQUOTE,
   code_block: ELEMENT_CODE_BLOCK,
@@ -60,19 +97,61 @@ export const plateNodeTypes: InputNodeTypes = {
   image: ELEMENT_IMAGE,
 };
 
+//TODO: create a type based on the ast types imported
+//ref: https://github.com/syntax-tree/mdast
+export const slateNodeTypes = {
+  paragraph: 'paragraph',
+  block_quote: 'blockquote',
+  code_block: 'code',
+  link: 'link',
+  list: 'list',
+  ul_list: ELEMENT_UL,
+  ol_list: ELEMENT_OL,
+  listItem: 'listItem',
+  heading: 'heading',
+  emphasis_mark: MARK_ITALIC,
+  strong_mark: MARK_BOLD,
+  delete_mark: 'delete', //'strikeThrough',
+  inline_code_mark: MARK_CODE, //'code',
+  thematic_break: 'thematic_break',
+  image: 'image',
+};
+
+
 export const remarkToSlateOverrides: OverridedMdastBuilders = {
   // This overrides `type: "heading"` builder of remarkToSlate
-  paragraph: (node: any, next) => ({
+  paragraph: (node: any, next:any) => ({
     type: plateNodeTypes.paragraph,
-    dep: node.depth,
+    depth: node.depth,
     // You have to call next if the node have children
     children: next(node.children),
   }),
-  heading: (node: any, next) => ({
+  heading: (node: any, next:any) => ({
     type: plateNodeTypes.heading[node.depth as plateNodeTypesHeadingObjectKey],
-    dep: node.depth,
+    depth: node.depth,
     // You have to call next if the node have children
     children: next(node.children),
   }),
-   
+}
+
+export const slateToRemarkOverrides: OverridedSlateBuilders = {
+  // This overrides `type: "heading"` builder of remarkToSlate
+  p: (node: any, next:any) => ({
+    type: slateNodeTypes.paragraph,
+    depth: node.depth,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  h1: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 1,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  h2: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 2,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),  
 }

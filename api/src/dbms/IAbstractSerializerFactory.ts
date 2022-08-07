@@ -1,5 +1,5 @@
 import { ISerializer } from './ISerializer';
 
 export interface IAbstractSerializerFactory {
-  GetInstance(): ISerializer;
+  GetInstance(): ISerializer<any>;
 }

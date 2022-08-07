@@ -1,7 +1,7 @@
 import { IAbstractSerializerFactory } from './IAbstractSerializerFactory.js';
 import { ISerializer } from './ISerializer.js';
 
-export class JsonSerializer implements ISerializer {
+export class JsonSerializer implements ISerializer<object> {
   readonly defaultFileExtension: string = ".json";
 
   serialize(data: object): string {
@@ -15,7 +15,7 @@ export class JsonSerializer implements ISerializer {
 }
 
 export class JsonSerialiserFactory implements IAbstractSerializerFactory {
-  GetInstance(): ISerializer {
+  GetInstance(): ISerializer<object> {
     return new JsonSerializer()
   }
 }

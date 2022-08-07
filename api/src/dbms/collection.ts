@@ -72,17 +72,17 @@ class Collection {
       return isDocumentRemoved;
     }
 
-    this.Documents.remove = (name: string): boolean => {
+    this._documents.remove = (name: string): boolean => {
       return this._documents.delete(name)
     }
 
-    this.Documents.get = (key: string): Document | undefined => {
+    this._documents.get = (key: string): Document | undefined => {
       const document = Map.prototype.get.call(this._documents, key);
 
       return document;
     }
 
-    this.Documents.has = (key: string): boolean => {
+    this._documents.has = (key: string): boolean => {
       const hasCollection = Map.prototype.has.call(this._documents, key);
       return hasCollection;
     }

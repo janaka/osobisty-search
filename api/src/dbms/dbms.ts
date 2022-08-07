@@ -58,6 +58,8 @@ export class Dbms {
     // So hard code rather than couple to the data serializer passed in through config.
     this._collectionIndexStorageAdaptor = this.config.storageAdaptorFactory.GetInstance(new JsonSerializer())
 
+    console.log(this._collectionIndexStorageAdaptor.constructor.name)
+
     // reassigning `_collection` will overwite the assinged handler functions below.
     this._collections = this.initialiseCollections(); // this depends on the storage adapter being initialised
 
@@ -75,9 +77,6 @@ export class Dbms {
       this.saveCollectionsIndexToDisk(this._collections);
       return this._collections;
     }
-
-    //TODO: override clear() to deal with persistence
-
 
     /**
      * Add a new Collection. Key/name must be uniques
@@ -143,13 +142,18 @@ export class Dbms {
  */
   private initialiseCollections(): Map<string, Collection> {
     const collections = new Map<string, Collection>();
-    if (this._collectionIndexStorageAdaptor.fileExists(this.config.metaDataRootPath, this._collectionsIndexFileName)) {
-      const ci: Array<CollectionPointer> = this.loadCollectionsIndexFromDisk();
-
-      ci.forEach((cp: CollectionPointer) => {
-        collections.add(cp.name, new Collection(cp.name, this))
-      });
+    try {
+      if (this._collectionIndexStorageAdaptor.fileExists(this.config.metaDataRootPath, this._collectionsIndexFileName)) {
+        const ci: Array<CollectionPointer> = this.loadCollectionsIndexFromDisk();
+        
+        ci.forEach((cp: CollectionPointer) => {
+          collections.set(cp.name, new Collection(cp.name, this));
+        });
+      }      
+    } catch (error) {
+      throw new Error("Initialise collections index failed! Error meddage: " + error)
     }
+
     return collections;
   }
 

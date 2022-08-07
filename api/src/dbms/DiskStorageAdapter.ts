@@ -6,7 +6,7 @@ import { IAbstractStorageAdapterFactory } from './IAbstractStorageAdapterFactory
 
 export class DiskStorageAdapter implements IStorageAdapter {
 
-  private static _serializer: ISerializer;
+  private _serializer: ISerializer<any>;
   // _fqfilename: string;
   // filename: string;
   // path: string;
@@ -22,8 +22,8 @@ export class DiskStorageAdapter implements IStorageAdapter {
   //     throw new Error("`path`:" + this.path + " doesn't exist. Please make sure the path exists.")
   //   }
   // }
-  constructor(serializer: ISerializer) {
-    DiskStorageAdapter._serializer = serializer;
+  constructor(serializer: ISerializer<any>) {
+    this._serializer = serializer;
   }
 
   /**
@@ -31,13 +31,13 @@ export class DiskStorageAdapter implements IStorageAdapter {
    * @param data as `object`
    */
   public async saveToDisk(data: object, path: string, filename: string): Promise<void> {
-    const s: string = DiskStorageAdapter._serializer.serialize(data);
+    const s: string = this._serializer.serialize(data);
     const _fqfilename: string = DiskStorageAdapter.fqfilename(path, filename);
 
 
-    if (!DiskStorageAdapter.dirExists(path)) {
-      throw new Error("`path`:" + path + " doesn't exist. Please make sure the path exists.");
-    }
+    // if (!DiskStorageAdapter.dirExists(path)) {
+    //   throw new Error("`path`:" + path + " doesn't exist. Please make sure the path exists.");
+    // }
 
     console.log("just before writefile(): ", s);
     if (this.fileExists(path, filename)) {
@@ -69,7 +69,7 @@ export class DiskStorageAdapter implements IStorageAdapter {
       fqfn = DiskStorageAdapter.fqfilename(path, filename);
       s = fs.readFileSync(fqfn, "utf-8");
       if (s.length==0) s="[]" // bug/behaviour: readFileSync returns empty string when file has `[]` i.e empty array. Maybe copy function over to debug https://cs.github.com/nodejs/node/blob/2a7ac9298e896760ce3c1cfed8437fa8bdbde2bb/lib/fs.js#L464
-      c = DiskStorageAdapter._serializer.deserialize(s);
+      c = this._serializer.deserialize(s);
       return c;
     } catch (error) {
       const e = error as NodeJS.ErrnoException;
@@ -133,7 +133,7 @@ export class DiskStorageAdapter implements IStorageAdapter {
 
 
 export class DiskStorageAdaptorFactory implements IAbstractStorageAdapterFactory {
-  GetInstance(serializer: ISerializer): IStorageAdapter {
+  GetInstance(serializer: ISerializer<any>): IStorageAdapter {
     return new DiskStorageAdapter(serializer);
   }
 }

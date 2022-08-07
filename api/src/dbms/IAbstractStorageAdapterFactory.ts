@@ -5,5 +5,5 @@ import { ISerializer } from "./ISerializer";
 
 export interface IAbstractStorageAdapterFactory {
   //GetInstance(): IStorageAdaptor;
-  GetInstance(serializer: ISerializer): IStorageAdapter;
+  GetInstance(serializer: ISerializer<any>): IStorageAdapter;
 }
