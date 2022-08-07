@@ -30,16 +30,16 @@ describe('Dbms Slate Markdown+FrontMatter serializer Basics', () => {
   test('Add new Collection, add Document, then remove', (done) => {
     
     try {
-      // const collectionName: string = "md_coll100";
-      // const docName: string = "mddoc1";
-      // let slateTestValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
-      // const doc = db2.Collections.add(collectionName).Documents.add(docName, slateTestValue)
-      // console.log(db2.Collections.size)
-      // expect(db2.Collections.size).toBeGreaterThan(0)
-      // expect(doc.data).toMatchObject<Array<Node>>(slateTestValue);
-      // expect(db.Collections.get(collectionName)?.Documents.get(docName)?.name).toBe(docName)
-      // db.Collections.get(collectionName)?.Documents.remove(docName);
-      // db.Collections.remove(collectionName)
+      const collectionName: string = "md_coll100";
+      const docName: string = "mddoc1";
+      let slateTestValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+      const doc = db2.Collections.add(collectionName).Documents.add(docName, slateTestValue)
+      console.log(db2.Collections.size)
+      expect(db2.Collections.size).toBeGreaterThan(0)
+      expect(doc.data).toMatchObject<Node[]>(slateTestValue);
+      expect(db2.Collections.get(collectionName)?.Documents.get(docName)?.name).toBe(docName)
+      db2.Collections.get(collectionName)?.Documents.remove(docName);
+      db2.Collections.remove(collectionName)
 
       done();
     } catch (error) {
