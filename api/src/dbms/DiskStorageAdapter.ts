@@ -27,32 +27,48 @@ export class DiskStorageAdapter implements IStorageAdapter {
   }
 
   /**
-   * Save data of type `T` to disk at what ever structure implemented in by the `serializer()` method.
+   * Permanently deleted the file or folder from disk. We should be able to depend on the backing storage API for recycle bin (untested).
+   * @param path path to the file to delete
+   * @param filename name of the file or folder to delete
+   */
+  deleteFromDisk(path: string, filename: string): void {
+    const _fqfilename: string = DiskStorageAdapter.fqfilename(path, filename);
+    // ref: https://nodejs.org/api/fs.html#fsrmsyncpath-options
+    console.log("deleteFromDisk(`" + _fqfilename + "`)");
+    fs.rmSync(_fqfilename, { force: true, recursive: true })
+    //throw new Error('Method not implemented.');
+  }
+
+  /**
+   * Save data to disk at what ever structure implemented in by the `serializer()` method.
    * @param data as `object`
    */
   public async saveToDisk(data: object, path: string, filename: string): Promise<void> {
     const s: string = this._serializer.serialize(data);
     const _fqfilename: string = DiskStorageAdapter.fqfilename(path, filename);
 
+    try {
+      // if (!DiskStorageAdapter.dirExists(path)) {
+      //   throw new Error("`path`:" + path + " doesn't exist. Please make sure the path exists.");
+      // }
 
-    // if (!DiskStorageAdapter.dirExists(path)) {
-    //   throw new Error("`path`:" + path + " doesn't exist. Please make sure the path exists.");
-    // }
+      console.log("just before writefile(): ", s);
+      if (this.fileExists(path, filename)) {
+        fs.truncate(_fqfilename, 0, (error: any) => {
+          if (error)
+            throw new Error("DiskStorageAdaptor.saveToDisk() saving failed. Fine truncate failed. Filename: " + _fqfilename + " " + error);
 
-    console.log("just before writefile(): ", s);
-    if (this.fileExists(path, filename)) {
-      fs.truncate(_fqfilename, 0, (error: any) => {
+        });
+      }
+      //TODO: switch to syncfile write
+      fs.writeFile(_fqfilename, s, 'utf-8', (error: any) => {
         if (error)
-          throw new Error("DiskStorageAdaptor.saveToDisk() saving failed. Fine truncate failed. Filename: " + _fqfilename + " " + error);
-
+          throw new Error("DiskStorageAdaptor.saveToDisk() saving failed. Filename: " + _fqfilename + " " + error);
       });
+      console.log("DiskStorageAdaptor.saveToDisk() saved successfully. Filename: " + _fqfilename);
+    } catch (error) {
+      throw new Error("Save failed" + error);
     }
-    //TODO: switch to syncfile write
-    fs.writeFile(_fqfilename, s, 'utf-8', (error: any) => {
-      if (error)
-        throw new Error("DiskStorageAdaptor.saveToDisk() saving failed. Filename: " + _fqfilename + " " + error);
-    });
-    console.log("DiskStorageAdaptor.saveToDisk() saved successfully. Filename: " + _fqfilename);
   }
 
   /**
@@ -68,7 +84,7 @@ export class DiskStorageAdapter implements IStorageAdapter {
     try {
       fqfn = DiskStorageAdapter.fqfilename(path, filename);
       s = fs.readFileSync(fqfn, "utf-8");
-      if (s.length==0) s="[]" // bug/behaviour: readFileSync returns empty string when file has `[]` i.e empty array. Maybe copy function over to debug https://cs.github.com/nodejs/node/blob/2a7ac9298e896760ce3c1cfed8437fa8bdbde2bb/lib/fs.js#L464
+      if (s.length == 0) s = "[]" // bug/behaviour: readFileSync returns empty string when file has `[]` i.e empty array. Maybe copy function over to debug https://cs.github.com/nodejs/node/blob/2a7ac9298e896760ce3c1cfed8437fa8bdbde2bb/lib/fs.js#L464
       c = this._serializer.deserialize(s);
       return c;
     } catch (error) {
@@ -104,9 +120,6 @@ export class DiskStorageAdapter implements IStorageAdapter {
     } catch (error) {
       return false;
     }
-
-
-
   }
 
   /**

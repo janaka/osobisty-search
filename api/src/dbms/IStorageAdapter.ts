@@ -20,5 +20,13 @@ export interface IStorageAdapter {
    * @returns deserialized file data as a type `T` using the concreate deserializer() method.
    */
   loadFromDisk(path: string, filename: string): object | undefined;
+
+  /**
+   * Permanently deleted the file or folder from disk. We should be able to depend on the backing storage API for recycle bin (untested).
+   * @param path path to the file to delete
+   * @param filename name of the file or folder to delete
+   */
+  deleteFromDisk(path: string, filename: string): void;
+
   fileExists(path: string, filename: string): boolean;
 }

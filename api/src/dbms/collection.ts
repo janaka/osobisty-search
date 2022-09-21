@@ -5,6 +5,7 @@ import Document, { DocumentPointer } from "./document.js";
 import { DiskStorageAdapter } from "./DiskStorageAdapter.js";
 import fs from 'fs'
 import { Mutex } from "async-mutex";
+import { throws } from "assert";
 
 
 export interface CollectionPointer {
@@ -32,11 +33,12 @@ class Collection {
   constructor(name: string, dbms: Dbms) {
     this._documentsIndexMutex = new Mutex();
     this._dbms = dbms;
+    if (name.includes("/")) throw new Error("Invalid collection name `" + name + "`. Slash character is not allowed! Path selector syntax not supported yet.");
     this.name = name;
     this.reldirname = "/" + name;
     this._fqpath = this._dbms.config.dataRootPath + this.reldirname;
     this._documentsIndexFileName = this.name + "-documents-index.json";
-    
+
     // Serializing the index as json is an internal impelementaiton choice.
     // we want it to be fixed as opposed to the data serializer which is a configuration.
     // So hard code rather than couple to the data serializer passed in through config.
@@ -53,7 +55,7 @@ class Collection {
       if (key !== value.name) throw new Error("`key` and `Document.name` must be the same")
       const dd = Map.prototype.set.call(this._documents, key, value)
       this._documents = dd;
-      value.save(); // persist the document
+      value.save(); // persist the document data
       this.saveDocumentsIndexToDisk(this._documents);
       return this._documents
     }
@@ -65,15 +67,28 @@ class Collection {
       return d
     }
 
+    /**
+     * Deletes the file from storage and
+     * Removes the file from the in-mem collection
+     */
     this._documents.delete = (key: string): boolean => {
+
+      this._documents.get(key)?.delete();
+
       const isDocumentRemoved = Map.prototype.delete.call(this._documents, key);
-      //TODO: delete the folder named `key`
+
       this.saveDocumentsIndexToDisk(this._documents);
       return isDocumentRemoved;
     }
 
+    /**
+     * Remove the file JUST from the in-mem collection.
+     * Does NOT delete the file from storage
+     */
     this._documents.remove = (name: string): boolean => {
-      return this._documents.delete(name)
+      const isDocumentRemoved = Map.prototype.delete.call(this._documents, name);
+      this.saveDocumentsIndexToDisk(this._documents);
+      return isDocumentRemoved
     }
 
     this._documents.get = (key: string): Document | undefined => {
@@ -86,11 +101,6 @@ class Collection {
       const hasCollection = Map.prototype.has.call(this._documents, key);
       return hasCollection;
     }
-
-
-
-    //TODO: override delete and clear so we can persist the change
-    //TODO: add `remove()` alias
 
     if (!fs.existsSync(this._fqpath)) {
       fs.mkdir(this._fqpath, (error) => {
@@ -108,6 +118,14 @@ class Collection {
     return this._documents
   }
 
+  /**
+   * Delete this collection from disk
+   */
+  public async delete() {
+
+    await this.deleteCollectionFromDisk();
+  }
+
   private initialiseDocuments(): Map<string, Document> {
     const documents = new Map<string, Document>();
     if (this._documentsIndexStorageAdaptor.fileExists(this._dbms.config.metaDataRootPath, this._documentsIndexFileName)) {
@@ -122,19 +140,44 @@ class Collection {
   private async saveDocumentsIndexToDisk(documents: Map<string, Document>) {
     await this._documentsIndexMutex.runExclusive(
       async () => {
-        console.log("saveDocumentsIndexToDisk")
 
-        const documentsIndexArray = new Array<DocumentPointer>();
+        try {
 
-        documents.forEach((value: Document, key: string) => {
-          documentsIndexArray.push({ name: value.name, reldirname: this.reldirname, filename: value.filename })
-        });
 
-        await this._documentsIndexStorageAdaptor.saveToDisk(documentsIndexArray, this._dbms.config.metaDataRootPath, this._documentsIndexFileName)
+          console.log("saveDocumentsIndexToDisk")
+
+          const documentsIndexArray = new Array<DocumentPointer>();
+
+          documents.forEach((value: Document, key: string) => {
+            documentsIndexArray.push({ name: value.name, reldirname: this.reldirname, filename: value.filename })
+          });
+
+          await this._documentsIndexStorageAdaptor.saveToDisk(documentsIndexArray, this._dbms.config.metaDataRootPath, this._documentsIndexFileName)
+        } catch (error) {
+          throw new Error("Error saving document index to storage. " + error)
+        }
       }
     )
 
   }
+
+  private async deleteCollectionFromDisk() {
+    await this._documentsIndexMutex.runExclusive(
+      () => {
+        if (this._documents.size == 0) {
+          console.log("deleteCollectionFromDisk(`" + this.name + "`)");
+
+          this._documentsIndexStorageAdaptor.deleteFromDisk(this._dbms.config.dataRootPath, this.reldirname)
+
+          this._documentsIndexStorageAdaptor.deleteFromDisk(this._dbms.config.metaDataRootPath, this._documentsIndexFileName)
+        } else {
+          throw new Error("collection not empty. Explicity delete document in colleciton before calling delete on the collection.")
+        }
+      }
+    )
+
+  }
+
 
   private loadDocumentsIndexFromDisk(): Array<DocumentPointer> {
     let documentsIndexArray: Array<DocumentPointer>;

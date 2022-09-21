@@ -4,6 +4,15 @@ import { JsonSerialiserFactory } from "../../src/dbms/JsonSerializer";
 import os from 'os'
 import Collection, { CollectionPointer } from '../../src/dbms/collection.js';
 
+/**
+ * Tests the json string <> json serialisation is working.
+ * This serialiser is used to convert in-mem json objects to json strings for use cases like persistence
+ * Strage backend is decoupled from the object serializer.
+ * The storage adaptors define persistance backend+protocol like database, filesystem, G Drive, S3 etc.
+ * Dbms metadata is persisted as json and NOT configurable. 
+ * Data persistence can be different and configured during instantiation of the instance.
+ */
+
 describe('Dbms Json Serializer Basics', () => {
 
   let dbconfig3:DbmsConfig = {

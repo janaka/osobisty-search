@@ -1,4 +1,4 @@
-import { init } from '../../src/libs/api-server'
+import { init } from '../../src/libs/api-server.js'
 import Hapi, { ServerInjectResponse } from '@hapi/hapi';
 
 describe('GET /ping handler', () => {

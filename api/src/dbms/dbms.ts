@@ -89,15 +89,16 @@ export class Dbms {
     }
 
     this._collections.delete = (key: string): boolean => {
+      this._collections.get(key)?.delete() 
       const isCollectionRemoved = Map.prototype.delete.call(this._collections, key);
-      //TODO: delete the folder named `key`
-
       this.saveCollectionsIndexToDisk(this._collections);
       return isCollectionRemoved;
     }
 
     this._collections.remove = (name: string): boolean => {
-      return this._collections.delete(name)
+      const isCollectionRemoved = Map.prototype.delete.call(this._collections, name);
+      this.saveCollectionsIndexToDisk(this._collections);
+      return isCollectionRemoved
     }
 
     this._collections.get = (key: string): Collection | undefined => {
@@ -151,7 +152,7 @@ export class Dbms {
         });
       }      
     } catch (error) {
-      throw new Error("Initialise collections index failed! Error meddage: " + error)
+      throw new Error("Initialise collections index failed! Error message: " + error)
     }
 
     return collections;

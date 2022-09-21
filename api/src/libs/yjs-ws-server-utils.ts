@@ -64,9 +64,8 @@ let sendcount: number = 0;
 
 
 let dbconfig1: DbmsConfig = {
-  dataRootPath: os.homedir + "/code-projects/osobisty-search/api/test/prod",
+  dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test",
   metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
-  //storageAdaptor: new DiskStorageAdaptor(new JsonSerializer()),
   storageAdaptorFactory: new DiskStorageAdaptorFactory(),
   dataSerializerFactory: new SlateMarkdownFrontMatterSerialiserFactory(),
 }
@@ -201,15 +200,6 @@ export const getYDoc = (docname: string, gc: boolean = true): WSSharedDoc => map
   return sharedDoc
 })
 
-/**
- * Bind (read and write) to test.md which is a document used to test + debug editor functionality
- * @param docName 
- * @param ydoc 
- */
-function testMdBindState(docName: string, ydoc: Y.Doc) {
-  //const persistedYdoc = await ldb.getYDoc(docName)
-
-}
 
 /**
  * @param {any} conn websocket conneciton
@@ -252,7 +242,7 @@ const closeConn = (doc: WSSharedDoc, conn: ws) => {
     awarenessProtocol.removeAwarenessStates(doc.awareness, Array.from(controlledIds), null)
     if (doc.wsConns.size === 0 && levelDbPersistence !== null) {
       // if persisted, we store state and destroy ydocument
-      //TODO: change this to MD serialised persistence to file
+      //TODO: Add change this to MD serialised persistence to file
       levelDbPersistence.writeState(doc.name, doc).then(() => {
         doc.destroy()
       })
@@ -399,14 +389,18 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
 
 function loadFileAsSlateDelta(docName: string): InsertDelta | null {
 
+  let delta: InsertDelta | null = null;
   console.log("ydoc.get(`" + docName + "`, Y.XmlText)")
 
+  try {
+    
+
   let zettleroot: Collection | undefined;
-  if (!db1.Collections.has("zettlekasten/root")) {
-    db1.Collections.add("zettlekasten/root")
+  if (!db1.Collections.has("zettlekasten_root")) {
+    db1.Collections.add("zettlekasten_root")
   }
 
-  zettleroot = db1.Collections.get("zettlekasten/root")
+  zettleroot = db1.Collections.get("zettlekasten_root")
 
   let inboxmd: Document | undefined;
   if (!zettleroot?.Documents.has(docName)) {
@@ -415,61 +409,65 @@ function loadFileAsSlateDelta(docName: string): InsertDelta | null {
 
   inboxmd = zettleroot?.Documents.get(docName);
 
-if (inboxmd && !inboxmd.data) {
-  inboxmd.data = "";
-}
-
-  const rawPersistedTestMd = inboxmd?.data; //loadTestMdFileFromDisk(docName + ".md")
-  let delta: InsertDelta | null = null;
-
-
-  if (rawPersistedTestMd !== undefined) {
-    try {
-
-      //.use(slate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
-      //remark()
-      unified()
-        .use(remarkParse)
-        .use(remarkFrontmatter, ['yaml'])
-        .use(remarkUnwrapImages)
-        .use(remarkToSlate, {
-          // If you use TypeScript, install `@types/mdast` for autocomplete.
-          overrides: remarkToSlateOverrides
-        })
-        .process(rawPersistedTestMd, (error, vfile) => {
-
-          if (error) throw (error)
-
-          let initialValue: Array<any> = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
-
-          if (!vfile) throw ("vfile empty")
-
-          if (!vfile.result) throw ("remark-slate ain't doing it's thing")
-
-          console.log("remark-slate `result`:", vfile.result)
-          const slateTestMd: Array<Node> = vfile.result as Array<Node>;
-
-          delta = slateNodesToInsertDelta(slateTestMd)
-
-          // sharedroot.applyDelta(delta);
-        });
-
-
-    } catch (error) {
-      console.error(error)
-    }
-
-
-  } else {
-    throw ("test.md load failed");
+  if (inboxmd && !inboxmd.data) {
+    inboxmd.data = "";
   }
 
-  // ydoc.on('update', update => {
-  //   // write updates back to test.md for persistence.
-  //   //ldb.storeUpdate(docName, update)
-  //   console.log("ydoc.onupdate fired!")
-  // })
-  return delta
+  const slateMd = inboxmd?.data; //loadTestMdFileFromDisk(docName + ".md")
+  
+  delta = slateNodesToInsertDelta(slateMd)
+
+} catch (error) {
+ throw new Error("" + error)   
+}
+
+  // if (rawPersistedTestMd !== undefined) {
+  //   try {
+
+  //     //.use(slate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
+  //     //remark()
+  //     // unified()
+  //     //   .use(remarkParse)
+  //     //   .use(remarkFrontmatter, ['yaml'])
+  //     //   .use(remarkUnwrapImages)
+  //     //   .use(remarkToSlate, {
+  //     //     // If you use TypeScript, install `@types/mdast` for autocomplete.
+  //     //     overrides: remarkToSlateOverrides
+  //     //   })
+  //     //   .process(rawPersistedTestMd, (error, vfile) => {
+
+  //     //     if (error) throw (error)
+
+  //     //     let initialValue: Array<any> = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+
+  //     //     if (!vfile) throw ("vfile empty")
+
+  //     //     if (!vfile.result) throw ("remark-slate ain't doing it's thing")
+
+  //     //     console.log("remark-slate `result`:", vfile.result)
+  //     //     const slateTestMd: Array<Node> = vfile.result as Array<Node>;
+
+  //         //delta = slateNodesToInsertDelta(slateTestMd)
+
+  //         // sharedroot.applyDelta(delta);
+  //       });
+
+
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+
+
+// } else {
+//   throw ("test.md load failed");
+// }
+
+// ydoc.on('update', update => {
+//   // write updates back to test.md for persistence.
+//   //ldb.storeUpdate(docName, update)
+//   console.log("ydoc.onupdate fired!")
+// })
+return delta
 }
 
 

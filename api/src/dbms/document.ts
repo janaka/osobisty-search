@@ -98,6 +98,20 @@ export class Document {
     
   }
 
+  /**
+   * Delete the persisted file from storage
+   */
+   delete() {
+    this._documentMutex.runExclusive(() => {
+      
+        //this._documentFileAdaptor.saveToDisk(this._data)
+        this._storageAdaptor.deleteFromDisk(this._fqpath, this.filename)
+        console.log("`Document.delete() fired`")
+      
+    })
+    
+  }
+
 }
 
 export default Document;
