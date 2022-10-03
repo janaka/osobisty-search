@@ -44,3 +44,22 @@ The rest of the spec is based on the req and res vaidation defined using `joi` a
   - `openssl x509 -req -in server.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out server.crt -days 500 -sha256 -extfile v3.ext`
 
 [source](https://www.freecodecamp.org/news/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec/)
+
+## Docs data structure
+
+Doc contents - is held as a Slate AST.
+
+Doc change tracking and instance syncing (aka collaborative editing) - y-js is used to create a shared data type that holds the Slate AST, which handles tracking and syncing changes between all open instances of a doc. Technicallly it syncs between any instance of the shared type representing the doc. This means we sync between client side React and the backend using the same mechanism as between a doc betwen two tabs or two devices. I've chosen to use the client<>server syncing model with websockets (y-socket).
+
+Server:
+
+- in-memory _docs_ collection of type y-doc - which also track metadata including connections, pressence, leveldb doc instance, and serialzed instance.
+- Pesisted change tracking - using leveldb each docs changes are tracked. This enabled multiple clients to edit the same doc overtime in any order because change tracking information is shared.
+- Serialised storage - each doc is serialised and persisted to "disk" in markdown format
+
+
+Collection names
+
+- encode storage folder path in the the collection name. Relative to root path. replace "/" with "_"
+- source of truth is in the Dbms
+- collection name will need to be passed around otherwise doc names will have to be unique across colleciton which probably isn't ideal.
