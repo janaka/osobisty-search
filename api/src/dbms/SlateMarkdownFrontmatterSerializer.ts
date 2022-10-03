@@ -25,7 +25,7 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
   serialize(data: Node[]): string {
     // use remark to serialize
     let serializedData: string = "";
-    console.log("serialize() Slate `children` data: ", JSON.stringify(data))
+    console.log("serialize(data) data param value. Slate format `children` node: ", JSON.stringify(data))
 
     const data1  = [{"type":"p","children":[{"text":"What is this?"}]},{"type":"p","children":[{"text":""}]},{"type":"ul","children":[{"type":"li","children":[{"type":"lic","children":[{"text":" dfgdfgdfg"}]}]}]},{"type":"p","children":[{"text":""}]},{"type":"p","children":[{"text":"s"}]},{"type":"p","children":[{"text":"ssafdsf h jkhkjhkf"}]},{"type":"p","children":[{"text":"sdfds aSDASDASD D "}]},{"type":"p","children":[{"text":"d d zc n d"}]}];
     // const data2 = [{
@@ -48,11 +48,11 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
       })
 
 
-      console.log("serialise node root: ", JSON.stringify(ast))
+      console.log("serialise() root node AST: ", JSON.stringify(ast))
 
       serializedData = processor.stringify(ast) //JSON.stringify(data);
 
-      console.log("serialize() return data: ", serializedData)
+      console.log("serialize() return data after running processor: ", serializedData)
     } catch (error) {
       throw new Error("slateToRemark failed. " + error)
     }

@@ -216,7 +216,7 @@ describe('Dbms_Slate_Markdown+FrontMatter_serializer_Basics', () => {
       yxmlText.format(1, 2, { bold: true })
       console.log(yxmlText);
 
-      //const a = yTextToSlateElement(yxmlText)
+      const a = yTextToSlateElement(yxmlText) // this crashes. no idea why
       
       
       

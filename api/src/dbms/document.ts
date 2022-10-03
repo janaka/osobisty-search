@@ -89,9 +89,10 @@ export class Document {
     await this._documentMutex.runExclusive(async () => {
       if (this._data !== undefined) {
         //this._documentFileAdaptor.saveToDisk(this._data)
-        this._storageAdaptor.saveToDisk(this._data, this._fqpath, this.filename)
-        console.log("\x1b[31m","`Document.save()` fired")
+        console.log("\x1b[31m","`Document.save()` fired, with the following data:")
         console.log("\x1b[37m", JSON.stringify(this._data))
+        this._storageAdaptor.saveToDisk(this._data, this._fqpath, this.filename)
+
       } else {
         console.info("`data` property is `undefined` so nothing saved to disk")
       }

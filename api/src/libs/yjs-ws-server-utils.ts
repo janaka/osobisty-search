@@ -311,12 +311,23 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
 
       Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc)) // apply persisted state to client
       ydoc.on('update', update => {
-        console.log("\x1b[31m", "update")
-        console.log("\x1b[37m")
-        ldb.storeUpdate(docName, update)
-        const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
-        ydoc.markdownFileRef.data = yTextToSlateElement(doc).children;
-        ydoc.markdownFileRef.save();        
+        console.log("\x1b[31m", "ydoc.on(update)")
+        console.log('ldb.storeUpate() fired')
+        ldb.storeUpdate(docName, update).then(() => {
+          console.log('ldb.storeUpate() complete')
+          
+          ldb.getYDoc(docName).then((doc: Y.Doc) => {
+            const data = yTextToSlateElement(doc.getText(docName) as Y.XmlText).children;
+            console.log("persistedYdoc.get().yTextToSlateElement().children: ", JSON.stringify(data));
+            ydoc.markdownFileRef.data = data;
+            ydoc.markdownFileRef.save();
+            console.log("\x1b[37m");
+          }) //persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
+          
+        }, 
+        (reason: any) => {
+          throw new Error("ldb.storeUpdate() failed. Reason: " + reason)
+        })
       })
     }
 

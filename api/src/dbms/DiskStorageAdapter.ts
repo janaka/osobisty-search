@@ -52,7 +52,7 @@ export class DiskStorageAdapter implements IStorageAdapter {
       //   throw new Error("`path`:" + path + " doesn't exist. Please make sure the path exists.");
       // }
 
-      console.log("just before writefile(): ", s);
+      console.log("MD serialized data, just before calling fs.writefile(): ", s);
       if (this.fileExists(path, filename)) {
         fs.truncate(_fqfilename, 0, (error: any) => {
           if (error)
