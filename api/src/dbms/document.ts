@@ -90,7 +90,8 @@ export class Document {
       if (this._data !== undefined) {
         //this._documentFileAdaptor.saveToDisk(this._data)
         this._storageAdaptor.saveToDisk(this._data, this._fqpath, this.filename)
-        console.log("`Document.save() fired`")
+        console.log("\x1b[31m","`Document.save()` fired")
+        console.log("\x1b[37m", JSON.stringify(this._data))
       } else {
         console.info("`data` property is `undefined` so nothing saved to disk")
       }

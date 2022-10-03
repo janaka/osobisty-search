@@ -2,7 +2,7 @@ import * as Y from 'yjs';
 import { XmlText } from 'yjs';
 import * as syncProtocol from 'y-protocols/sync';
 import * as awarenessProtocol from 'y-protocols/awareness';
-import { slateNodesToInsertDelta } from '@slate-yjs/core'
+import { slateNodesToInsertDelta, yTextToSlateElement } from '@slate-yjs/core'
 
 
 import * as encoding from 'lib0/encoding';
@@ -30,10 +30,9 @@ import { remarkToSlate } from 'remark-slate-transformer'
 import remarkUnwrapImages from 'remark-unwrap-images';
 import remarkFrontmatter from 'remark-frontmatter';
 import { plateNodeTypes, plateNodeTypesHeadingObjectKey, remarkToSlateOverrides } from './remarkslate-nodetypes.js';
-import { File } from '@babel/types';
+
 import { Node } from 'slate';
 import { InsertDelta } from '@slate-yjs/core/dist/model/types.js';
-import e from 'cors';
 import { Dbms, DbmsConfig, Document } from '../dbms/index.js';
 import { DiskStorageAdaptorFactory } from '../dbms/DiskStorageAdapter.js';
 import { JsonSerialiserFactory } from '../dbms/JsonSerializer.js';
@@ -73,7 +72,7 @@ let dbconfig1: DbmsConfig = {
 let db1: Dbms = new Dbms(dbconfig1);
 
 interface IPersistence<T> {
-  bindState: (docName: string, yDoc: WSSharedDoc) => void;
+  bindState: (docName: string,collectionName: string, yDoc: WSSharedDoc) => void;
   writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>;
   provider: T
 }
@@ -122,10 +121,11 @@ export class WSSharedDoc extends Y.Doc {
   wsConns: Map<any, any>;
   mux: mutex.mutex;
   awareness: awarenessProtocol.Awareness;
+  markdownFileRef: Document;
   /**
    * @param {string} name: unique name for the document
    */
-  constructor(name: string) {
+  constructor(name: string, _markdownFileRef: Document) {
     super({ gc: gcEnabled })
     this.name = name
     this.mux = mutex.createMutex()
@@ -134,11 +134,16 @@ export class WSSharedDoc extends Y.Doc {
      * @type {Map<Object, Set<number>>}
      */
     this.wsConns = new Map()
+
+    this.markdownFileRef = _markdownFileRef
+
+
     /**
      * @type {awarenessProtocol.Awareness}
      */
     this.awareness = new awarenessProtocol.Awareness(this)
     this.awareness.setLocalState(null)
+
     /**
      * @param {{ added: Array<number>, updated: Array<number>, removed: Array<number> }} changes
      * @param {Object | null} conn Origin is the connection that made the change
@@ -163,6 +168,7 @@ export class WSSharedDoc extends Y.Doc {
     }
     this.awareness.on('update', awarenessChangeHandler)
     this.on('update', updateHandler)
+
     if (isCallbackSet) {
       this.on('update', debounce(
         callbackHandler,
@@ -170,6 +176,7 @@ export class WSSharedDoc extends Y.Doc {
         { maxWait: CALLBACK_DEBOUNCE_MAXWAIT }
       ))
     }
+
   }
 }
 
@@ -177,22 +184,24 @@ export class WSSharedDoc extends Y.Doc {
  * Gets a Y.Doc by name, whether in memory or on disk
  *
  * @param {string} docname - the name of the Y.Doc to find or create. This is the unique key.
+ * @param {string} collectionName - the name of the Dbms collection.
  * @param {boolean} gc - whether to allow garbage collection on the doc (applies only when created)
  * @return {WSSharedDoc}
  */
-export const getYDoc = (docname: string, gc: boolean = true): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
-  const sharedDoc = new WSSharedDoc(docname)
+export const getYDoc = (docname: string, collectionName: string, gc: boolean = true): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
+
+
+  let docFileRef = getDbmsDocOrCreate(docname, collectionName)
+  
+  const sharedDoc = new WSSharedDoc(docname, docFileRef)
   sharedDoc.gc = gc
   console.log("getYDoc(" + docname + ")")
 
 
-  if (levelDbPersistence !== null) {
-    //TODO: levelDB bindState needs to be called always
-    // Need to add logic to handle loding file from persistance if it doesn't exit
-    // clear from the leveldb cache on connection close. 
-    levelDbPersistence.bindState(docname, sharedDoc)
-  }
-
+  if (levelDbPersistence == null) throw new Error("`levelDbPersistance` cannot be null.")
+    //levelDB bindState needs to be called always
+  levelDbPersistence.bindState(docname, collectionName, sharedDoc)
+  
   docs.set(docname, sharedDoc) // add to docs collection
 
   console.log("doc added: ", docname)
@@ -241,8 +250,7 @@ const closeConn = (doc: WSSharedDoc, conn: ws) => {
     doc.wsConns.delete(conn)
     awarenessProtocol.removeAwarenessStates(doc.awareness, Array.from(controlledIds), null)
     if (doc.wsConns.size === 0 && levelDbPersistence !== null) {
-      // if persisted, we store state and destroy ydocument
-      //TODO: Add change this to MD serialised persistence to file
+      // if persisting state in leveldb then, we store state, flush md file to storage, and destroy ydocument
       levelDbPersistence.writeState(doc.name, doc).then(() => {
         doc.destroy()
       })
@@ -289,20 +297,26 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
     let mdfileDelta
     const ldb = new LeveldbPersistence(path)
 
-    const ldbBindState = async (docName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
+    const ldbBindState = async (docName: string, collectionName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
       const persistedYdoc = await ldb.getYDoc(docName) // get persisted state
       console.log("leveldb state length ", persistedYdoc.store.clients.size)
-      if (persistedYdoc.store.clients.size == 0) {
-        mdfileDelta = loadFileAsSlateDelta(docName)
+      
+      if (persistedYdoc.store.clients.size == 0) { // doc state isn't tracked in leveldb yet. Load from disk if exists or create.
+        mdfileDelta = loadFileAsSlateDelta(docName, collectionName)
         const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
         doc.applyDelta(mdfileDelta)
       }
       const newUpdates = Y.encodeStateAsUpdate(ydoc) // new state coming from client
       ldb.storeUpdate(docName, newUpdates) // persist updated state
+
       Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc)) // apply persisted state to client
       ydoc.on('update', update => {
-        console.log("update")
+        console.log("\x1b[31m", "update")
+        console.log("\x1b[37m")
         ldb.storeUpdate(docName, update)
+        const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
+        ydoc.markdownFileRef.data = yTextToSlateElement(doc).children;
+        ydoc.markdownFileRef.save();        
       })
     }
 
@@ -312,6 +326,7 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
       writeState: async (docName, ydoc) => {
         const newUpdates = Y.encodeStateAsUpdate(ydoc)
         ldb.storeUpdate(docName, newUpdates)
+        ydoc.markdownFileRef.save();
       }
     }
 
@@ -328,16 +343,15 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
  * @param {any} req
  * @param {any} opts 
  */
-export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.slice(1).split('?')[0], gc: boolean = true) => {
+export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.slice(1).split('?')[0], collectionName: string, gc: boolean = true) => {
   ws.binaryType = 'arraybuffer'
 
+  // initLevelDbConneciton() check if leveldb connection string exists
   setLevelDbPersistence(initLevelDbConneciton(YSTATE_LEVELDB_PATH))
 
   // get doc, initialize if it does not exist yet
-  const doc = getYDoc(docName, gc)
+  const doc = getYDoc(docName, collectionName, gc)
   doc.wsConns.set(ws, new Set())
-
-
 
   // listen and reply to events
   ws.on('message', (message: ArrayBuffer) => messageListener(ws, doc, new Uint8Array(message)))
@@ -387,90 +401,56 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
 }
 
 
-function loadFileAsSlateDelta(docName: string): InsertDelta | null {
+
+function loadFileAsSlateDelta(docName: string, collectionName: string): InsertDelta | null {
 
   let delta: InsertDelta | null = null;
   console.log("ydoc.get(`" + docName + "`, Y.XmlText)")
 
   try {
-    
 
-  let zettleroot: Collection | undefined;
-  if (!db1.Collections.has("zettlekasten_root")) {
-    db1.Collections.add("zettlekasten_root")
+        const dbmsDoc = getDbmsDocOrCreate(docName, collectionName);
+        const slateMd = dbmsDoc?.data; //loadTestMdFileFromDisk(docName + ".md")
+
+    delta = slateNodesToInsertDelta(slateMd)
+
+  } catch (error) {
+    throw new Error("" + error)
   }
 
-  zettleroot = db1.Collections.get("zettlekasten_root")
-
-  let inboxmd: Document | undefined;
-  if (!zettleroot?.Documents.has(docName)) {
-    zettleroot?.Documents.add(docName)
-  }
-
-  inboxmd = zettleroot?.Documents.get(docName);
-
-  if (inboxmd && !inboxmd.data) {
-    inboxmd.data = "";
-  }
-
-  const slateMd = inboxmd?.data; //loadTestMdFileFromDisk(docName + ".md")
-  
-  delta = slateNodesToInsertDelta(slateMd)
-
-} catch (error) {
- throw new Error("" + error)   
-}
-
-  // if (rawPersistedTestMd !== undefined) {
-  //   try {
-
-  //     //.use(slate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
-  //     //remark()
-  //     // unified()
-  //     //   .use(remarkParse)
-  //     //   .use(remarkFrontmatter, ['yaml'])
-  //     //   .use(remarkUnwrapImages)
-  //     //   .use(remarkToSlate, {
-  //     //     // If you use TypeScript, install `@types/mdast` for autocomplete.
-  //     //     overrides: remarkToSlateOverrides
-  //     //   })
-  //     //   .process(rawPersistedTestMd, (error, vfile) => {
-
-  //     //     if (error) throw (error)
-
-  //     //     let initialValue: Array<any> = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
-
-  //     //     if (!vfile) throw ("vfile empty")
-
-  //     //     if (!vfile.result) throw ("remark-slate ain't doing it's thing")
-
-  //     //     console.log("remark-slate `result`:", vfile.result)
-  //     //     const slateTestMd: Array<Node> = vfile.result as Array<Node>;
-
-  //         //delta = slateNodesToInsertDelta(slateTestMd)
-
-  //         // sharedroot.applyDelta(delta);
-  //       });
-
-
-  //   } catch (error) {
-  //     console.error(error)
-  //   }
-
-
-// } else {
-//   throw ("test.md load failed");
-// }
-
-// ydoc.on('update', update => {
-//   // write updates back to test.md for persistence.
-//   //ldb.storeUpdate(docName, update)
-//   console.log("ydoc.onupdate fired!")
-// })
-return delta
+  return delta
 }
 
 
+/**
+ * Get the Document object if it exists. Otherwise create and return.
+ * Creates the collection if it doesn't exist
+ */
+function getDbmsDocOrCreate(docName: string, collectionName: string): Document {
+//zettlekasten_root
+
+  let dbmsCollection: Collection | undefined;
+  if (!db1.Collections.has(collectionName)) {
+    db1.Collections.add(collectionName)
+  }
+
+  dbmsCollection = db1.Collections.get(collectionName)
+
+  let dbmsDoc: Document | undefined;
+  if (!dbmsCollection?.Documents.has(docName)) {
+    dbmsCollection?.Documents.add(docName)
+  }
+
+  dbmsDoc = dbmsCollection?.Documents.get(docName);
+
+  if (dbmsDoc == undefined || dbmsDoc == null) throw new Error("Something went wrong. Document object is `undefined` or `null`. This isn't a state we should be in here.")
+ 
+  if (dbmsDoc && !dbmsDoc.data) {
+    dbmsDoc.data = "";
+  }
+
+  return dbmsDoc
+}
 
 
 function loadTestMdFileFromDisk(filename: string): string | undefined {

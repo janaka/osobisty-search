@@ -42,14 +42,14 @@ export enum TEditMode {
 
 export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
-const EditView = ({ id, editContent, editMode }: { id: string, editContent: string, editMode: TEditMode }) => {
+const EditView = ({ id, collectionName, editMode }: { id: string, collectionName: string, editMode: TEditMode }) => {
   // TODO: handle loading and saving the zettle document from file via the API
   // use the indexdb provider for offline strage in the browser together with 
   // websocket provider to sync to backend for persistence. 
 
   let docId = id;
   
-  let docEditContent = editContent;
+  //let docEditContent = editContent;
 
   console.log("START");
   // Create a yjs document and get the shared type
@@ -62,9 +62,9 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     className: "doc-preview-content",
   };
 
-  let initialValue: any = [{ type: 'p', children: [{ text: 'New doc. client-side initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
+  // let initialValue: any = [{ type: 'p', children: [{ text: 'New doc. client-side initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];
 
-  let docFromTypesense: any = [];
+  // let docFromTypesense: any = [];
 
   const [value, setValue] = useState<TElement[]>([]);
 
@@ -105,7 +105,9 @@ const EditView = ({ id, editContent, editMode }: { id: string, editContent: stri
     //   console.log('WebSocket error: ', event);
     // });
 
-    return new WebsocketProvider('wss://localhost:3002/documents', docName, yDoc) // sync to backend for persistence 
+    //
+    //TODO: this will only work in dev at the moment!!! switch yjs backend wss address based on environment and config. 
+    return new WebsocketProvider('wss://localhost:3002/documents/' + collectionName, docName, yDoc) // sync to backend for persistence 
     //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
 
   }, [docName])

@@ -60,6 +60,9 @@ class Collection {
       return this._documents
     }
 
+    /**
+     * adds Document to collection and calls save to disk
+     */
     this._documents.add = (name: string, data?: object): Document => {
       const d = new Document(name, this._dbms, this.reldirname);
       if (d.data == undefined && data) d.data = data;

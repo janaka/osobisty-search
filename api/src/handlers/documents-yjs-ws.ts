@@ -21,16 +21,23 @@ export const getRouteConfigYjsWsDocuments: any = {
           console.log("setup websocket conneciton")
           
           let docname: string = "";
+          let collectionName: string = "root";
           console.log("state.req.url=", state.req.url)
           //req.params not avail at this point so manually parse
           if (state.req.url) {
             let url = state.req.url.toString();
-            let path = url.split('?')[0].split('/');
-            docname = path[path.length-1]
-            console.log("docname:", docname)
+            let path = url.split('?')[0];
+            let splitPath =  path.split('/');
+            docname = splitPath[splitPath.length-1];
+
+            let relpath = path.split("/documents/")[1].split("/"+docname)[0];
+            collectionName = relpath.replaceAll("/","__");
+
+            console.log("collectionName:", collectionName);
+            console.log("docname:", docname);
           }
         
-          setupWSConnection(state.ws, state.req, docname)
+          setupWSConnection(state.ws, state.req, docname, collectionName)
 
           state.ws.on('message', (data: Uint8Array, isBinary)=>{
             console.log("ws message received! Payload -->")
@@ -70,7 +77,6 @@ export const getRouteConfigYjsWsDocuments: any = {
     console.log("'" + req.path + "' route handler fired! req payload -->")
     //req.params.username
     //console.log(req.params)
-
     //const headers: Util.Dictionary<string> = req.headers
 
     const res: ResponseObject = h.response

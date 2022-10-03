@@ -1,3 +1,5 @@
+import * as Y from 'yjs';
+import { yTextToSlateElement } from '@slate-yjs/core';
 import Dbms, {DbmsConfig} from '../../src/dbms/dbms.js'
 import { DiskStorageAdaptorFactory } from '../../src/dbms/DiskStorageAdapter.js';
 import { JsonSerialiserFactory } from "../../src/dbms/JsonSerializer";
@@ -7,6 +9,7 @@ import { SlateMarkdownFrontMatterSerialiserFactory, SlateMarkdownFrontMatterSeri
 import { BaseElement, Editor, Element, Node } from 'slate';
 import fs  from 'fs';
 import { Document } from '../../src/dbms/index.js';
+
 
 describe('Dbms_Slate_Markdown+FrontMatter_serializer_Basics', () => {
 
@@ -188,7 +191,7 @@ describe('Dbms_Slate_Markdown+FrontMatter_serializer_Basics', () => {
   
       const a = ser.deserialize("# Hello, _italics_, **bold**, ~~strikethrough~~, `const code = () => {}`")
       console.log("deserialized `a`: ", JSON.stringify(a))
-  // let initialValue: Editor =  { children: [{"type":"h2","dep":2,"children":[{"text":"Hello, "},{"emphasis":true,"text":"yes"}]}]} //{ type: 'p', children: [{ text: 'initial value from backend' }] }; //[{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+      // let initialValue: Editor =  { children: [{"type":"h2","dep":2,"children":[{"text":"Hello, "},{"emphasis":true,"text":"yes"}]}]} //{ type: 'p', children: [{ text: 'initial value from backend' }] }; //[{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
       const b = ser.serialize(a)
       console.log("serialized `b`: ", b)
   
@@ -198,9 +201,36 @@ describe('Dbms_Slate_Markdown+FrontMatter_serializer_Basics', () => {
     } catch (error) {
       done(String(error));
     }
-    });
+  });
 
+  test('Serialize from Y.XmlText', (done) => {
+    
+    try {
+  
+      const ser = new SlateMarkdownFrontMatterSerializer();
+      const ydoc = new Y.Doc()
 
+      const yxmlText = ydoc.get('my xmltext type', Y.XmlText) as Y.XmlText
+
+      yxmlText.insert(0, "abcd");
+      yxmlText.format(1, 2, { bold: true })
+      console.log(yxmlText);
+
+      //const a = yTextToSlateElement(yxmlText)
+      
+      
+      
+
+      // const b = ser.serialize(a)
+      // console.log("serialized `b`: ", b)
+  
+      // expect(b).toMatch("a*bc*d")
+  
+      done();
+    } catch (error) {
+      done(String(error));
+    }
+  });
 
 
 });
