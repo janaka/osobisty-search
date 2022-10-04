@@ -1469,10 +1469,10 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@slate-yjs/core@^0.2.6":
-  version "0.2.6"
-  resolved "https://registry.yarnpkg.com/@slate-yjs/core/-/core-0.2.6.tgz#c3e4fce070277da2e5050f4e8c7a68771045c8b0"
-  integrity sha512-L4Ffs5OMa51rBIu/Z7ILdve7Ubfk5MsgurF0YNCTRNPADw1PE+QxuU05hYicmTUYoTUB9b+BHamB1wxnAh7z6g==
+"@slate-yjs/core@^0.3.0":
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/@slate-yjs/core/-/core-0.3.0.tgz#8ab0785fdc7184ee8f2875ccbb6926f5bfab881f"
+  integrity sha512-lcHz8j0J9xy4RT4dqmJX1Bhn6xqLGrgEnWGntCX5DVBdKWBpwb1g3u1mZLNXJApbdCqx3DCpQCF9fT54PtzAHQ==
   dependencies:
     y-protocols "^1.0.5"
 
@@ -5174,10 +5174,10 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
-slate@0.78.0:
-  version "0.78.0"
-  resolved "https://registry.yarnpkg.com/slate/-/slate-0.78.0.tgz#cd0328d22b0a99c543987d2a2dd30903bb950ee9"
-  integrity sha512-VwQ0RafT3JPf9SFrXI02Dh3S4Iz9en7d1nn50C/LJjjqjfgv+a2ORbgWMdYjhycPYldaxJwcI3OpP9D1g4SXEg==
+slate@^0.82.1:
+  version "0.82.1"
+  resolved "https://registry.yarnpkg.com/slate/-/slate-0.82.1.tgz#cf43cb828c980734dab01c9bbb517fd4d20892f7"
+  integrity sha512-3mdRdq7U3jSEoyFrGvbeb28hgrvrr4NdFCtJX+IjaNvSFozY0VZd/CGHF0zf/JDx7aEov864xd5uj0HQxxEWTQ==
   dependencies:
     immer "^9.0.6"
     is-plain-object "^5.0.0"
@@ -5851,10 +5851,10 @@ yargs@^16.2.0:
     y18n "^5.0.5"
     yargs-parser "^20.2.2"
 
-yjs@^13.5.39:
-  version "13.5.39"
-  resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.5.39.tgz#656763e61bfa0e50162657a8372ac2a50d955c6a"
-  integrity sha512-EoVT856l301lomtjjVspgTdSRiFqZ7gNKnmVPX4/V8NHI5EYS39/MdjB9iNv0Mw1weKDZRU8NgxgerqwJ3y2xA==
+yjs@^13.5.41:
+  version "13.5.41"
+  resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.5.41.tgz#105041cd56bdef154704441c381d80723e072bbe"
+  integrity sha512-4eSTrrs8OeI0heXKKioRY4ag7V5Bk85Z4MeniUyown3o3y0G7G4JpAZWrZWfTp7pzw2b53GkAQWKqHsHi9j9JA==
   dependencies:
     lib0 "^0.2.49"
 
