@@ -21,34 +21,34 @@ const container = document.getElementById("root");
 // };
 
 //*** React17
-render(
+  
+  //render(
+  // <Auth0Provider
+  //   domain={auth0Domain}
+  //   clientId={auth0ClientId}
+  //   redirectUri={window.location.origin}
+  //   audience={audience}
+  //   scope="read:zettleDocuments" // scopes are used for consent. if not consented the api access token generation for this scope will fail. 
+  // //onRedirectCallback={onRedirectCallback}
+  // >
+  //   <App />
+  // </Auth0Provider>,
+  // container);
+
+
+//*** React18
+
+const root = createRoot(container!); // react 18
+root.render(
   <Auth0Provider
     domain={auth0Domain}
     clientId={auth0ClientId}
     redirectUri={window.location.origin}
     audience={audience}
-    scope="read:zettleDocuments" // scoped are used for consent. if not consented the api access token generation for this scope will fail. 
+    scope="read:zettleDocuments" // scopes are used for consent. if not consented the api access token generation for this scope will fail. 
   //onRedirectCallback={onRedirectCallback}
   >
     <App />
   </Auth0Provider>,
-  container);
-
-
-//*** React18
-
-// const root = createRoot(container!); // react 18
-// root.render(
-//   <Auth0Provider
-//     domain={auth0Domain}
-//     clientId={auth0ClientId}
-//     redirectUri={window.location.origin}
-//     audience={audience}
-//     scope="read:zettleDocuments" // scoped are used for consent. if not consented the api access token generation for this scope will fail. 
-//   //onRedirectCallback={onRedirectCallback}
-//   >
-//     <App />
-//   </Auth0Provider>,
-//   // container
-// );
-
+  // container
+);

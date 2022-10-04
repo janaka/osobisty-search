@@ -43,7 +43,7 @@ const useKeyboardShortcut = (shortcutKeys:any, callback:any, options:any) => {
   const [keys, setKeys] = useReducer(keysReducer, initalKeyMapping);
 
   const keydownListener = useCallback(
-    assignedKey => (keydownEvent:any) => {
+    (    assignedKey: string) => (keydownEvent:any) => {
       const loweredKey = assignedKey.toLowerCase();
       
       if (keydownEvent.repeat) return
@@ -63,7 +63,7 @@ const useKeyboardShortcut = (shortcutKeys:any, callback:any, options:any) => {
   );
 
   const keyupListener = useCallback(
-    assignedKey => (keyupEvent:any) => {
+    (    assignedKey: string) => (keyupEvent:any) => {
       const raisedKey = assignedKey.toLowerCase();
 
       if (blacklistedTargets.includes(keyupEvent.target.tagName)) return;
