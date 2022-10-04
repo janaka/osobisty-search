@@ -70,9 +70,9 @@ const basicMarks = createPlugins(
 
 const complex = createPlugins(
   [
-    createResetNodePlugin(),
-    createSoftBreakPlugin(),
-    createExitBreakPlugin(),
+    // createResetNodePlugin(),
+    // createSoftBreakPlugin(),
+    // createExitBreakPlugin(),
     createTodoListPlugin(),
     createAutoformatPlugin(
       {

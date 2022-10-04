@@ -5,9 +5,7 @@ import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './hooks/useFetchHook';
 import useKeyboardShortcut from './hooks/useKeyboardShortcutHook';
 import {
-  BrowserRouter as Router,
-  useLocation,
-  useHistory
+  BrowserRouter as Router,  
 } from "react-router-dom";
 
 

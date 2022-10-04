@@ -185,27 +185,14 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
     console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
   
     if (sharedRoot !== null && sharedRoot.length == 0) {
-      console.log("Server didn't return data")
-      console.log("New doc, client-sideload initial value")
-      //setValue(docFromTypesense);
-      try {
-        
-
-        //const delta = slateNodesToInsertDelta(initialValue)
-        //console.log("delta: ", delta)
-        //sharedRoot.applyDelta(delta);
-      } catch (error) {
-        console.error(error)
-      }
-
-
-
-      //sharedRoot.applyDelta(slateNodesToInsertDelta(value));
-    } else if (sharedRoot==null) {
+      console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero.: ", sharedRoot)
       
+    } else if (sharedRoot==null) {
+      console.log("`sharedRood` object is `null`: ", sharedRoot)
+
     } else {
       
-      console.log("where the server side content?")
+      console.log("We have some content! `sharedRoot`: ", sharedRoot)
       //sharedRoot.doc?.load();
       //console.log("sharedRoot !==`null` or `length !== 0`")
     }
@@ -213,10 +200,6 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
   })
 
   
-
-
-
-
   // Connect editor and providers in useEffect to comply with concurrent mode requirements.
   useEffect(() => {
     wsProvider.connect();
