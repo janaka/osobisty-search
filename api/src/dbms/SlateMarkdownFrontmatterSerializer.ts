@@ -1,4 +1,5 @@
 import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import { remarkToSlate, slateToRemark, SlateToRemarkOptions, RemarkToSlateOptions } from 'remark-slate-transformer';
 import remarkUnwrapImages from 'remark-unwrap-images';
 import remarkStringify from "remark-stringify";
@@ -38,8 +39,9 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
     try {
       const processor = unified()
         .use(slateToRemark, {
-          overrides: slateToRemarkOverrides 
+          overrides: slateToRemarkOverrides // we need these becase Plate type names are different to Slate
         })
+        .use(remarkGfm)
         .use(remarkStringify)
 
       const ast = processor.runSync({
@@ -67,6 +69,7 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
       .use(markdown)
       .use(remarkFrontmatter, ['yaml'])
       .use(remarkUnwrapImages)
+      .use(remarkGfm)
       .use(remarkToSlate, {
         // If you use TypeScript, install `@types/mdast` for autocomplete.
         overrides: remarkToSlateOverrides

@@ -53,7 +53,7 @@ const ELEMENT_H5 = 'h5';
 const ELEMENT_H6 = 'h6';
 const ELEMENT_IMAGE = 'img';
 const ELEMENT_LI = 'li';
-const ELEMENT_LIC = 'lic';
+const ELEMENT_LIC = 'lic'; // listitem checkbox
 const ELEMENT_LINK = 'a';
 const ELEMENT_MEDIA_EMBED = 'media_embed';
 const ELEMENT_MENTION = 'mention';
@@ -81,6 +81,7 @@ export const plateNodeTypes = {
   ul_list: ELEMENT_UL,
   ol_list: ELEMENT_OL,
   listItem: ELEMENT_LI,
+  actionListItem: ELEMENT_TODO_LI, // this is not HTML rendered as a <UL> or <OL>
   heading: {
     1: ELEMENT_H1,
     2: ELEMENT_H2,
@@ -117,34 +118,51 @@ export const slateNodeTypes = {
   image: 'image',
 };
 
-
+/**
+ * Map from remark to Plate node names when deserializing MD
+ */
 export const remarkToSlateOverrides: OverridedMdastBuilders = {
-  // This overrides `type: "heading"` builder of remarkToSlate
+  
   paragraph: (node: any, next:any) => ({
     type: plateNodeTypes.paragraph,
     depth: node.depth,
     // You have to call next if the node have children
     children: next(node.children),
   }),
+  // This overrides `type: "heading"` builder of MDAST to SlatePlate 
   heading: (node: any, next:any) => ({
     type: plateNodeTypes.heading[node.depth as plateNodeTypesHeadingObjectKey],
     depth: node.depth,
     // You have to call next if the node have children
     children: next(node.children),
   }),
+  list: (node: any, next:any) => ({
+    type: node.ordered ? plateNodeTypes.ol_list : plateNodeTypes.ul_list,
+    children: next(node.children),
+  }),
+  listItem: (node: any, next:any) => ({
+    type: node.checked ? plateNodeTypes.actionListItem : plateNodeTypes.listItem,
+    children: next(node.children),
+  }),
 }
 
+/**
+ * we need to map between Plate to Slate when serializing to MD. 
+ * 
+ * The following is mapping from Plate to Slate becuase the remark only understands Slate
+ */
 export const slateToRemarkOverrides: OverridedSlateBuilders = {
-  // This overrides `type: "heading"` builder of remarkToSlate
+  
   p: (node: any, next:any) => ({
     type: slateNodeTypes.paragraph,
     depth: node.depth,
     // You have to call next if the node have children
     children: next(node.children),
   }),
+  // This overrides `type: "heading"` builder to go from Plate to Slate for remark
   h1: (node: any, next:any) => ({
     type: slateNodeTypes.heading,
-    depth: 1,
+    level: 1,
     // You have to call next if the node have children
     children: next(node.children),
   }),
@@ -153,5 +171,62 @@ export const slateToRemarkOverrides: OverridedSlateBuilders = {
     depth: 2,
     // You have to call next if the node have children
     children: next(node.children),
-  }),  
+  }),
+  h3: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 3,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  h4: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 4,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  h5: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 5,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  h6: (node: any, next:any) => ({
+    type: slateNodeTypes.heading,
+    depth: 6,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  ul: (node: any, next:any) => ({
+    type: slateNodeTypes.list,
+    ordered: false,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  ol: (node: any, next:any) => ({
+    type: slateNodeTypes.list,
+    ordered: true,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  li: (node: any, next:any) => ({
+    type: slateNodeTypes.listItem,
+    checked: node.checked ? node.checked : false,
+    depth: 1,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  lic: (node: any, next:any) => ({
+    type: slateNodeTypes.listItem,
+    checked: node.checked ? node.checked : false,
+    depth: 1,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  action_item: (node: any, next:any) => ({
+    type: slateNodeTypes.listItem,
+    checked: node.checked ? node.checked : false,
+    depth: 1,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
 }

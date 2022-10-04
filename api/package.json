@@ -43,6 +43,7 @@
     "morgan": "^1.10.0",
     "remark": "^14.0.2",
     "remark-frontmatter": "^4.0.1",
+    "remark-gfm": "^3.0.1",
     "remark-slate": "^1.8.6",
     "remark-slate-transformer": "^0.7.1",
     "remark-unwrap-images": "^3.0.1",

@@ -18,6 +18,9 @@ import {
   createStrikethroughPlugin,
   createSubscriptPlugin,
   createSuperscriptPlugin,
+  createExitBreakPlugin,
+  createResetNodePlugin,
+  createSoftBreakPlugin,
   createTodoListPlugin,
   createUnderlinePlugin,
   ELEMENT_H1,
@@ -67,17 +70,14 @@ const basicMarks = createPlugins(
 
 const complex = createPlugins(
   [
+    createResetNodePlugin(),
+    createSoftBreakPlugin(),
+    createExitBreakPlugin(),
     createTodoListPlugin(),
     createAutoformatPlugin(
       {
         options: {
           rules: [
-            {
-              mode: 'block',
-              type: ELEMENT_H1,
-              match: '# ',
-              preFormat: clearBlockFormat,
-            },
             ...autoformatRules,
           ],
 
@@ -105,8 +105,8 @@ export const PLUGINS = {
         styles: {
           root: css`
             margin: 1em 0 1px;
-            font-size: 1.25em;
-            font-weight: 500;
+            font-size: 1em;
+            font-weight: 700;
             line-height: 1.3;
             color: #666666;
             `,

@@ -1,6 +1,7 @@
 import {
   AutoformatRule,
   ELEMENT_LI,
+  ELEMENT_LIC,
   ELEMENT_OL,
   ELEMENT_TODO_LI,
   ELEMENT_UL,
@@ -28,12 +29,12 @@ export const autoformatLists: AutoformatRule[] = [
   {
     mode: 'block',
     type: ELEMENT_TODO_LI,
-    match: '[] ',
+    match: ['[] '],
   },
   {
     mode: 'block',
     type: ELEMENT_TODO_LI,
-    match: '[x] ',
+    match: ['[x] ', '-[x] '],
     format: (editor) =>
       setNodes<TTodoListItemElement>(
         editor,
