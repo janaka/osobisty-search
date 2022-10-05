@@ -29,8 +29,9 @@ import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
 import * as awarenessProtocol from 'y-protocols/awareness'
 import * as random from 'lib0/random'
 import * as math from 'lib0/math'
-import { deltaInsertToSlateNode } from '@slate-yjs/core/dist/utils/convert';
+import { deltaInsertToSlateNode, slateElementToYText } from '@slate-yjs/core/dist/utils/convert';
 import { XmlText } from 'yjs';
+import { MyValue, MyEditor, createMyEditor } from './slate-plate/plateTypes';
 
 
 
@@ -40,7 +41,7 @@ export enum TEditMode {
   EditRaw = "editraw",
 }
 
-export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
+//export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
 const EditView = ({ id, collectionName, editMode }: { id: string, collectionName: string, editMode: TEditMode }) => {
   // TODO: handle loading and saving the zettle document from file via the API
@@ -55,7 +56,7 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
   // Create a yjs document and get the shared type
   console.log("docId=" + docId);
 
-  const editableProps: TEditableProps<TElement[]> = {
+  const editableProps: TEditableProps<MyValue> = {
     autoFocus: false,
     spellCheck: false,
     placeholder: "Type…",
@@ -66,7 +67,7 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
 
   // let docFromTypesense: any = [];
 
-  const [value, setValue] = useState<TElement[]>([]);
+  const [value, setValue] = useState<MyValue>([]);
 
   // const webrtcOpts = {
   //   // Specify signaling servers. The client will connect to every signaling server concurrently to find other peers as fast as possible.
@@ -147,8 +148,8 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
     // the order below is important
     return withTReact(
       withTYjs(
-        withPlate(
-          createTEditor(),
+        withPlate<MyValue, MyEditor>(
+          createMyEditor(),
           { id: docName, plugins: PLUGINS.allNodes, disableCorePlugins: false }
         ),
         sharedRoot,
@@ -180,27 +181,29 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
 
   // `synced` fires before `sync`
   wsProvider.on('synced', async (isSynced: boolean) => {
-    console.log("synced: ", isSynced);
-    console.log("Obj `sharedRoot`=",sharedRoot);
+    console.log("==== onSynced() ======");
+    console.log("synced status: ", isSynced);
     console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
-  
+    
     if (sharedRoot !== null && sharedRoot.length == 0) {
-      console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero.: ", sharedRoot)
-      
-    } else if (sharedRoot==null) {
-      console.log("`sharedRood` object is `null`: ", sharedRoot)
-
+      console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero. Obj `sharedRoot`:: ", sharedRoot)
+    } else if (wsProvider.wsconnected==true && sharedRoot==null) {
+      console.log("`sharedRood` object is `null`. Obj `sharedRoot`: ", sharedRoot)
+      throw new Error("sharedRoot is `null`. Something has gone wrong.")
+    } else if (wsProvider.wsconnected==false) {
+      console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
     } else {
-      
-      console.log("We have some content! `sharedRoot`: ", sharedRoot)
-      //sharedRoot.doc?.load();
-      //console.log("sharedRoot !==`null` or `length !== 0`")
+      console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
     }
 
+    console.log("`sharedRoot` content: ", sharedRoot?.toString())
+
+    console.log("==========");
   })
 
   
   // Connect editor and providers in useEffect to comply with concurrent mode requirements.
+
   useEffect(() => {
     wsProvider.connect();
     console.log("connect wsProvider")
@@ -210,23 +213,22 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
   useEffect(() => {
     //Connect the editor to the shared type by overwriting the current editor value with the in the shared root contained document and registering the appropriate event listeners.
     YjsEditor.connect(editor);
-    console.log("connect editor")
+    console.log("connect editor. connected=", YjsEditor.connected(editor))
 
     return () => YjsEditor.disconnect(editor);
   }, [editor]);
 
   return (
 
-    <Plate
+    <Plate<MyValue, MyEditor>
       id={docId}
       editor={editor}
       editableProps={{ ...editableProps }}
-      //initialValue={value}
-      value={value} //{[{ children: [{ text: '' }] }]}
+      //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
       //plugins={plugins} // when the `editor` instance is provided this doesn't apply
       onChange={(newValue) => {
         console.log("Plate onChange() fired")
-        setValue(newValue)
+        //setValue(newValue) // see note for value prop above
         // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
         // console.log("`newValue` onChange():", newValue)
       }}

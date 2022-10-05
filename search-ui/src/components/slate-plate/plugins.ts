@@ -31,6 +31,7 @@ import {
 } from '@udecode/plate';
 import { css } from 'styled-components';
 import { autoformatRules } from './autoformat/autoformatRules';
+import { createMyPlugins } from './plateTypes';
 
 //import { CONFIG } from './config';
 
@@ -38,7 +39,7 @@ export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
   unwrapList(editor);
 
 
-const basicElements = createPlugins(
+const basicElements = createMyPlugins(
   [
     createBlockquotePlugin(),
     createCodeBlockPlugin(),
@@ -53,7 +54,7 @@ const basicElements = createPlugins(
   }
 );
 
-const basicMarks = createPlugins(
+const basicMarks = createMyPlugins(
   [
     createBoldPlugin(),
     createCodePlugin(),
@@ -68,7 +69,7 @@ const basicMarks = createPlugins(
   }
 );
 
-const complex = createPlugins(
+const complex = createMyPlugins(
   [
     // createResetNodePlugin(),
     // createSoftBreakPlugin(),

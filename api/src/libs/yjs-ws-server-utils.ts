@@ -457,7 +457,7 @@ function getDbmsDocOrCreate(docName: string, collectionName: string): Document {
   if (dbmsDoc == undefined || dbmsDoc == null) throw new Error("Something went wrong. Document object is `undefined` or `null`. This isn't a state we should be in here.")
  
   if (dbmsDoc && !dbmsDoc.data) {
-    dbmsDoc.data = "";
+    dbmsDoc.data = "new file";
   }
 
   return dbmsDoc
