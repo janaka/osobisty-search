@@ -1,14 +1,19 @@
 import { Plate, PlateProvider } from '@udecode/plate';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { addHightlightMarkup } from '../utils/addHighlightMarkup';
 import { addHtmlFormatting } from '../utils/addHtmlFormatting';
-import EditView, { TEditMode } from './editView';
+import EditView from './editView';
+import { TEditMode } from "../types/TEditMode";
 import { MyEditor, MyValue } from './slate-plate/plateTypes';
 import { PLUGINS } from './slate-plate/plugins';
 
 export function DocPreview(props: any) {
 
   const [editMode, setEditMode] = useState<TEditMode>(TEditMode.ReadOnly)
+
+  useEffect(() => {
+    if (props.editMode) setEditMode(props.editMode)
+  }, [props.editMode])
 
   return (
     <div>
@@ -63,32 +68,32 @@ export function DocPreview(props: any) {
             :
 
             editMode == TEditMode.EditRaw ?
-              
-                <Plate<MyValue, MyEditor >
-                  id="raweditortest"
-                  plugins={PLUGINS.allNodes}
-                  //editor={editor}
-                  //editableProps={{ ...editableProps }}
-                  //initialValue={value}
-                  //value={value} //{[{ children: [{ text: '' }] }]}
-                  //plugins={plugins} // when the `editor` instance is provided this doesn't apply
-                  onChange={(newValue) => {
-                    console.log("PlateRaw onChange() fired")
-                    //setValue(newValue)
-                    // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-                    // console.log("`newValue` onChange():", newValue)
-                  }}
 
-                />
-              
+              <Plate<MyValue, MyEditor >
+                id="raweditortest"
+                plugins={PLUGINS.allNodes}
+                //editor={editor}
+                //editableProps={{ ...editableProps }}
+                //initialValue={value}
+                //value={value} //{[{ children: [{ text: '' }] }]}
+                //plugins={plugins} // when the `editor` instance is provided this doesn't apply
+                onChange={(newValue) => {
+                  console.log("PlateRaw onChange() fired")
+                  //setValue(newValue)
+                  // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
+                  // console.log("`newValue` onChange():", newValue)
+                }}
+
+              />
+
               :
 
               <EditView id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
 
-              // <PlateProvider<MyValue, MyEditor> id={props.hitData.document.id} >
-              //   {/* need <PlateProvider> for the state handling to work properly */}
-              //   <EditView id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
-              // </PlateProvider>
+            // <PlateProvider<MyValue, MyEditor> id={props.hitData.document.id} >
+            //   {/* need <PlateProvider> for the state handling to work properly */}
+            //   <EditView id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
+            // </PlateProvider>
 
           }
 

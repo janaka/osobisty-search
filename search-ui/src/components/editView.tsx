@@ -32,14 +32,10 @@ import * as math from 'lib0/math'
 import { deltaInsertToSlateNode, slateElementToYText } from '@slate-yjs/core/dist/utils/convert';
 import { XmlText } from 'yjs';
 import { MyValue, MyEditor, createMyEditor } from './slate-plate/plateTypes';
+import {debounce} from 'lodash';
+import { TEditMode } from '../types/TEditMode';
 
 
-
-export enum TEditMode {
-  ReadOnly = "readonly",
-  EditMd = "editmd",
-  EditRaw = "editraw",
-}
 
 //export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
@@ -226,11 +222,16 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
       editableProps={{ ...editableProps }}
       //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
       //plugins={plugins} // when the `editor` instance is provided this doesn't apply
-      onChange={(newValue) => {
-        console.log("Plate onChange() fired")
+      onChange={async (newValue) => {
+        
+        //debounce(async () =>{console.log("Plate onChange() fired")}, 10)
+        //console.log("Plate onChange() fired")
         //setValue(newValue) // see note for value prop above
         // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-        // console.log("`newValue` onChange():", newValue)
+        // console.log("`newVsdfalue` onChange():", newValue)
+
+        
+        
       }}
 
     />

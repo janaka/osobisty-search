@@ -5,10 +5,8 @@ import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './hooks/useFetchHook';
 import useKeyboardShortcut from './hooks/useKeyboardShortcutHook';
 import {
-  BrowserRouter as Router,  
+  BrowserRouter as Router, Routes, Route, useParams, createBrowserRouter, createRoutesFromElements, RouterProvider,
 } from "react-router-dom";
-
-
 import './App.css';
 import { func } from 'prop-types';
 import LoginButton from './components/loginButton';
@@ -20,6 +18,8 @@ import { addHightlightMarkup } from './utils/addHighlightMarkup';
 import { DocPreview } from './components/docPreview';
 import { Search } from './components/search';
 import { SearchResults } from './components/searchResults';
+import { TEditMode } from './types/TEditMode';
+
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -32,15 +32,15 @@ if (TYPESENSE_PROTOCOL !== "http" && TYPESENSE_PROTOCOL !== "https") throw "TYPE
 if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
 
 function App() {
-  const { user, isAuthenticated, isLoading } = useAuth0();
+  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
-  const [selectedHit, setSelectedHit] = useState(null);
+  const [selectedHit, setSelectedHit] = useState<{} | null>();
   const [doReset, setDoReset] = useState(false);
   const [docCount, setDocCount] = useState("");
   const [darkMode, SetDarkMode] = useState(true);
   const [token, setToken] = useState("");
 
-  const { getAccessTokenSilently } = useAuth0();
+  
 
   useEffect(() => {
     (async () => {
@@ -125,26 +125,60 @@ function App() {
   }
   useKeyboardShortcut(["Meta", "`"], toggleDarkmodeKbShortcutHandler, { overrideSystem: true }) // cmd + `
 
-  if (!isAuthenticated) {
-    return (<div>
-      <h4> Login to start using Osobisty Search</h4>
-      <LoginButton />
-    </div>)
-  }
 
 
-  if (!token) {
+  if (isLoading) {
     return <div>Loading ...</div>;
   }
 
-  return (
-    <Router>
-      <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
-        <SearchResults data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-        <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
-      </Search>
-    </Router>
-  );
+  const router = createBrowserRouter(
+    [
+      {
+        path: "/",
+        element: <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
+          <SearchResults data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
+          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+        </Search>,
+      },
+      {
+        path: "documents/:collectionName/:id",
+        element: <DocPreviewFullpage setSelectedHit={setSelectedHit} />,
+      },
+    ]);
+
+
+  
+    if (!isAuthenticated) {
+      return (<div>
+        <h4> Login to start using Osobisty Search</h4>
+        <LoginButton />
+      </div>)
+    } else {
+      return (
+        <RouterProvider router={router} />
+      );
+    }  
+  
 }
+
+// function getDocumentHitFromUrlParam() {
+//   let params = useParams();
+//   console.log("url param id: ", params.id)
+//   let hit = { document: { authors: '', date: '', id: { params.id }, collectionName: { params.collectionName } } }
+//   return hit
+// }
+
+function DocPreviewFullpage(props:any) {
+
+  let params = useParams();
+
+  console.log("url param id: ", params.id)
+
+  let hit = { document: { authors: '', date: '', id: params.id , collectionName: params.collectionName  } }
+
+  return <DocPreview hitData={hit} setSelectedHit={props.setSelectedHit} editMode={TEditMode.EditMd}/>
+
+}
+
 
 export default App;
