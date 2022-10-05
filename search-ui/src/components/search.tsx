@@ -9,12 +9,15 @@ export function Search(props: any) {
   const [searchInputBoxValue, setSearchInputBoxValue] = useState("")
   const searchInputBox = useRef<HTMLInputElement>(null);
 
-  const backslashkeyHandler = (): void => {
-    console.log("backslash pressed")
+  const SearchinputKbShortcutHandler = (keys:Object): void => {
+
+    console.log("pressed keys:", keys)
+
+    searchInputBox.current && searchInputBox.current.focus();
   }
 
-  //useKeyboardShortcut(["Escape"], escapekeyHandler, { overrideSystem: false })
-  useKeyboardShortcut(["/"], backslashkeyHandler, { overrideSystem: false })
+  
+  useKeyboardShortcut(["Meta", "k"], SearchinputKbShortcutHandler, { overrideSystem: true }) // cmd + k
 
 
   const query = useQuery();
@@ -22,9 +25,10 @@ export function Search(props: any) {
 
   const q = query.get("q")
 
-  useEffect(() => {
-    searchInputBox.current && searchInputBox.current.focus();
-  });
+  // useEffect(() => {
+  //   searchInputBox.current && searchInputBox.current.focus();
+    
+  // });
 
 
   useEffect(() => {

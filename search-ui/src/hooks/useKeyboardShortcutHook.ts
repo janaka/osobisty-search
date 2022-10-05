@@ -18,7 +18,17 @@ const keysReducer = (state:any, action:any) => {
   }
 };
 
-const useKeyboardShortcut = (shortcutKeys:any, callback:any, options:any) => {
+
+
+/**
+ * 
+ * @param shortcutKeys an ordered array of one or more `KeyboardEvent.key` strings. When more than one key string is passed they need to be pressed together e.g. `["Meta", "k"] is cmd+k`. Press order not checked.
+ * @param callback reference to a handler function which will be called on keypress
+ * @param options  `{ overrideSystem: @boolean }`. If `true` will prevent the charactor being printed by doing `keydownEvent.preventDefault(); disabledEventPropagation(keydownEvent);`
+ * 
+ * @see {@link https://developer.mozilla.org/en-US/docs/Web/API/UI_Events/Keyboard_event_key_values} for valid key string values.
+ */
+const useKeyboardShortcut = (shortcutKeys:any, callback:(keys: Object)=>void, options:any) => {
   if (!Array.isArray(shortcutKeys))
     throw new Error(
       "The first parameter to `useKeyboardShortcut` must be an ordered array of `KeyboardEvent.key` strings."
@@ -83,6 +93,7 @@ const useKeyboardShortcut = (shortcutKeys:any, callback:any, options:any) => {
 
   useEffect(() => {
     if (!Object.values(keys).filter(value => !value).length) {
+      //TODO: validate order of key press again order in `shortcutKeys` array
       callback(keys);
       setKeys({ type: "reset-keys", data: initalKeyMapping });
     } else {

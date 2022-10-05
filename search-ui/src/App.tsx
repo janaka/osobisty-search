@@ -113,7 +113,7 @@ function App() {
     //console.log("Behavior before the component is added to the DOM");\\\\\\
   });
 
-  const backtickKeyHandler = (): void => {
+  const toggleDarkmodeKbShortcutHandler = (): void => {
 
     if (darkMode) {
       SetDarkMode(false)
@@ -123,7 +123,7 @@ function App() {
       document.body.classList.add("dark")
     }
   }
-  useKeyboardShortcut(["`"], backtickKeyHandler, { overrideSystem: false })
+  useKeyboardShortcut(["Meta", "`"], toggleDarkmodeKbShortcutHandler, { overrideSystem: true }) // cmd + `
 
   if (!isAuthenticated) {
     return (<div>

@@ -47,22 +47,22 @@ export function SearchResults(props: any) {
           }
         </ol>
         :
-        <div><Suggestions setSelectedHitFunc={props.setSelectedHit}/></div>
+        <div><Suggestions setSelectedHitFunc={props.setSelectedHit} /></div>
 
       }
     </div >
   )
 }
 
-function Suggestions(props:any) {
+function Suggestions(props: any) {
   return (
     <div className="search-results search-results-empty">
       <h2 className="empty-state-heading">Suggestions</h2>
       <div className="search-results-suggestions">
         <button className="search-results-suggestion">PaaS</button>
-        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'simpletestmd', collectionName: 'zettlekasten__root'}}) }>Simple Test.md</button>
-        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'complextestmd', collectionName: 'zettlekasten__root'}}) }>Complex Test.md</button>
-        <button className="search-results-suggestion" onClick={()=>props.setSelectedHitFunc({document: {authors: '', date: '', id: 'inboxmd', collectionName: 'zettlekasten__root'}}) }>Inbox</button>
+        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'simpletestmd', collectionName: 'zettlekasten__root' } })}>Simple Test.md</button>
+        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'complextestmd', collectionName: 'zettlekasten__root' } })}>Complex Test.md</button>
+        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'inboxmd', collectionName: 'zettlekasten__root' } })}>Inbox</button>
       </div>
       <h2 className="empty-state-heading">Key bindings</h2><div className="keyboard-map">
         <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">
@@ -71,11 +71,11 @@ function Suggestions(props:any) {
             <kbd className="">Tab</kbd></div><div className="keybinding-detail">Previous search result</div></li>
           <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Enter</kbd></div>
             <div className="keybinding-detail">Show preview pane</div></li>
-          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Escape</kbd></div><
-            div className="keybinding-detail">Hide preview pane, clear search</div></li>
-          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">/</kbd></div>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">Escape</kbd></div>
+            <div className="keybinding-detail">Hide preview pane, clear search</div></li>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">cmd+k</kbd></div>
             <div className="keybinding-detail">Focus search box</div></li>
-          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">`</kbd></div>
+          <li className="keyboard-map-item"><div className="keybinding-keys"><kbd className="">cmd+`</kbd></div>
             <div className="keybinding-detail">Switch light/dark color theme</div></li></ul></div>
 
       <h2 className="empty-state-heading">About Osobisty</h2>
