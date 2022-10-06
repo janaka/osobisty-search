@@ -5,7 +5,7 @@ import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './hooks/useFetchHook';
 import useKeyboardShortcut from './hooks/useKeyboardShortcutHook';
 import {
-  BrowserRouter as Router, Routes, Route, useParams, createBrowserRouter, createRoutesFromElements, RouterProvider,
+  BrowserRouter as Router, Routes, Route, createBrowserRouter, createRoutesFromElements, RouterProvider,
 } from "react-router-dom";
 import './App.css';
 import { func } from 'prop-types';
@@ -18,7 +18,7 @@ import { addHightlightMarkup } from './utils/addHighlightMarkup';
 import { DocPreview } from './components/docPreview';
 import { Search } from './components/search';
 import { SearchResults } from './components/searchResults';
-import { TEditMode } from './types/TEditMode';
+import { DocFullpage } from './components/docFullpage';
 
 
 // 6be0576ff61c053d5f9a3225e2a90f76
@@ -142,7 +142,7 @@ function App() {
       },
       {
         path: "documents/:collectionName/:id",
-        element: <DocPreviewFullpage setSelectedHit={setSelectedHit} />,
+        element: <DocFullpage />,
       },
     ]);
 
@@ -160,25 +160,5 @@ function App() {
     }  
   
 }
-
-// function getDocumentHitFromUrlParam() {
-//   let params = useParams();
-//   console.log("url param id: ", params.id)
-//   let hit = { document: { authors: '', date: '', id: { params.id }, collectionName: { params.collectionName } } }
-//   return hit
-// }
-
-function DocPreviewFullpage(props:any) {
-
-  let params = useParams();
-
-  console.log("url param id: ", params.id)
-
-  let hit = { document: { authors: '', date: '', id: params.id , collectionName: params.collectionName  } }
-
-  return <DocPreview hitData={hit} setSelectedHit={props.setSelectedHit} editMode={TEditMode.EditMd}/>
-
-}
-
 
 export default App;
