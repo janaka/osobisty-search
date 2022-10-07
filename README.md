@@ -42,3 +42,23 @@ export TYPESENSE_API_KEY=xyz
 docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/data typesense/typesense:0.21.0 \
   --data-dir /data --enable-cors --api-key=$TYPESENSE_API_KEY
 ```
+
+
+## TODO
+
+- [] task: switch on auth-over-websocket on the /documents endpoint. Validate with tests
+- [] task: switch UI y-websocket connection string to prod/dev env config
+- [] feature: notes inbox - desktop web. able to use as primary notes inbox over VS Code MD file
+- [] feature: TODO list - desktop web. able to use as primary TODO over VS Code MD file.
+- [] feature: MD minimum support for inbox and todo
+  - H1-H4
+  - bold, italics
+  - unordered bullet list
+  - unordered chechbox list (no indenting)
+  - raw links
+  
+
+
+
+
+
