@@ -137,7 +137,7 @@ if (globalThis.DEBUG) {
   });
   server.events.on('request', function (request, event, tags) {
     //console.log('Request event fired for: ' + 'channel:' + event.channel + ' ' + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers) + ' error: ' + event.error);
-    console.log('Request event fired for: ' + event);
+    console.log('Request(' + request.info.id + ') event fired for: ' + event);
   });
 
   server.events.on('response', function (request) {
@@ -164,7 +164,7 @@ const validateFunc = async (decoded: any) => {
 
   
   // ideally we want to check permission at the route handler level but need to use a plugin for that. 
-  // Only consent scoped are support sort of OOTB
+  // Only consent scopes are supported sort of OOTB
   if (scope.includes("read:zettleDocuments")) {
     if ((permissions.includes("user") || permissions.includes("machine")) && (permissions.includes("read:zettleDocuments") || permissions.includes("admin:typesense"))) {
       isValid = true;
