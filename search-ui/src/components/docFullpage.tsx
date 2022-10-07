@@ -7,24 +7,30 @@ import EditView from './editView';
 
 export function DocFullpage() {
 
-    
 
-  
-    const params = useParams();
-    console.log("url param id: ", params.id);
 
-    if (!params.collectionName) throw new Error("`collectionName` cannot be `" + params.collectionName+  "`");
-    if (!params.id) throw new Error("`collectionName` cannot be `" + params.id+  "`");
 
-    const id = params.id;
-    const collectionName= params.collectionName;
+  const params = useParams();
+  console.log("url param id: ", params.id);
 
-  
+  if (!params.collectionName) throw new Error("`collectionName` cannot be `" + params.collectionName + "`");
+  if (!params.id) throw new Error("`collectionName` cannot be `" + params.id + "`");
+
+  const id = params.id;
+  const collectionName = params.collectionName;
+
+
   return (
-    <div className="doc-preview">
-    <EditView id={id} collectionName={collectionName} editMode={TEditMode.EditMd} />
+
+
+    <div className="container mx-auto h-screen pb-6" >
+      <div className="h-auto rounded-lg bg-primarybg p-4 mt-4  scroll-auto overscroll-auto">
+      <EditView id={id} collectionName={collectionName} editMode={TEditMode.EditMd} />
+      </div>
     </div>
-    );
-  
+
+
+  );
+
 
 }

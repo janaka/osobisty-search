@@ -39,7 +39,7 @@ import { TEditMode } from '../types/TEditMode';
 
 //export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
-const EditView = ({ id, collectionName, editMode }: { id: string, collectionName: string, editMode: TEditMode }) => {
+const EditView = ({ id, collectionName, editMode, className}: { id: string, collectionName: string, editMode: TEditMode, className?: string }) => {
   // TODO: handle loading and saving the zettle document from file via the API
   // use the indexdb provider for offline strage in the browser together with 
   // websocket provider to sync to backend for persistence. 
@@ -56,7 +56,7 @@ const EditView = ({ id, collectionName, editMode }: { id: string, collectionName
     autoFocus: false,
     spellCheck: false,
     placeholder: "Type…",
-    className: "doc-preview-content",
+    className: className,
   };
 
   // let initialValue: any = [{ type: 'p', children: [{ text: 'New doc. client-side initial value' }] }, { type: 'p', children: [{ text: 'dfgdfg' }] }];

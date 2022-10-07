@@ -88,7 +88,7 @@ export function DocPreview(props: any) {
 
               :
 
-              <EditView id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
+              <EditView className="doc-preview-content" id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
 
             // <PlateProvider<MyValue, MyEditor> id={props.hitData.document.id} >
             //   {/* need <PlateProvider> for the state handling to work properly */}

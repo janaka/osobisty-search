@@ -28,6 +28,7 @@ import {
   StyledElement,
   unwrapList,
   withProps,
+  ELEMENT_H2,
 } from '@udecode/plate';
 import { css } from 'styled-components';
 import { autoformatRules } from './autoformat/autoformatRules';
@@ -101,18 +102,42 @@ export const PLUGINS = {
   },),
   allNodes: createPlugins([...basicElements, ...basicMarks, ...complex], {
     components: createPlateUI(
-      {[ELEMENT_H3]: withProps(StyledElement, {
+      {[ELEMENT_H1]: withProps(StyledElement, {
+        as: 'h1',
+        styles: {
+          root: css`
+            margin: 0.15em 0 0.5em;
+            font-size: 2em;
+            font-weight: 700;
+            line-height: 1.3;
+            color: #666666;
+            `,
+        },
+      }),
+      [ELEMENT_H2]: withProps(StyledElement, {
+        as: 'h2',
+        styles: {
+          root: css`
+            margin: 0.15em 0 0.5em;
+            font-size: 1.5em;
+            font-weight: 600;
+            line-height: 1.3;
+            `,
+        },
+      }),
+      [ELEMENT_H3]: withProps(StyledElement, {
         as: 'h3',
         styles: {
           root: css`
-            margin: 1em 0 1px;
+            margin: 0.15em 0 0.5em;
             font-size: 1em;
             font-weight: 700;
             line-height: 1.3;
             color: #666666;
             `,
         },
-      }),}
+      }),    
+    }
     ),
   },),
 
