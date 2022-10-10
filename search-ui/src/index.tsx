@@ -45,6 +45,7 @@ root.render(
     clientId={auth0ClientId}
     redirectUri={window.location.origin}
     audience={audience}
+    //useRefreshTokens= {true}
     scope="read:zettleDocuments" // scopes are used for consent. if not consented the api access token generation for this scope will fail. 
   //onRedirectCallback={onRedirectCallback}
   >

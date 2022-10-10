@@ -18,31 +18,35 @@ import {
   unwrapList,
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
-import { remark } from 'remark'
-import remarkParse from 'remark-parse';
-import remarkUnwrapImages from 'remark-unwrap-images'
-import remarkSlate from 'remark-slate';
-import remarkFrontmatter from 'remark-frontmatter'
-import {unified} from 'unified';
+
 import { withTYjs } from './slate-plate/withTYjs';
-import { plateNodeTypes } from './slate-plate/remarkslate-nodetypes';
-import * as awarenessProtocol from 'y-protocols/awareness'
-import * as random from 'lib0/random'
-import * as math from 'lib0/math'
-import { deltaInsertToSlateNode, slateElementToYText } from '@slate-yjs/core/dist/utils/convert';
+
 import { XmlText } from 'yjs';
 import { MyValue, MyEditor, createMyEditor } from './slate-plate/plateTypes';
 import {debounce} from 'lodash';
 import { TEditMode } from '../types/TEditMode';
+import { useAuth0 } from '@auth0/auth0-react';
 
 
 
 //export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
-const EditView = ({ id, collectionName, editMode, className}: { id: string, collectionName: string, editMode: TEditMode, className?: string }) => {
-  // TODO: handle loading and saving the zettle document from file via the API
-  // use the indexdb provider for offline strage in the browser together with 
-  // websocket provider to sync to backend for persistence. 
+// self note: destructuring syntax with TS works (dev time). check what the advantages are of using RN prop-types (runtime).
+// https://blog.logrocket.com/comparing-typescript-and-proptypes-in-react-applications/
+
+const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: string, collectionName: string, editMode: TEditMode, wsProvider: WebsocketProvider, className?: string }) => {
+
+  //TODO: refactor: pull the wsprovider code out and pass instance in as a prop. 
+  // This will allow us to decouple the following ws auth code from the editor component
+  // useEffect(() => {
+  //   (async () => {
+  //     console.log("getAccessTokenSilently() token: ")
+  //     //console.log(`Grabbing access token - audience:${audience}`)
+
+
+
+  //   });
+  // }, [getAccessTokenSilently])
 
   let docId = id;
   
@@ -63,7 +67,7 @@ const EditView = ({ id, collectionName, editMode, className}: { id: string, coll
 
   // let docFromTypesense: any = [];
 
-  const [value, setValue] = useState<MyValue>([]);
+  //const [value, setValue] = useState<MyValue>([]);
 
   // const webrtcOpts = {
   //   // Specify signaling servers. The client will connect to every signaling server concurrently to find other peers as fast as possible.
@@ -91,40 +95,12 @@ const EditView = ({ id, collectionName, editMode, className}: { id: string, coll
   //   console.log("webRtcProvider server connect status:", synced)
   // })
 
-  const docName = "osobisty" + docId
+  const docName = "osobisty" + docId;
 
-  const wsProvider = useMemo(() => {
-    console.log("room name: ", docName)
-    const yDoc = new Y.Doc();
-
-    // const ws = new WebSocket('wss://127.0.0.1:3002/documents/osobisty1034')
-    // ws.addEventListener('error', function (event) {
-    //   console.log('WebSocket error: ', event);
-    // });
-
-    //
-    //TODO: this will only work in dev at the moment!!! switch yjs backend wss address based on environment and config. 
-    return new WebsocketProvider('wss://localhost:3002/documents/' + collectionName, docName, yDoc) // sync to backend for persistence 
-    //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
-
-  }, [docName])
-
-  wsProvider.on('status', (event: any) => {
-    console.log(`wsProvider server connect status(docName:${docName}):`, event.status) // logs "connected" or "disconnected"
-    console.log(event)
-  })
-
-  wsProvider.on('connection-error', (WSErrorEvent: any) => {
-    console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
-  })
-
-  if (wsProvider.ws!==null) {
-    // wsProvider.ws.onmessage = (event) => {
-    //   console.log("message received: ", event)
-    //   wsProvider.ws?.onmessage
-    // }
-  }
   
+
+  
+
   let sharedRoot: XmlText | null = null;
 
   const editor = useMemo(() => {

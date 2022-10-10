@@ -1,5 +1,5 @@
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { useAuth0 } from "@auth0/auth0-react";
 import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './hooks/useFetchHook';
@@ -32,7 +32,7 @@ if (TYPESENSE_PROTOCOL !== "http" && TYPESENSE_PROTOCOL !== "https") throw "TYPE
 if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
 
 function App() {
-  const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
+  const { user, error, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [searchRes, setSearchRes] = useState({ results: [{ hits: [] }] });
   const [selectedHit, setSelectedHit] = useState<{} | null>();
   const [doReset, setDoReset] = useState(false);
@@ -40,21 +40,20 @@ function App() {
   const [darkMode, SetDarkMode] = useState(true);
   const [token, setToken] = useState("");
 
-  
-
   useEffect(() => {
-    (async () => {
+    
       //console.log(`Grabbing access token - audience:${audience}`)
 
-      const tkn = await getAccessTokenSilently({
+      getAccessTokenSilently({
         audience: audience,
         scope: "read:zettleDocuments"
-      });
-      //const tkn = await getAccessTokenSilently();
-      setToken(tkn)
-
-    })();
-  }, [getAccessTokenSilently])
+      }).then((tkn: string)=> {
+        setToken(tkn)
+        
+      })
+      
+      //console.log("app token: ", token)
+  },[getAccessTokenSilently])
 
 
   const typesenseHost = `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`
@@ -137,12 +136,12 @@ function App() {
         path: "/",
         element: <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
           <SearchResults data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} />
+          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} token={token}/>
         </Search>,
       },
       {
         path: "documents/:collectionName/:id",
-        element: <DocFullpage />,
+        element: <DocFullpage token={token}/>,
       },
     ]);
 

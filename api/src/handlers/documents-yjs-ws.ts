@@ -1,9 +1,13 @@
-import { Request, ResponseObject, UserCredentials, Util } from '@hapi/hapi';
+import { Request, ResponseObject, server, UserCredentials } from '@hapi/hapi';
 import ws from 'ws';
 import { IHapiWebsocketPluginState } from '../libs/IHapiWebsocketPluginState.js';
 import { setupWSConnection } from '../libs/yjs-ws-server-utils.js';
 import { decoding } from 'lib0';
 import { doc } from 'lib0/dom.js';
+import {URL} from 'node:url'
+import extract from '../libs/hapi-auth-jwt2-extract.js'
+import { IncomingMessage } from 'node:http';
+import hapiAuthJwt2 from 'hapi-auth-jwt2';
 
 
 export const getRouteConfigYjsWsDocuments: any = {
@@ -11,18 +15,41 @@ export const getRouteConfigYjsWsDocuments: any = {
   path: '/documents/{docname*}',
   options: {
     auth: false, //FIXME: switch auth on. There a problem when we do that, sockets continuously reconnect.
+    //auth: {mode: 'required', strategies:['jwt'], payload: false},
     //payload: { output: "stream", parse: true, allow: "application/json" },
     plugins: {
       websocket: {
         only: true,
-        initially: false,
+        initially: false, // inject incoming WebSocket message as a simulated HTTP request
         autoping: 0,
         connect: (state: IHapiWebsocketPluginState): void => {
-          console.log("setup websocket conneciton")
           
+          //if (typeof state.req !== Request) throw new Error("Invalid request type for HAPI")
+          const req =  state.req as IncomingMessage
+
+          console.log("Connection event! map connection to YDoc and track")
+          
+          console.log("headers: ", req.headers)
+
           let docname: string = "";
           let collectionName: string = "root";
-          console.log("state.req.url=", state.req.url)
+          
+          const token: string = extract(req,{customExtractionFunc: (req: IncomingMessage)=>{
+            // custome function because we don't have a HAPI Request object available which is the default
+            if (!req || !req.url) throw new Error("`state` or `req` or `url` object is undefined/null.")
+            console.log("state.req.url=", req.url)
+            const parsedUrl = new URL(req.url.toString(), `http://${req.headers.host}`) //state.req.url
+
+            const access_token = parsedUrl.searchParams.get("token")
+          
+            if (!access_token) throw new Error ("`access_token` is null. Check if the token was sent as a query string param")
+            
+            return access_token
+          }})
+
+          //call verifyjwt and authentication function here
+
+          
           //req.params not avail at this point so manually parse
           if (state.req.url) {
             let url = state.req.url.toString();
@@ -39,12 +66,14 @@ export const getRouteConfigYjsWsDocuments: any = {
         
           setupWSConnection(state.ws, state.req, docname, collectionName)
 
-          state.ws.on('message', (data: Uint8Array, isBinary)=>{
-            console.log("ws message received! Payload -->")
-            console.log(data)
+          state.ws.on('message', (message: ArrayBuffer) => {
+
                 // const decoder = decoding.createDecoder(data)
-                // //decoding.readVarUint(decoder)
+                // const v1 = decoding.readVarUint(decoder)
                 // decoder.
+                console.log("ws message received! Payload -->")
+                // console.log(v1)
+                console.log(message)
           })
 
           state.ws.on('ping', (data)=>{
@@ -74,11 +103,11 @@ export const getRouteConfigYjsWsDocuments: any = {
     }
   },
   handler: async (req: Request, h: any) => {
-    console.log("'" + req.path + "' route handler fired! req payload -->")
+    console.log("'" + req.path + "' http route handler fired!")
     //req.params.username
-    //console.log(req.params)
+    //console.log(req.headers)
     //const headers: Util.Dictionary<string> = req.headers
-
+  
     const res: ResponseObject = h.response
     //res.code(200)
     

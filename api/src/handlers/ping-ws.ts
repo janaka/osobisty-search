@@ -1,6 +1,4 @@
 import { Request, ResponseObject } from '@hapi/hapi';
-import ws from 'ws';
-import {setupWSConnection} from '../libs/yjs-ws-server-utils.js';
 
 export const getRouteConfigPingWs: any = {
   method: "POST", path: "/pingws",

@@ -57,6 +57,7 @@ const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   {
     plugin: HAPIWebSocket,
     //options: { noServer: true } if we need to do this to run multiple websocket server, then we need to manually call wss.handleUpgrade somehere tbd to handle the connection upgrade
+    // docs https://github.com/websockets/ws/blob/master/doc/ws.md#new-websocketserveroptions-callback
   },
   {
     plugin: HapiAuthJwt2
@@ -138,12 +139,17 @@ if (globalThis.DEBUG) {
   server.events.on('request', function (request, event, tags) {
     //console.log('Request event fired for: ' + 'channel:' + event.channel + ' ' + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers) + ' error: ' + event.error);
     console.log('Request(' + request.info.id + ') event fired for: ' + event);
+    console.log("headers: ", request.headers)
+
   });
 
   server.events.on('response', function (request) {
     //console.log("Response event fired for: " + request.info.remoteAddress + ': ' + request.method.toUpperCase() + ' ' + request.path + ' ' + JSON.stringify(request.headers));
     console.log("\x1b[35m","Response event fired for ReqID: `" + request.info.id + "`");
   });
+
+  
+
 }
 
 

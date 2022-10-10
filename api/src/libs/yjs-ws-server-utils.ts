@@ -95,25 +95,9 @@ export const getLevelDbPersistence = (): IPersistence<LeveldbPersistence> | null
 export const docs: Map<string, WSSharedDoc> = new Map()
 
 
-
 const messageSync = 0
 const messageAwareness = 1
 // const messageAuth = 2
-
-/**
- * @param {Uint8Array} update
- * @param {any} origin
- * @param {WSSharedDoc} doc
- */
-const updateHandler = (update: Uint8Array, origin: any, doc: WSSharedDoc) => {
-  const encoder = encoding.createEncoder()
-  encoding.writeVarUint(encoder, messageSync)
-  syncProtocol.writeUpdate(encoder, update)
-  const message = encoding.toUint8Array(encoder)
-  doc.wsConns.forEach((_: any, ws: ws) => {
-    send(doc, ws, message)
-  })
-}
 
 export class WSSharedDoc extends Y.Doc {
 
@@ -127,6 +111,7 @@ export class WSSharedDoc extends Y.Doc {
    */
   constructor(name: string, _markdownFileRef: Document) {
     super({ gc: gcEnabled })
+
     this.name = name
     this.mux = mutex.createMutex()
     /**
@@ -137,12 +122,10 @@ export class WSSharedDoc extends Y.Doc {
 
     this.markdownFileRef = _markdownFileRef
 
-
-    /**
-     * @type {awarenessProtocol.Awareness}
-     */
     this.awareness = new awarenessProtocol.Awareness(this)
     this.awareness.setLocalState(null)
+
+
 
     /**
      * @param {{ added: Array<number>, updated: Array<number>, removed: Array<number> }} changes
@@ -166,8 +149,30 @@ export class WSSharedDoc extends Y.Doc {
         send(this, c, buff)
       })
     }
+
     this.awareness.on('update', awarenessChangeHandler)
+
+
+
+    
+    /**
+     * @param {Uint8Array} update
+     * @param {any} origin
+     * @param {WSSharedDoc} doc
+     */
+    const updateHandler = (update: Uint8Array, origin: any, doc: WSSharedDoc) => {
+      const encoder = encoding.createEncoder()
+      encoding.writeVarUint(encoder, messageSync)
+      syncProtocol.writeUpdate(encoder, update)
+      const message = encoding.toUint8Array(encoder)
+      doc.wsConns.forEach((_: any, ws: ws) => {
+        send(doc, ws, message)
+      })
+    }
+
     this.on('update', updateHandler)
+
+
 
     if (isCallbackSet) {
       this.on('update', debounce(
@@ -264,9 +269,9 @@ const closeConn = (doc: WSSharedDoc, conn: ws) => {
 /**
  * @param {WSSharedDoc} doc
  * @param {any} conn websocket conneciton
- * @param {Uint8Array} m
+ * @param {Uint8Array} message - payload to send
  */
-const send = (doc: WSSharedDoc, conn: ws, m: Uint8Array) => {
+const send = (doc: WSSharedDoc, conn: ws, message: Uint8Array) => {
   if (conn.readyState !== wsReadyStateConnecting && conn.readyState !== wsReadyStateOpen) {
     closeConn(doc, conn)
   }
@@ -274,9 +279,9 @@ const send = (doc: WSSharedDoc, conn: ws, m: Uint8Array) => {
     sendcount++;
     console.log("send() called. Total calls=", sendcount);
     // console.log(m)
-    // const decoder = decoding.createDecoder(m)
-    // decoding.readVarUint(decoder)
-    conn.send(m, (err: any) => { err != null && closeConn(doc, conn) })
+    const decoder = decoding.createDecoder(message)
+    const t = decoding.readVarUint8Array(decoder)
+    conn.send(message, (err: any) => { err != null && closeConn(doc, conn) })
   } catch (e) {
     console.error(e)
     closeConn(doc, conn)
