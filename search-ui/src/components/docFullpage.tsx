@@ -7,12 +7,13 @@ import { useAuth0 } from '@auth0/auth0-react';
 import * as Y from 'yjs';
 import { WebsocketProvider } from 'y-websocket';
 import { copyBlockMarksToSpanChild } from '@udecode/plate';
+import LoginButton from './loginButton';
 
 const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
 
 export function DocFullpage({ token }: { token: string }) {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
-  //const [token, setToken] = useState("");
+  const [authError, setAuthError] = useState<string>();
 
   // useEffect(() => {
 
@@ -64,6 +65,13 @@ export function DocFullpage({ token }: { token: string }) {
       console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
     })
 
+    _wsProvider.on('connection-close', (WSCloseEvent: any, provider:any) => {
+      console.log(`wsProvider connection-close:`, WSCloseEvent) // logs "connected" or "disconnected"
+      if (WSCloseEvent.code=="4001") {
+        setAuthError(WSCloseEvent.reason)
+      }
+    })
+
     if (_wsProvider.ws !== null) {
       // wsProvider.ws.onmessage = (event) => { // switching this on causes the sync on the clinet side to be exteremly delayed. RCA theory - this was originally outside a hook like useEffect or useMemo. So each React render would have added a new handler. More handlers in the list the more too to get fired.
       //   console.log("ws message received: ", event)
@@ -83,7 +91,14 @@ export function DocFullpage({ token }: { token: string }) {
 
 
   return (
-
+    authError ?
+    
+    <div>
+      <div>{authError}</div>
+      <div>Try re-login <LoginButton /></div>
+    </div>
+    
+    :
 
     <div className="container mx-auto h-screen pb-6" >
       <div className="h-auto rounded-lg bg-primarybg p-4 mt-4  scroll-auto overscroll-auto">
