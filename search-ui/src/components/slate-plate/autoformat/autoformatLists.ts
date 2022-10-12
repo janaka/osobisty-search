@@ -18,6 +18,7 @@ export const autoformatLists: AutoformatRule[] = [
     match: ['* ', '- '],
     preFormat: clearBlockFormat,
     format: (editor) => formatList(editor, ELEMENT_UL),
+    
   },
   {
     mode: 'block',
@@ -29,12 +30,12 @@ export const autoformatLists: AutoformatRule[] = [
   {
     mode: 'block',
     type: ELEMENT_TODO_LI,
-    match: ['[] '],
+    match: ['[] ', '-[] '],
   },
   {
     mode: 'block',
     type: ELEMENT_TODO_LI,
-    match: ['[x] ', '-[x] '],
+    match: ['[x] ', '-[x]'],
     format: (editor) =>
       setNodes<TTodoListItemElement>(
         editor,

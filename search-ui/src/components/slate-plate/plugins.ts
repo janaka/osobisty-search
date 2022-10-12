@@ -29,10 +29,24 @@ import {
   unwrapList,
   withProps,
   ELEMENT_H2,
+  KEYS_HEADING,
+  ELEMENT_BLOCKQUOTE,
+  ELEMENT_CODE_BLOCK,
+  ELEMENT_TD,
+  ELEMENT_LI,
+  ELEMENT_PARAGRAPH,
+  ELEMENT_LINK,
+  ELEMENT_UL,
+  ELEMENT_OL,
+  ELEMENT_TODO_LI,
+  PlateFloatingLink,
 } from '@udecode/plate';
 import { css } from 'styled-components';
 import { autoformatRules } from './autoformat/autoformatRules';
-import { createMyPlugins } from './plateTypes';
+import { linkPlugin } from './linkPlugin';
+import { createMyPlugins, MyTodoListElement } from './plateTypes';
+import { resetBlockTypePlugin } from './resetBlockTypePlugin';
+//import tw from 'twin.macro'
 
 //import { CONFIG } from './config';
 
@@ -47,7 +61,7 @@ const basicElements = createMyPlugins(
     createHeadingPlugin(),
     createParagraphPlugin(),
     createImagePlugin(),
-    createLinkPlugin(),
+    createLinkPlugin(linkPlugin),
     createListPlugin(),
   ],
   {
@@ -72,9 +86,39 @@ const basicMarks = createMyPlugins(
 
 const complex = createMyPlugins(
   [
-    // createResetNodePlugin(),
-    // createSoftBreakPlugin(),
-    // createExitBreakPlugin(),
+    createResetNodePlugin(resetBlockTypePlugin),
+    createSoftBreakPlugin({
+      options: {
+        rules: [
+          { hotkey: 'shift+enter' },
+          {
+            hotkey: 'enter',
+            query: {
+              allow: [ELEMENT_CODE_BLOCK, ELEMENT_BLOCKQUOTE, ELEMENT_TD],
+            },
+          },
+        ],
+      },
+    }),
+    createExitBreakPlugin(
+      {
+        options: {
+          rules: [
+            { hotkey: 'mod+enter' },
+            { hotkey: 'mod+shift+enter', before: true },
+            {
+              hotkey: 'enter',
+              query: {
+                start: true,
+                end: true,
+                allow: KEYS_HEADING,
+              }
+            }
+          ],
+
+        },
+      }
+    ),
     createTodoListPlugin(),
     createAutoformatPlugin(
       {
@@ -100,6 +144,9 @@ export const PLUGINS = {
   basicNodes: createPlugins([...basicElements, ...basicMarks], {
     components: createPlateUI(),
   },),
+  // Note: 
+  // styled-component css defaults are in createPlateUI.ts https://github.com/udecode/plate/blob/main/packages/ui/plate/src/utils/createPlateUI.ts
+  // css` prefix is for css. tw` prefix is for TailwindCSS via twin.macro
   allNodes: createPlugins([...basicElements, ...basicMarks, ...complex], {
     components: createPlateUI(
       {[ELEMENT_H1]: withProps(StyledElement, {
@@ -136,7 +183,38 @@ export const PLUGINS = {
             color: #666666;
             `,
         },
-      }),    
+      }),
+      [ELEMENT_UL]: withProps(StyledElement, {
+        as: 'ul',
+        styles: {
+          root: css`          
+          margin: 0;
+          padding-inline-start: 20px;
+        `,
+        },
+      }),
+      [ELEMENT_OL]: withProps(StyledElement, {
+        as: 'ol',
+        styles: {
+          root: css`
+          margin: 0;
+          padding-inline-start: 20px;
+        `,
+        },
+      }),
+      // [ELEMENT_LI]: withProps(StyledElement, {
+      //   as: 'li',
+      //   styles: {
+      //     root: [css`list-style:initial;`]
+      //   },
+      // }),
+      // [ELEMENT_LINK]: withProps(StyledElement, {
+      //   as: 'a',
+      //   styles: {
+      //     root: [tw`text-blue-600 visited:text-purple-600`,css``]
+      //   },
+      // }),
+
     }
     ),
   },),
