@@ -17,17 +17,21 @@ import {
 } from '@udecode/plate';
 import { clearBlockFormat } from './autoformatUtils';
 
+// see ref:  https://plate.udecode.io/docs/plugins/autoformat
+
 export const autoformatBlocks: AutoformatRule[] = [
   {
     mode: 'block',
     type: ELEMENT_H1,
-    match: '# ',
+    match: '#',
+    trigger: ' ',
     preFormat: clearBlockFormat,
   },
   {
     mode: 'block',
     type: ELEMENT_H2,
-    match: '## ',
+    match: '##',
+    trigger: ' ',
     preFormat: clearBlockFormat,
   },
   {
@@ -58,6 +62,7 @@ export const autoformatBlocks: AutoformatRule[] = [
     mode: 'block',
     type: ELEMENT_BLOCKQUOTE,
     match: '> ',
+    triggerAtBlockStart: true,
     preFormat: clearBlockFormat,
   },
   {
