@@ -46,16 +46,27 @@ docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/d
 
 ## TODO
 
-- [] task: switch on auth-over-websocket on the /documents endpoint. Validate with tests
+- Deploy TODO and Inbox verison
+  - [] task: switch websocket endpoint for prod environment
+  - [] taks: swithc Auth) config for production environment
+- [x] task: switch on auth-over-websocket on the /documents endpoint. Validate with tests
 - [] task: switch UI y-websocket connection string to prod/dev env config
-- [] feature: notes inbox - desktop web. able to use as primary notes inbox over VS Code MD file
-- [] feature: TODO list - desktop web. able to use as primary TODO over VS Code MD file.
-- [] feature: MD minimum support for inbox and todo
+- [x] feature: notes inbox - desktop web. able to use as primary notes inbox over VS Code MD file
+- [x] feature: TODO list - desktop web. able to use as primary TODO over VS Code MD file.
+- [x] feature: MD minimum support for inbox and todo
   - H1-H4
   - bold, italics
   - unordered bullet list
   - unordered chechbox list (no indenting)
   - raw links
+- MD serialization bugs
+  - [] bug: bullet lists have two `*` should be `tabs+*`
+  - [] bug: text marks such as italics, bold etc. not serializing at all
+- Editor bugs
+  - [] bug: link paste over text replaces the text. should link the selected text.
+  - [] bug: inline code blocks don't work becaues backtick is being overridden by some keyboard shortcut
+  - [] bug: code blocks don't work. mayeb the autoformatter is missing
+- feature: quick copy text as MD from Osobisty doc 
   
 
 

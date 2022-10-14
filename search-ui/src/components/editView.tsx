@@ -16,6 +16,9 @@ import {
   TEditableProps,
   AutoformatBlockRule,
   unwrapList,
+  LinkToolbarButton,
+  ToolbarProps,
+  HeadingToolbar,
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
 
@@ -23,9 +26,10 @@ import { withTYjs } from './slate-plate/withTYjs';
 
 import { XmlText } from 'yjs';
 import { MyValue, MyEditor, createMyEditor } from './slate-plate/plateTypes';
-import {debounce} from 'lodash';
+import { debounce } from 'lodash';
 import { TEditMode } from '../types/TEditMode';
 import { useAuth0 } from '@auth0/auth0-react';
+import { Link } from '@styled-icons/material/Link';
 
 
 
@@ -34,7 +38,7 @@ import { useAuth0 } from '@auth0/auth0-react';
 // self note: destructuring syntax with TS works (dev time). check what the advantages are of using RN prop-types (runtime).
 // https://blog.logrocket.com/comparing-typescript-and-proptypes-in-react-applications/
 
-const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: string, collectionName: string, editMode: TEditMode, wsProvider: WebsocketProvider, className?: string }) => {
+const EditView = ({ id, collectionName, editMode, wsProvider, className }: { id: string, collectionName: string, editMode: TEditMode, wsProvider: WebsocketProvider, className?: string }) => {
 
   //TODO: refactor: pull the wsprovider code out and pass instance in as a prop. 
   // This will allow us to decouple the following ws auth code from the editor component
@@ -49,7 +53,7 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: 
   // }, [getAccessTokenSilently])
 
   let docId = id;
-  
+
   //let docEditContent = editContent;
 
   console.log("START");
@@ -97,9 +101,9 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: 
 
   const docName = "osobisty" + docId;
 
-  
 
-  
+
+
 
   let sharedRoot: XmlText | null = null;
 
@@ -122,7 +126,7 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: 
       withTYjs(
         withPlate<MyValue, MyEditor>(
           createMyEditor(),
-          { id: docName, plugins: PLUGINS.allNodes, disableCorePlugins: false }
+          { id: docName, plugins: PLUGINS.allNodes}
         ),
         sharedRoot,
         { autoConnect: false }
@@ -130,53 +134,32 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: 
     );
   }, [docName])
 
-        //use remark-slate to de/serialise MD https://github.com/hanford/remark-slate
-        // remark plugins https://github.com/remarkjs/remark/blob/main/doc/plugins.md
 
-        // unified()
-        //   .use(remarkParse)
-        //   .use(remarkSlate)
-        //   // .use(remarkFrontmatter, ['yaml'])
-        //   // .use(remarkUnwrapImages)
-        //   // .use(remarkSlate, { nodeTypes: plateNodeTypes, imageCaptionKey: 'cap', imageSourceKey: 'src' }) // map remark-slate to Plate node `type`. Fixes crash.
-        //   .process('[my link](https://github.com)', (err, file) => {
-        //     if (err) throw err;
-        //     if (!file) throw("`file` is undefined")
-        //     console.log("remark-slate test: output:",file.result);
-        //   })
-
-        // docFromTypesense = vfile.result
-
-        // console.log("remark-slate `result`:", docFromTypesense)
-
-
-
-  // `synced` fires before `sync`
-  wsProvider.on('synced', async (isSynced: boolean) => {
-    console.log("==== onSynced() ======");
-    console.log("synced status: ", isSynced);
-    console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
-    
-    if (sharedRoot !== null && sharedRoot.length == 0) {
-      console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero. Obj `sharedRoot`:: ", sharedRoot)
-    } else if (wsProvider.wsconnected==true && sharedRoot==null) {
-      console.log("`sharedRood` object is `null`. Obj `sharedRoot`: ", sharedRoot)
-      throw new Error("sharedRoot is `null`. Something has gone wrong.")
-    } else if (wsProvider.wsconnected==false) {
-      console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
-    } else {
-      console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
-    }
-
-    console.log("`sharedRoot` content: ", sharedRoot?.toString())
-
-    console.log("==========");
-  })
-
-  
   // Connect editor and providers in useEffect to comply with concurrent mode requirements.
 
   useEffect(() => {
+    // `synced` fires before `sync`
+    wsProvider.on('synced', async (isSynced: boolean) => {
+      console.log("==== onSynced() ======");
+      console.log("synced status: ", isSynced);
+      console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
+
+      if (sharedRoot !== null && sharedRoot.length == 0) {
+        console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero. Obj `sharedRoot`:: ", sharedRoot)
+      } else if (wsProvider.wsconnected == true && sharedRoot == null) {
+        console.log("`sharedRood` object is `null`. Obj `sharedRoot`: ", sharedRoot)
+        throw new Error("sharedRoot is `null`. Something has gone wrong.")
+      } else if (wsProvider.wsconnected == false) {
+        console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
+      } else {
+        console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
+      }
+
+      console.log("`sharedRoot` content: ", sharedRoot?.toString())
+
+      console.log("==========");
+    })
+
     wsProvider.connect();
     console.log("connect wsProvider")
     return () => wsProvider.disconnect();
@@ -191,29 +174,34 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className}: { id: 
   }, [editor]);
 
   return (
-
-    <Plate<MyValue, MyEditor>
+    <div>
+      {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
+      <Plate<MyValue, MyEditor>
       id={docId}
       editor={editor}
       editableProps={{ ...editableProps }}
+      
       //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
       //plugins={plugins} // when the `editor` instance is provided this doesn't apply
       onChange={async (newValue) => {
-        
+
         //debounce(async () =>{console.log("Plate onChange() fired")}, 10)
         //console.log("Plate onChange() fired")
         //setValue(newValue) // see note for value prop above
         // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
         // console.log("`newVsdfalue` onChange():", newValue)
 
-        
-        
+
+
       }}
 
     />
+    
+    </div>
+    
   );
 };
 
-
+const Toolbar = (props: ToolbarProps) => <HeadingToolbar {...props} />; 
 
 export default EditView;
