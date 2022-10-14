@@ -112,6 +112,9 @@ export interface RichText extends TText {
 
 export interface MyLinkElement extends TLinkElement {
   type: typeof ELEMENT_LINK;
+  //url: string;
+  //target?: string
+  title: string;
   children: RichText[];
 }
 

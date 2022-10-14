@@ -129,6 +129,11 @@ export const remarkToSlateOverrides: OverridedMdastBuilders = {
     // You have to call next if the node have children
     children: next(node.children),
   }),
+  link: (node: any, next:any) => ({
+    type: plateNodeTypes.link,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
   // This overrides `type: "heading"` builder of MDAST to SlatePlate 
   heading: (node: any, next:any) => ({
     type: plateNodeTypes.heading[node.depth as plateNodeTypesHeadingObjectKey],
@@ -156,6 +161,13 @@ export const slateToRemarkOverrides: OverridedSlateBuilders = {
   p: (node: any, next:any) => ({
     type: slateNodeTypes.paragraph,
     depth: node.depth,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  a: (node: any, next:any) => ({
+    type: slateNodeTypes.link,
+    url: node.url,
+    title: node.title,//node.children>0 && node.children[0].type=='text' ? node.children[0].value : node.url,
     // You have to call next if the node have children
     children: next(node.children),
   }),
