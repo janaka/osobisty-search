@@ -63,6 +63,7 @@ function Suggestions(props: any) {
         <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'simpletestmd', collectionName: 'zettlekasten__root' } })}>Simple Test.md</button>
         <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'complextestmd', collectionName: 'zettlekasten__root' } })}>Complex Test.md</button>
         <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'inboxmd', collectionName: 'zettlekasten__root' } })}>Inbox</button>
+        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'todomd', collectionName: 'zettlekasten__root' } })}>TODO</button>
       </div>
       <h2 className="empty-state-heading">Key bindings</h2><div className="keyboard-map">
         <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">
