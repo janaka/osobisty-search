@@ -47,8 +47,8 @@ docker run -p 8108:8108 -v~/code-projects/osobisty-search/data/typesense-data:/d
 ## TODO
 
 - Deploy TODO and Inbox verison
-  - [] task: switch websocket endpoint for prod environment
-  - [] taks: swithc Auth) config for production environment
+  - [x] task: switch websocket endpoint for prod environment
+  - [x] taks: switch Auth0 config for production environment
 - [x] task: switch on auth-over-websocket on the /documents endpoint. Validate with tests
 - [] task: switch UI y-websocket connection string to prod/dev env config
 - [x] feature: notes inbox - desktop web. able to use as primary notes inbox over VS Code MD file
