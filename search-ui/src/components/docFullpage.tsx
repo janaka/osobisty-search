@@ -9,17 +9,16 @@ import { WebsocketProvider } from 'y-websocket';
 import { copyBlockMarksToSpanChild } from '@udecode/plate';
 import LoginButton from './loginButton';
 
-const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
+//const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
+const yWebsocketHost: string = process.env.REACT_APP_Y_WEBSOCKET_HOST ? process.env.REACT_APP_Y_WEBSOCKET_HOST : "";
+const yWebsocketPort: string = process.env.REACT_APP_Y_WEBSOCKET_PORT ? process.env.REACT_APP_Y_WEBSOCKET_PORT : "";
+
 
 export function DocFullpage({ token }: { token: string }) {
   const { user, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
   const [authError, setAuthError] = useState<string>();
 
   // useEffect(() => {
-
-
-
-
 
   // }, [getAccessTokenSilently])
 
@@ -41,20 +40,18 @@ export function DocFullpage({ token }: { token: string }) {
   // TODO: consider if we should use one room name across docs rather than a room per doc as now. Hence a single wsProvider instance.
   const wsProvider = useMemo(() => {
 
-    console.log("useMemo ran")
-    console.log("room name: ", roomName)
+    console.log("useMemo ran");
+    console.log("room name: ", roomName);
     const yDoc = new Y.Doc();
 
-    // const ws = new WebSocket('wss://127.0.0.1:3002/documents/osobisty1034')
-    // ws.addEventListener('error', function (event) {
-    //   console.log('WebSocket error: ', event);
-    // });
+    if (isAuthenticated && !token) throw new Error("Access token is null! Cannot proceed. " + token);
 
-    //
-    if (isAuthenticated && !token) throw new Error("Access token is null! Cannot proceed. " + token)
+    if (yWebsocketHost=="") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
 
-    //TODO: this will only work in dev at the moment!!! switch yjs backend wss address based on environment and config. 
-    const _wsProvider = new WebsocketProvider('wss://localhost:3002/documents/' + collectionName, roomName, yDoc, { params: { token: token } }) // sync to backend for persistence 
+    let fqdnAddress: string = "wss://" + yWebsocketHost;
+    if (yWebsocketPort!=="") {fqdnAddress=fqdnAddress + ":" + yWebsocketPort;}
+
+    const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: token } }) // sync to backend for persistence 
 
     _wsProvider.on('status', (event: any) => {
       console.log(`wsProvider server connect status(roomName:${roomName}):`, event.status) // logs "connected" or "disconnected"
@@ -102,7 +99,7 @@ export function DocFullpage({ token }: { token: string }) {
 
     <div className="container mx-auto h-screen pb-6" >
       <div className="h-auto rounded-lg bg-primarybg p-4 mt-4  scroll-auto overscroll-auto">
-        <EditView id={docId} collectionName={collectionName} wsProvider={wsProvider} editMode={TEditMode.EditMd} /> */
+        <EditView id={docId} collectionName={collectionName} wsProvider={wsProvider} editMode={TEditMode.EditMd} />
       </div>
     </div>
 
