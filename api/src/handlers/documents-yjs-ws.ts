@@ -135,8 +135,9 @@ export const getRouteConfigYjsWsDocuments: any = {
             let path = url.split('?')[0];
             let splitPath = path.split('/');
             docname = splitPath[splitPath.length - 1];
-            console.log(url);
+            console.log("url: ", url);
             let relpath:string = path.split("/documents/")[1].split("/" + docname)[0];
+            console.log("relpath: ", relpath)
             collectionName = relpath.replaceAll("/", "__");
 
             console.log("collectionName:", collectionName);
