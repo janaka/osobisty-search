@@ -88,13 +88,14 @@ export default function extract(request: any, options?: any): string {
     if (payloadKey && request.payload && request.payload[payloadKey]) {
       auth = request.payload[payloadKey];
     }
+    // strip pointless "Bearer " label & any whitespace > https://git.io/xP4F
+    // re: Snyk reDOS warning - this isn't used for tokens coming as a URL param
+  auth = auth ? auth.replace(/Bearer/gi, '').replace(/ /g, '') : null;
   }
   if (!auth && options.customExtractionFunc) {
     auth = options.customExtractionFunc(request);
   }
 
-  // strip pointless "Bearer " label & any whitespace > https://git.io/xP4F
-  auth = auth ? auth.replace(/Bearer/gi, '').replace(/ /g, '') : null;
   // If we are receiving a headerless JWT token let reconstruct it using the custom function
   if (
     options.headless &&
