@@ -141,7 +141,7 @@ function App() {
       },
       {
         path: "documents/:collectionName/:id",
-        element: <DocFullpage token={token}/>,
+        element: <DocFullpage isAuthenticated={isAuthenticated} wsAuthToken={token}/>,
       },
     ]);
 

@@ -30,6 +30,8 @@ import { debounce } from 'lodash';
 import { TEditMode } from '../types/TEditMode';
 import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from '@styled-icons/material/Link';
+import { useParams } from 'react-router-dom';
+import LoginButton from './loginButton';
 
 
 
@@ -38,27 +40,11 @@ import { Link } from '@styled-icons/material/Link';
 // self note: destructuring syntax with TS works (dev time). check what the advantages are of using RN prop-types (runtime).
 // https://blog.logrocket.com/comparing-typescript-and-proptypes-in-react-applications/
 
-const EditView = ({ id, collectionName, editMode, wsProvider, className }: { id: string, collectionName: string, editMode: TEditMode, wsProvider: WebsocketProvider, className?: string }) => {
-
-  //TODO: refactor: pull the wsprovider code out and pass instance in as a prop. 
-  // This will allow us to decouple the following ws auth code from the editor component
-  // useEffect(() => {
-  //   (async () => {
-  //     console.log("getAccessTokenSilently() token: ")
-  //     //console.log(`Grabbing access token - audience:${audience}`)
 
 
+const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMode: TEditMode, isAuthenticated:boolean, wsAuthToken: string, className?: string }) => {
 
-  //   });
-  // }, [getAccessTokenSilently])
-
-  let docId = id;
-
-  //let docEditContent = editContent;
-
-  console.log("START");
-  // Create a yjs document and get the shared type
-  console.log("docId=" + docId);
+  const [authError, setAuthError] = useState<string>();
 
   const editableProps: TEditableProps<MyValue> = {
     autoFocus: false,
@@ -99,10 +85,70 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className }: { id:
   //   console.log("webRtcProvider server connect status:", synced)
   // })
 
+  
+
+  const params = useParams();
+  console.log("url param id: ", params.id);
+
+  if (!params.collectionName) throw new Error("`collectionName` cannot be `" + params.collectionName + "`");
+  if (!params.id) throw new Error("`collectionName` cannot be `" + params.id + "`");
+
+  const docId = params.id;
   const docName = "osobisty" + docId;
+  const roomName = docName;
+
+  console.log("<editView> LOAD");
+  console.log("docId=" + docId);
+
+  const wsProvider = useMemo(() => {
+  
+    const collectionName = params.collectionName;
 
 
+    const yWebsocketHost: string = process.env.REACT_APP_Y_WEBSOCKET_HOST ? process.env.REACT_APP_Y_WEBSOCKET_HOST : "";
+    const yWebsocketPort: string = process.env.REACT_APP_Y_WEBSOCKET_PORT ? process.env.REACT_APP_Y_WEBSOCKET_PORT : "";
 
+    console.log("useMemo ran");
+    console.log("room name: ", roomName);
+    const yDoc = new Y.Doc();
+
+    if (isAuthenticated && !wsAuthToken) throw new Error("Access token is null! Cannot proceed. " + wsAuthToken);
+
+    if (yWebsocketHost=="") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
+
+    let fqdnAddress: string = "wss://" + yWebsocketHost;
+    if (yWebsocketPort!=="") {fqdnAddress=fqdnAddress + ":" + yWebsocketPort;}
+
+    const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) // sync to backend for persistence 
+
+    _wsProvider.on('status', (event: any) => {
+      console.log(`wsProvider server connect status(roomName:${roomName}):`, event.status) // logs "connected" or "disconnected"
+      console.log(event)
+    })
+
+    _wsProvider.on('connection-error', (WSErrorEvent: any) => {
+      console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
+    })
+
+    _wsProvider.on('connection-close', (WSCloseEvent: any, provider:any) => {
+      console.log(`wsProvider connection-close:`, WSCloseEvent) // logs "connected" or "disconnected"
+      if (WSCloseEvent.code=="4001") {
+        setAuthError(WSCloseEvent.reason)
+      }
+    })
+
+    if (_wsProvider.ws !== null) {
+      // wsProvider.ws.onmessage = (event) => { // switching this on causes the sync on the clinet side to be exteremly delayed. RCA theory - this was originally outside a hook like useEffect or useMemo. So each React render would have added a new handler. More handlers in the list the more too to get fired.
+      //   console.log("ws message received: ", event)
+      //   //wsProvider.ws?.onmessage
+      // }
+    }
+
+    return _wsProvider;
+    //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
+
+
+  }, [roomName])
 
 
   let sharedRoot: XmlText | null = null;
@@ -174,6 +220,14 @@ const EditView = ({ id, collectionName, editMode, wsProvider, className }: { id:
   }, [editor]);
 
   return (
+    authError ?
+    
+    <div>
+      <div>{authError}</div>
+      <div>Try re-login <LoginButton /></div>
+    </div>
+    
+    :
     <div>
       {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
       <Plate<MyValue, MyEditor>
