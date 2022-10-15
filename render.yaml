@@ -95,11 +95,15 @@ services:
       - key: TYPESENSE_API_KEY_WRITE_ZETTLEDOCS
         sync: false
       - key: YSTATE_LEVELDB_PATH
-        sync: false
+        value: /var/lib/api/data/cache/y-state
       - key: FILE_DBMS_DATAPATH
-        sync: false
+        value: /var/lib/api/data
       - key: FILE_DBMS_METADATAPATH
-        sync: false
+        value: /var/lib/api/data/meta
+    disk:
+      name: data
+      mountPath: /var/lib/api/data
+      sizeGB: 1
       
   # private Typesense Instance
   - type: pserv
