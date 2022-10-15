@@ -9,6 +9,7 @@ import extract from '../libs/websocket-auth/ws-auth-jwt2-extract.js'
 import { verifyJwt, authenticate } from '../libs/websocket-auth/ws-auth-jwt2.js';
 import { IncomingMessage } from 'node:http';
 import jwksRsa from 'jwks-rsa';
+import { createVConsole } from 'lib0/logging.js';
 
 const AUTH0_AUDIENCE = process.env.AUTH0_AUDIENCE;
 const AUTH0_DOMAIN = process.env.AUTH0_DOMAIN;
@@ -134,8 +135,8 @@ export const getRouteConfigYjsWsDocuments: any = {
             let path = url.split('?')[0];
             let splitPath = path.split('/');
             docname = splitPath[splitPath.length - 1];
-
-            let relpath = path.split("/documents/")[1].split("/" + docname)[0];
+            console.log(url);
+            let relpath:string = path.split("/documents/")[1].split("/" + docname)[0];
             collectionName = relpath.replaceAll("/", "__");
 
             console.log("collectionName:", collectionName);
