@@ -68,7 +68,8 @@ export class Document {
 
 
   /**
-   * Document data, that is the deserialized contents of the file. 
+   * Document data, that is in the deserialized format according to the serializer configured. 
+   * So if using the Markdown serializer this property should be Slate AST nodes.
    */
   get data(): any | undefined {
 
@@ -83,13 +84,23 @@ export class Document {
   }
 
   /**
+   * Set data in the serialized formart which will be deserialesed then set to the data property.
+   * For example if the serializer is Markdown i.e. files are MD format, 
+   * then you can set this property with valid MD which will be deserialised into a slate AST and assigned to the data property
+   * @param rawData 
+   */
+  set dataRaw(rawData: string) {
+    this._data = this._dataSerializer.deserialize(rawData)
+  }
+
+  /**
    * Persist changes to file on disk
    */
   async save() {
     await this._documentMutex.runExclusive(async () => {
       if (this._data !== undefined) {
         //this._documentFileAdaptor.saveToDisk(this._data)
-        console.log("\x1b[31m","`Document.save()` fired, with the following data:")
+        console.log("\x1b[31m", "`Document.save()` fired, with the following data:")
         console.log("\x1b[37m", JSON.stringify(this._data))
         this._storageAdaptor.saveToDisk(this._data, this._fqpath, this.filename)
 
@@ -97,21 +108,21 @@ export class Document {
         console.info("`data` property is `undefined` so nothing saved to disk")
       }
     })
-    
+
   }
 
   /**
    * Delete the persisted file from storage
    */
-   delete() {
+  delete() {
     this._documentMutex.runExclusive(() => {
-      
-        //this._documentFileAdaptor.saveToDisk(this._data)
-        this._storageAdaptor.deleteFromDisk(this._fqpath, this.filename)
-        console.log("`Document.delete() fired`")
-      
+
+      //this._documentFileAdaptor.saveToDisk(this._data)
+      this._storageAdaptor.deleteFromDisk(this._fqpath, this.filename)
+      console.log("`Document.delete() fired`")
+
     })
-    
+
   }
 
 }

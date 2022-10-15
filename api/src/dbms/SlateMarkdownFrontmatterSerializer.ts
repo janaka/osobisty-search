@@ -8,7 +8,7 @@ import markdown from 'remark-parse';
 import { remarkToSlateOverrides, slateToRemarkOverrides, slateNodeTypes, plateNodeTypes, plateNodeTypesHeadingObjectKey } from '../libs/remarkslate-nodetypes.js';
 import { IAbstractSerializerFactory } from './IAbstractSerializerFactory.js';
 import { ISerializer } from './ISerializer.js';
-import {Node} from 'slate'
+import { Node } from 'slate'
 import type * as slate from "slate";
 
 // type Node = Editor | Element | Text;
@@ -28,35 +28,37 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
     let serializedData: string = "";
     console.log("serialize(data) data param value. Slate format `children` node: ", JSON.stringify(data))
 
-    const data1  = [{"type":"p","children":[{"text":"What is this?"}]},{"type":"p","children":[{"text":""}]},{"type":"ul","children":[{"type":"li","children":[{"type":"lic","children":[{"text":" dfgdfgdfg"}]}]}]},{"type":"p","children":[{"text":""}]},{"type":"p","children":[{"text":"s"}]},{"type":"p","children":[{"text":"ssafdsf h jkhkjhkf"}]},{"type":"p","children":[{"text":"sdfds aSDASDASD D "}]},{"type":"p","children":[{"text":"d d zc n d"}]}];
+    const data1 = [{ "type": "p", "children": [{ "text": "What is this?" }] }, { "type": "p", "children": [{ "text": "" }] }, { "type": "ul", "children": [{ "type": "li", "children": [{ "type": "lic", "children": [{ "text": " dfgdfgdfg" }] }] }] }, { "type": "p", "children": [{ "text": "" }] }, { "type": "p", "children": [{ "text": "s" }] }, { "type": "p", "children": [{ "text": "ssafdsf h jkhkjhkf" }] }, { "type": "p", "children": [{ "text": "sdfds aSDASDASD D " }] }, { "type": "p", "children": [{ "text": "d d zc n d" }] }];
     // const data2 = [{
     //   type: 'p',
     //   children: [
     //     { text: 'This text is underlined.' },
     //   ],
     // }];
+    console.log("serialize AST node count: ", data.length)
+    if (data.length > 0) {
 
-    try {
-      const processor = unified()
-        .use(slateToRemark, {
-          overrides: slateToRemarkOverrides // we need these becase Plate type names are different to Slate
+      try {
+        const processor = unified()
+          .use(slateToRemark, {
+            overrides: slateToRemarkOverrides // we need these becase Plate type names are different to Slate
+          })
+          .use(remarkGfm)
+          .use(remarkStringify)
+
+        const ast = processor.runSync({
+          type: "root",
+          children: data,
         })
-        .use(remarkGfm)
-        .use(remarkStringify)
 
-      const ast = processor.runSync({
-        type: "root",
-        children: data,
-      })
+        console.log("serialise() root node AST: ", JSON.stringify(ast))
 
+        serializedData = processor.stringify(ast) //JSON.stringify(data);
 
-      console.log("serialise() root node AST: ", JSON.stringify(ast))
-
-      serializedData = processor.stringify(ast) //JSON.stringify(data);
-
-      console.log("serialize() return data after running processor: ", serializedData)
-    } catch (error) {
-      throw new Error("slateToRemark failed. " + error)
+        console.log("serialize() return data after running processor: ", serializedData)
+      } catch (error) {
+        throw new Error("slateToRemark failed. " + error)
+      }
     }
     return serializedData;
   }
