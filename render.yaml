@@ -37,6 +37,13 @@ services:
           name: osobisty-api
           type: web
           property: port
+      - key: REACT_APP_Y_WEBSOCKET_HOST
+        sync: false
+      - key: REACT_APP_Y_WEBSOCKET_PORT
+        fromService:
+          name: osobisty-api
+          type: web
+          property: port
   # API
   - type: web
     name: osobisty-api
@@ -87,6 +94,13 @@ services:
         sync: false # placeholder for a value to be added in the dashboard
       - key: TYPESENSE_API_KEY_WRITE_ZETTLEDOCS
         sync: false
+      - key: YSTATE_LEVELDB_PATH
+        sync: false
+      - key: FILE_DBMS_DATAPATH
+        sync: false
+      - key: FILE_DBMS_METADATAPATH
+        sync: false
+      
   # private Typesense Instance
   - type: pserv
     name: typesense-searchengine

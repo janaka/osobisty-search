@@ -54,17 +54,24 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 // disable gc when using snapshots!
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0';
 const YSTATE_LEVELDB_PATH = String(process.env.YSTATE_LEVELDB_PATH);
+let fileDbmsDataPath = String(process.env.FILE_DBMS_DATAPATH);
+let fileDbmsMetaDataPath = String(process.env.FILE_DBMS_METADATAPATH);
+
+if (process.env.NODE_ENV=="development") {
+  fileDbmsDataPath = os.homedir + fileDbmsDataPath 
+  fileDbmsMetaDataPath = os.homedir + fileDbmsMetaDataPath 
+}
 //const ySTATE_LEVELDB_PATH = process.env.YPERSISTENCE
 
 let sendcount: number = 0;
 
 //TODO: this file a mess. Needs refactoring at somepoint.
 
-
+console.log("FILE_DBMS_DATAPATH = ", fileDbmsDataPath)
 
 let dbconfig1: DbmsConfig = {
-  dataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test",
-  metaDataRootPath: os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
+  dataRootPath: fileDbmsDataPath, //os.homedir + "/code-projects/osobisty-search/api/data/test",
+  metaDataRootPath: fileDbmsMetaDataPath,// os.homedir + "/code-projects/osobisty-search/api/data/test/meta",
   storageAdaptorFactory: new DiskStorageAdaptorFactory(),
   dataSerializerFactory: new SlateMarkdownFrontMatterSerialiserFactory(),
 }
