@@ -1,6 +1,6 @@
 import { addHightlightMarkup } from "../utils/addHighlightMarkup"
 
-export function SearchResults(props: any) {
+export function SearchResults({searchResultsData, selectedHitData, setSelectedHitFunc}:{searchResultsData: any, selectedHitData: any, setSelectedHitFunc: React.Dispatch<React.SetStateAction<{} | null | undefined>>}) {
   // const [selectedRowUI, setSelectedRowUI] = useState("");
 
   // const moveFocus = (key: any): void => {
@@ -21,17 +21,17 @@ export function SearchResults(props: any) {
 
   return (
     <div className="search-results">
-      {props.data && props.data.results.length > 0 && props.data.results[0].hits.length > 0
+      {searchResultsData && searchResultsData.results.length > 0 && searchResultsData.results[0].hits.length > 0
         ?
         <ol className="search-results-list">
           {
-            props.data.results.map((result: any) => (
+            searchResultsData.results.map((result: any) => (
               result.hits.map((hit: any) => (
                 <li
-                  className={(props.selectedHit && props.selectedHit.document.id == hit.document.id) ? "search-result selected" : "search-result"}
+                  className={(selectedHitData && selectedHitData.document.id == hit.document.id) ? "search-result selected" : "search-result"}
                   key={hit.document.id}
                   onClick={() => (
-                    props.setSelectedHit(hit)
+                    setSelectedHitFunc(hit)
                   )
                   }
                 >
@@ -47,7 +47,7 @@ export function SearchResults(props: any) {
           }
         </ol>
         :
-        <div><Suggestions setSelectedHitFunc={props.setSelectedHit} /></div>
+        <div><Suggestions setSelectedHitFunc={setSelectedHitFunc} /></div>
 
       }
     </div >

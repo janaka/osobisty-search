@@ -7,30 +7,30 @@ import { TEditMode } from "../types/TEditMode";
 import { MyEditor, MyValue } from './slate-plate/plateTypes';
 import { PLUGINS } from './slate-plate/plugins';
 
-export function DocPreview(props: any) {
+export function DocPreview({ isAuthenticated, wsAuthToken, editMode, hitData, setSelectedHitFunc }: { isAuthenticated: boolean, wsAuthToken: string, editMode: TEditMode, hitData:any, setSelectedHitFunc: React.Dispatch<React.SetStateAction<{} | null | undefined>> }) {
 
-  const [editMode, setEditMode] = useState<TEditMode>(TEditMode.ReadOnly)
+  const [editMode1, setEditMode1] = useState<TEditMode>(TEditMode.ReadOnly)
 
   useEffect(() => {
-    if (props.editMode) setEditMode(props.editMode)
-  }, [props.editMode])
+    if (editMode) setEditMode1(editMode)
+  }, [editMode])
 
   return (
     <div>
-      {props.hitData &&
+      {hitData &&
         <div className="doc-preview">
           <div className="doc-preview-buttons">
 
             <button
               title="Close preview"
               className="button doc-preview-close"
-              onClick={() => (props.setSelectedHit(null))}
+              onClick={() => (setSelectedHitFunc(null))}
             >
               ×
             </button>
-            {props.hitData.document.link && <a
+            {hitData.document.link && <a
               title="Open on new page"
-              href={props.hitData.document.type.startsWith("zettle-") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + props.hitData.document.link : props.hitData.document.link}
+              href={hitData.document.type.startsWith("zettle-") ? "vscode://file/Users/janakaabeywardhana/code-projects/zettelkasten" + hitData.document.link : hitData.document.link}
               // eslint-disable-next-line react/jsx-no-target-blank
               target="_blank"
               className="button doc-preview-open" rel="noreferrer"
@@ -40,30 +40,30 @@ export function DocPreview(props: any) {
             <button
               title="Read Only"
               className="button"
-              onClick={() => (setEditMode(TEditMode.ReadOnly))}
+              onClick={() => (setEditMode1(TEditMode.ReadOnly))}
             >
               Read Only
             </button>
             <button
               title="Edit MD"
               className="button"
-              onClick={() => (setEditMode(TEditMode.EditMd))}
+              onClick={() => (setEditMode1(TEditMode.EditMd))}
             >
               Edit MD
             </button>
             <button
               title="Edit Raw"
               className="button"
-              onClick={() => (setEditMode(TEditMode.EditRaw))}
+              onClick={() => (setEditMode1(TEditMode.EditRaw))}
             >
               Edit Raw
             </button>
-            <div className="doc-preview-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(props.hitData, "title") }}>
+            <div className="doc-preview-title" dangerouslySetInnerHTML={{ __html: addHightlightMarkup(hitData, "title") }}>
             </div>
           </div>
 
           {editMode == TEditMode.ReadOnly ?
-            <ReadonlyView hitData={props.hitData} />
+            <ReadonlyView hitData={hitData} />
 
             :
 
@@ -87,12 +87,12 @@ export function DocPreview(props: any) {
               />
 
               :
-<div></div>
+
               // <EditView className="doc-preview-content" id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
 
             // <PlateProvider<MyValue, MyEditor> id={props.hitData.document.id} >
             //   {/* need <PlateProvider> for the state handling to work properly */}
-            //   <EditView id={props.hitData.document.id} collectionName={props.hitData.document.collectionName} editMode={editMode} />
+             <EditView editMode={editMode} isAuthenticated={isAuthenticated} wsAuthToken={wsAuthToken} />
             // </PlateProvider>
 
           }

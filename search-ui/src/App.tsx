@@ -19,6 +19,7 @@ import { DocPreview } from './components/docPreview';
 import { Search } from './components/search';
 import { SearchResults } from './components/searchResults';
 import { DocFullpage } from './components/docFullpage';
+import { TEditMode } from './types/TEditMode';
 
 
 // 6be0576ff61c053d5f9a3225e2a90f76
@@ -39,7 +40,6 @@ function App() {
   const [docCount, setDocCount] = useState("");
   const [darkMode, SetDarkMode] = useState(true);
   const [token, setToken] = useState("");
-
   useEffect(() => {
     
       //console.log(`Grabbing access token - audience:${audience}`)
@@ -135,8 +135,8 @@ function App() {
       {
         path: "/",
         element: <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
-          <SearchResults data={searchRes} selectedHit={selectedHit} setSelectedHit={setSelectedHit} />
-          <DocPreview hitData={selectedHit} setSelectedHit={setSelectedHit} token={token}/>
+          <SearchResults searchResultsData={searchRes} selectedHitData={selectedHit} setSelectedHitFunc={setSelectedHit} />
+          <DocPreview isAuthenticated={isAuthenticated} hitData={selectedHit} setSelectedHitFunc={setSelectedHit} wsAuthToken={token} editMode={TEditMode.EditMd}/>
         </Search>,
       },
       {
