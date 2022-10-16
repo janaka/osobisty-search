@@ -307,7 +307,7 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
   if (typeof path === 'string' && levelDbPersistence == null) {
     console.log('Persisting document state to "' + path + '"')
     let mdfileDelta
-    const ldb = new LeveldbPersistence(path)
+    const ldb = new LeveldbPersistence(path, {levelOptions:{create_if_missing: true}})
 
     const ldbBindState = async (docName: string, collectionName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
       const persistedYdoc = await ldb.getYDoc(docName) // get persisted state
