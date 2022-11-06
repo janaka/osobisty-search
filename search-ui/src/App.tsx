@@ -20,7 +20,7 @@ import { Search } from './components/search';
 import { SearchResults } from './components/searchResults';
 import { DocFullpage } from './components/docFullpage';
 import { TEditMode } from './types/TEditMode';
-
+import { Testeditor1 } from './testeditor';
 
 // 6be0576ff61c053d5f9a3225e2a90f76
 
@@ -31,6 +31,7 @@ const TYPESENSE_PROTOCOL: string = process.env.REACT_APP_TYPESENSE_PROTOCOL ? pr
 
 if (TYPESENSE_PROTOCOL !== "http" && TYPESENSE_PROTOCOL !== "https") throw "TYPESENSE_PROTOCOL is configured with an invalid value. Must be `http` or `https`"
 if (TYPESENSE_HOST === "" || TYPESENSE_PORT === "") throw new Error("REACT_APP_TYPESENSE_HOST and/or REACT_APP_TYPESENSE_PORT env var came through empty")
+
 
 function App() {
   const { user, error, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
@@ -143,6 +144,10 @@ function App() {
         path: "documents/:collectionName/:id",
         element: <DocFullpage isAuthenticated={isAuthenticated} wsAuthToken={token}/>,
       },
+      {
+        path: "test",
+        element: <Testeditor1 />,
+      },
     ]);
 
 
@@ -157,7 +162,9 @@ function App() {
         <RouterProvider router={router} />
       );
     }  
-  
 }
 
+
+
 export default App;
+
