@@ -42,7 +42,7 @@ import LoginButton from './loginButton';
 
 
 
-const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMode: TEditMode, isAuthenticated:boolean, wsAuthToken: string, className?: string }) => {
+const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editMode: TEditMode, isAuthenticated: boolean, wsAuthToken: string, className?: string }) => {
 
   const [authError, setAuthError] = useState<string>();
 
@@ -85,7 +85,7 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
   //   console.log("webRtcProvider server connect status:", synced)
   // })
 
-  
+
 
   const params = useParams();
   console.log("url param id: ", params.id);
@@ -96,12 +96,11 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
   const docId = params.id;
   const docName = "osobisty" + docId;
   const roomName = docName;
-
   console.log("<editView> LOAD");
   console.log("docId=" + docId);
 
   const wsProvider = useMemo(() => {
-  
+    let reconnecCount: number = 0;
     const collectionName = params.collectionName;
 
 
@@ -114,10 +113,10 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
 
     if (isAuthenticated && !wsAuthToken) throw new Error("Access token is null! Cannot proceed. " + wsAuthToken);
 
-    if (yWebsocketHost=="") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
+    if (yWebsocketHost == "") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
 
     let fqdnAddress: string = "wss://" + yWebsocketHost;
-    if (yWebsocketPort!=="") {fqdnAddress=fqdnAddress + ":" + yWebsocketPort;}
+    if (yWebsocketPort !== "") { fqdnAddress = fqdnAddress + ":" + yWebsocketPort; }
 
     const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) // sync to backend for persistence 
 
@@ -130,10 +129,18 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
       console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
     })
 
-    _wsProvider.on('connection-close', (WSCloseEvent: any, provider:any) => {
+    _wsProvider.on('connection-close', (WSCloseEvent: any, provider: any) => {
       console.log(`wsProvider connection-close:`, WSCloseEvent) // logs "connected" or "disconnected"
-      if (WSCloseEvent.code=="4001") {
-        setAuthError(WSCloseEvent.reason)
+      if (WSCloseEvent.code == "4001") {
+        //_wsProvider.wsconnected = false;
+        reconnecCount++;
+        _wsProvider.wsUnsuccessfulReconnects = reconnecCount;
+
+        console.log("Exponential back off, wsUnsuccessfulReconnects: ", _wsProvider.wsUnsuccessfulReconnects)
+        setAuthError(WSCloseEvent.reason);
+        // if (String(WSCloseEvent.reason).includes("jwt expired")) {
+        //   window.location.reload();
+        // }
       }
     })
 
@@ -170,9 +177,9 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
     // the order below is important
     return withTReact(
       withTYjs(
-        withPlate<MyValue, MyEditor>(
+        withPlate<MyValue, MyEditor>( //withPlate is what applies the plugin overrides we define
           createMyEditor(),
-          { id: docName, plugins: PLUGINS.allNodes}
+          { id: docName, plugins: PLUGINS.allNodes }
         ),
         sharedRoot,
         { autoConnect: false }
@@ -221,41 +228,43 @@ const EditView = ({editMode, isAuthenticated, wsAuthToken, className }: { editMo
 
   return (
     authError ?
-    
-    <div>
-      <div>{authError}</div>
-      <div>Try re-login <LoginButton /></div>
-    </div>
-    
-    :
-    <div>
-      {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
-      <Plate<MyValue, MyEditor>
-      id={docId}
-      editor={editor}
-      editableProps={{ ...editableProps }}
-      
-      //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
-      //plugins={plugins} // when the `editor` instance is provided this doesn't apply
-      onChange={async (newValue) => {
 
-        //debounce(async () =>{console.log("Plate onChange() fired")}, 10)
-        //console.log("Plate onChange() fired")
-        //setValue(newValue) // see note for value prop above
-        // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-        // console.log("`newVsdfalue` onChange():", newValue)
+      <div>
+        <div>{authError}</div>
+        <div>Try re-login <LoginButton /></div>
+      </div>
+
+      :
+      <div>
+        {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
+        <Plate<MyValue, MyEditor>
+          id={docId}
+          editor={editor}
+          editableProps={{ ...editableProps }}
+
+          //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
+          //plugins={plugins} // when the `editor` instance is provided this doesn't apply
+          onChange={async (newValue) => {
+
+            //debounce(async () =>{console.log("Plate onChange() fired")}, 10)
+            //console.log("Plate onChange() fired")
+            //setValue(newValue) // see note for value prop above
+            // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
+            // console.log("`newVsdfalue` onChange():", newValue)
 
 
 
-      }}
+          }}
 
-    />
-    
-    </div>
-    
+        />
+
+      </div>
+
   );
 };
 
-const Toolbar = (props: ToolbarProps) => <HeadingToolbar {...props} />; 
+//const Toolbar = (props: ToolbarProps) => <HeadingToolbar {...props} />; 
+
+
 
 export default EditView;

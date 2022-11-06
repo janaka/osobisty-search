@@ -26,6 +26,7 @@ import {
   ELEMENT_H1,
   ELEMENT_H3,
   StyledElement,
+  TodoListElementStyles,
   unwrapList,
   withProps,
   ELEMENT_H2,
@@ -40,7 +41,9 @@ import {
   ELEMENT_OL,
   ELEMENT_TODO_LI,
   PlateFloatingLink,
+  LinkPlugin
 } from '@udecode/plate';
+import { element } from 'prop-types';
 import { css } from 'styled-components';
 import tw from 'twin.macro';
 import { autoformatRules } from './autoformat/autoformatRules';
@@ -224,13 +227,20 @@ export const PLUGINS = {
         //     root: [css`list-style:initial;`]
         //   },
         // }),
-        [ELEMENT_LINK]: withProps(StyledElement, {
-          as: 'a',
-          styles: {
-            root: [tw`text-blue-600 visited:text-purple-600`,css``]
-          },
-        }),
-
+        // [ELEMENT_LINK]: withProps(StyledElement, {
+        //   as: 'a',
+        //   styles: {
+        //     root: [tw`text-blue-600 visited:text-purple-600`, css``]
+        //   },
+        // }),
+        // https://github.com/udecode/plate/blob/129486f1cb5e1265e37c180612ea3e4dd0766353/packages/ui/nodes/list/src/TodoListElement/TodoListElement.tsx#L27
+        // [ELEMENT_TODO_LI]: withProps(StyledElement, {
+        //   as: 'action_item',
+        //   styles: {
+        //     root: tw`flex flex-row py-1`,
+        //     checkbox: tw`w-4 h-4 m-0`,
+        //   },
+        // }),
       }
       ),
     },),
