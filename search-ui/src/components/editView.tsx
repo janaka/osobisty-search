@@ -166,14 +166,6 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
     // define top level type as yXmlText
     sharedRoot = wsProvider.doc.get(docName, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
 
-    //console.log("just created: ", sharedRoot)
-    //console.log("after provider: ", sharedRoot.toDelta())
-
-    //sharedRoot.doc?.load();
-
-    //console.log("reset `editor` for docId=" + docId)
-    //console.log("`sharedRoot` init value:", sharedRoot)
-
     // the order below is important
     return withTReact(
       withTYjs(
@@ -238,21 +230,12 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
       <div>
         {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
         <Plate<MyValue, MyEditor>
-          id={docId}
+          //id={docId} // do NOT set this prop. breaks plugins like links floating menu
           editor={editor}
           editableProps={{ ...editableProps }}
-
           //value={value} // do not set directly with useState ref: https://plate.udecode.io/docs/Plate#value
           //plugins={plugins} // when the `editor` instance is provided this doesn't apply
           onChange={async (newValue) => {
-
-            //debounce(async () =>{console.log("Plate onChange() fired")}, 10)
-            //console.log("Plate onChange() fired")
-            //setValue(newValue) // see note for value prop above
-            // console.log("`sharedRoot` onChange():", editor.sharedRoot.toDelta())
-            // console.log("`newVsdfalue` onChange():", newValue)
-
-
 
           }}
 
@@ -262,9 +245,5 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
 
   );
 };
-
-//const Toolbar = (props: ToolbarProps) => <HeadingToolbar {...props} />; 
-
-
 
 export default EditView;
