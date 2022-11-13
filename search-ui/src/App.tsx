@@ -123,7 +123,7 @@ function App() {
       document.body.classList.add("dark")
     }
   }
-  useKeyboardShortcut(["Meta", "`"], toggleDarkmodeKbShortcutHandler, { overrideSystem: true }) // cmd + `
+  useKeyboardShortcut(["Meta+`"], toggleDarkmodeKbShortcutHandler, { overrideSystem: true }) // cmd + `
 
 
 

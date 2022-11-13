@@ -41,7 +41,8 @@ import {
   ELEMENT_OL,
   ELEMENT_TODO_LI,
   PlateFloatingLink,
-  LinkPlugin
+  LinkPlugin,
+  CodeBlockElement
 } from '@udecode/plate';
 import { element } from 'prop-types';
 import { css } from 'styled-components';
@@ -61,7 +62,6 @@ export const clearBlockFormat: AutoformatBlockRule['preFormat'] = (editor) =>
 const basicElements = createMyPlugins(
   [
     createBlockquotePlugin(),
-    createCodeBlockPlugin(),
     createHeadingPlugin(),
     createParagraphPlugin(),
     createImagePlugin(),
@@ -76,7 +76,7 @@ const basicElements = createMyPlugins(
 const basicMarks = createMyPlugins(
   [
     createBoldPlugin(),
-    createCodePlugin(),
+    createCodePlugin(), // inline code
     createItalicPlugin(),
     createStrikethroughPlugin(),
     createSubscriptPlugin(),
@@ -90,6 +90,7 @@ const basicMarks = createMyPlugins(
 
 const complex = createMyPlugins(
   [
+    createCodeBlockPlugin(), 
     createResetNodePlugin(resetBlockTypePlugin),
     createSoftBreakPlugin({
       options: {
@@ -123,7 +124,13 @@ const complex = createMyPlugins(
         },
       }
     ),
-    createTodoListPlugin(),
+    createTodoListPlugin(
+      {
+        options: {
+          hotkey: ['commmand+shift+space']
+        }
+      }
+    ),
     createAutoformatPlugin(
       {
         options: {
@@ -155,6 +162,7 @@ export const PLUGINS = {
     [...basicElements, ...basicMarks, ...complex],
     {
       components: createPlateUI({
+        [ELEMENT_CODE_BLOCK]: CodeBlockElement,
         [ELEMENT_PARAGRAPH]: withProps(StyledElement, {
           // as: 'p',
           styles: {

@@ -11,41 +11,12 @@ import LoginButton from './loginButton';
 
 //const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
 
-
-
-export function DocFullpage({ isAuthenticated, wsAuthToken }: { isAuthenticated: boolean, wsAuthToken: string }) {
-  //const { isAuthenticated  } = useAuth0();
-  
-
-  // useEffect(() => {
-
-  // }, [getAccessTokenSilently])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+export function DocFullpage({ isAuthenticated, wsAuthToken }: { isAuthenticated: boolean, wsAuthToken: string }) {  
   return (
-
-
     <div className="container mx-auto h-screen pb-6" >
       <div className="h-auto rounded-lg bg-primarybg p-4 mt-4  scroll-auto overscroll-auto">
         <EditView isAuthenticated={isAuthenticated} wsAuthToken={wsAuthToken} editMode={TEditMode.EditMd} />
       </div>
     </div>
-
-
   );
-
-
 }

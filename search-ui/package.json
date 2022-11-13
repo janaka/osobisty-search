@@ -23,7 +23,7 @@
     "@types/prismjs": "^1.26.0",
     "@types/react": "^18.0.21",
     "@types/styled-components": "^5.1.25",
-    "@udecode/plate": "18.1.2",
+    "@udecode/plate": "18.9.1",
     "@udecode/plate-serializer-md": "^10.6.0",
     "@udecode/plate-test-utils": "^10.1.0",
     "@udecode/plate-ui-excalidraw": "^10.5.3",
