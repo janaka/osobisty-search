@@ -23,6 +23,13 @@
 </head>
 
 <body>
+  <script>
+  window.addEventListener("load", () => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("%PUBLIC_URL%/wpa-offline-serviceworker.js");
+    }
+  });
+</script>
   <noscript>
     You need to enable JavaScript to run this app.
   </noscript>
