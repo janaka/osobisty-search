@@ -56,8 +56,10 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
         serializedData = processor.stringify(ast) //JSON.stringify(data);
 
         console.log("serialize() return data after running processor: ", serializedData)
+        
       } catch (error) {
-        throw new Error("slateToRemark failed. " + error)
+        console.error("slateToRemark failed. " + error)
+        //throw new Error("slateToRemark failed. " + error)
       }
     }
     return serializedData;
