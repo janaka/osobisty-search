@@ -14,5 +14,21 @@
   "scope": "/",
   "display": "standalone",
   "theme_color": "#000000",
-  "background_color": "#ffffff"
+  "background_color": "#ffffff",
+  "shortcuts": [
+    {
+      "name": "TODO",
+      "short_name": "TODO",
+      "description": "Personal TODO list.",
+      "url": "/documents/zettlekasten__root/todomd?source=pwa",
+      "icons": [{ "src": "favicon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "INBOX",
+      "short_name": "INBOX",
+      "description": "A place to brain dump notes, organise later.",
+      "url": "/documents/zettlekasten__root/inboxmd?source=pwa",
+      "icons": [{ "src": "favicon.png", "sizes": "192x192" }]
+    }
+  ],
 }
