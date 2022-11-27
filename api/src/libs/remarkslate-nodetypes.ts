@@ -37,13 +37,13 @@ import type {
   Reference,
   Alternative,
 }  from 'mdast';
+import { toNamespacedPath } from "node:path";
 
 // Override the default remark-slate node type names to match Plate defaults
 // <remark-slate type>:<plate type>;
 
 const ELEMENT_BLOCKQUOTE = 'blockquote';
 const ELEMENT_CODE_BLOCK = 'code_block';
-const ELEMENT_CODE_LINE = 'code_line';
 const ELEMENT_EXCALIDRAW = 'excalidraw';
 const ELEMENT_H1 = 'h1';
 const ELEMENT_H2 = 'h2';
@@ -67,7 +67,7 @@ const ELEMENT_TODO_LI = 'action_item';
 const ELEMENT_TR = 'tr';
 const ELEMENT_UL = 'ul';
 const MARK_BOLD = 'bold';
-const MARK_CODE = 'code';
+const MARK_CODE = 'code_line';
 const MARK_ITALIC = 'italic';
 const MARK_STRIKETHROUGH = 'strikethrough';
 
@@ -93,7 +93,7 @@ export const plateNodeTypes = {
   emphasis_mark: MARK_ITALIC,
   strong_mark: MARK_BOLD,
   delete_mark: MARK_STRIKETHROUGH, //'strikeThrough',
-  inline_code_mark: MARK_CODE, //'code',
+  code_line_mark: MARK_CODE, //'code',
   thematic_break: 'thematic_break',
   image: ELEMENT_IMAGE,
 };
@@ -103,19 +103,32 @@ export const plateNodeTypes = {
 export const slateNodeTypes = {
   paragraph: 'paragraph',
   block_quote: 'blockquote',
-  code_block: 'code',
+  code: 'code',
   link: 'link',
   list: 'list',
-  ul_list: ELEMENT_UL,
-  ol_list: ELEMENT_OL,
   listItem: 'listItem',
   heading: 'heading',
-  emphasis_mark: MARK_ITALIC,
-  strong_mark: MARK_BOLD,
+  emphasis_mark: 'emphasis',
+  strong_mark: 'strong',
   delete_mark: 'delete', //'strikeThrough',
-  inline_code_mark: MARK_CODE, //'code',
-  thematic_break: 'thematic_break',
+  inline_code_mark: 'inlineCode',
+  thematic_break: 'thematicBreak',
   image: 'image',
+  table: 'table',
+  table_row: 'tableRow',
+  table_cell: 'tableCell',
+  definition: 'definition',
+  footnote_definition: 'footnoteDefinition',
+  break:'break',
+  link_reference: 'linkReference',    
+  image_reference: 'imageReference',
+  footnote: 'footnote',
+  footnote_reference: 'footnoteReference',
+  math: 'math',
+  inline_math: 'inlineMath',
+  html:'html',
+  yaml: 'yaml',
+  toml: 'toml',
 };
 
 /**
@@ -149,18 +162,32 @@ export const remarkToSlateOverrides: OverridedMdastBuilders = {
     type: node.checked ? plateNodeTypes.actionListItem : plateNodeTypes.listItem,
     children: next(node.children),
   }),
+  code: (node: any, next:any) => ({
+    type: plateNodeTypes.code_block,
+    depth: node.depth,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
+  inlineCode: (node: any, next:any) => ({
+    type: plateNodeTypes.code_line_mark,
+    depth: node.depth,
+    // You have to call next if the node have children
+    children: next(node.children),
+  }),
 }
 
 /**
  * we need to map between Plate to Slate when serializing to MD. 
  * 
- * The following is mapping from Plate to Slate becuase the remark only understands Slate
+ * The following is mapping from Plate to Slate becuase remark only understands Slate
  */
 export const slateToRemarkOverrides: OverridedSlateBuilders = {
   
   p: (node: any, next:any) => ({
     type: slateNodeTypes.paragraph,
     depth: node.depth,
+    //FIXME:to fix inline code and emph strong, try override children. Though this should be working out of the box
+    // https://github.com/inokawa/remark-slate-transformer/issues/31#issuecomment-1146665213
     // You have to call next if the node have children
     children: next(node.children),
   }),
@@ -241,4 +268,10 @@ export const slateToRemarkOverrides: OverridedSlateBuilders = {
     // You have to call next if the node have children
     children: next(node.children),
   }),
+  code_block: (node: any, next:any) => ({
+    type: slateNodeTypes.code,
+    depth: node.depth,
+    children: next(node.children),
+  }),
+
 }
