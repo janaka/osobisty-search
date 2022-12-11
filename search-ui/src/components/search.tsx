@@ -143,7 +143,7 @@ export function Search(props: any) {
         >
           ×
         </button>
-        <LogoutButton />
+        <LogoutButton className="logout-button button"/>
       </div>
       <div className="sidebar-stats">
         <div className="sidebar-results-stats">
