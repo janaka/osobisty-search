@@ -92,7 +92,7 @@ export function DocPreview({ isAuthenticated, wsAuthToken, editMode, hitData, se
 
             // <PlateProvider<MyValue, MyEditor> id={props.hitData.document.id} >
             //   {/* need <PlateProvider> for the state handling to work properly */}
-             <EditView editMode={editMode} isAuthenticated={isAuthenticated} wsAuthToken={wsAuthToken} />
+             <EditView editMode={editMode} />
             // </PlateProvider>
 
           }

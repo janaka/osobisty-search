@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
-import { useAuth0 } from "@auth0/auth0-react";
+import { useAuth0, withAuthenticationRequired } from "@auth0/auth0-react";
 import { SearchClient as TypesenseSearchClient } from "typesense";
 import useFetch from './hooks/useFetchHook';
 import useKeyboardShortcut from './hooks/useKeyboardShortcutHook';
@@ -8,7 +8,8 @@ import {
   BrowserRouter as Router, Routes, Route, createBrowserRouter, createRoutesFromElements, RouterProvider,
 } from "react-router-dom";
 import './App.css';
-import { func } from 'prop-types';
+//import './index.css';
+import { func, object } from 'prop-types';
 import LoginButton from './components/loginButton';
 import LogoutButton from './components/logoutButon';
 import { threadId } from 'worker_threads';
@@ -42,19 +43,19 @@ function App() {
   const [darkMode, SetDarkMode] = useState(true);
   const [token, setToken] = useState("");
   useEffect(() => {
-    
-      //console.log(`Grabbing access token - audience:${audience}`)
 
-      getAccessTokenSilently({
-        audience: audience,
-        scope: "read:zettleDocuments"
-      }).then((tkn: string)=> {
-        setToken(tkn)
-        
-      })
-      
-      //console.log("app token: ", token)
-  },[getAccessTokenSilently])
+    //console.log(`Grabbing access token - audience:${audience}`)
+
+    getAccessTokenSilently({
+      audience: audience,
+      scope: "read:zettleDocuments"
+    }).then((tkn: string) => {
+      setToken(tkn)
+
+    })
+
+    //console.log("app token: ", token)
+  }, [getAccessTokenSilently])
 
 
   const typesenseHost = `${TYPESENSE_HOST}:${TYPESENSE_PORT}/typesense`
@@ -128,43 +129,57 @@ function App() {
 
 
   if (isLoading) {
-    return <div>Loading ...</div>;
+    return <div>Loading...</div>;
   }
 
-  const router = createBrowserRouter(
-    [
-      {
-        path: "/",
-        element: <Search typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
-          <SearchResults searchResultsData={searchRes} selectedHitData={selectedHit} setSelectedHitFunc={setSelectedHit} />
-          <DocPreview isAuthenticated={isAuthenticated} hitData={selectedHit} setSelectedHitFunc={setSelectedHit} wsAuthToken={token} editMode={TEditMode.EditMd}/>
-        </Search>,
-      },
-      {
-        path: "documents/:collectionName/:id",
-        element: <DocFullpage isAuthenticated={isAuthenticated} wsAuthToken={token}/>,
-      },
-      {
-        path: "test",
-        element: <Testeditor1 />,
-      },
-    ]);
-
-
-  
-    if (!isAuthenticated) {
-      return (<div>
-        <h4> Login to start using Osobisty Search</h4>
-        <LoginButton />
-      </div>)
-    } else {
-      return (
-        <RouterProvider router={router} />
-      );
-    }  
+  return (
+    <>
+      {error && <ErrorMessage message={error.message} />}
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/logout" element={<LogoutPage />} />
+        <Route path="/" element={
+          <ProtectedSearchPage typesenseClient={tsSearchClient} doReset={doReset} placeholderText={"Type to search " + docCount + " docs"} autoFocus={true} results={setSearchRes}>
+            <SearchResults searchResultsData={searchRes} selectedHitData={selectedHit} setSelectedHitFunc={setSelectedHit} />
+            <DocPreview isAuthenticated={isAuthenticated} hitData={selectedHit} setSelectedHitFunc={setSelectedHit} wsAuthToken={token} editMode={TEditMode.EditMd} />
+          </ProtectedSearchPage>
+        } />
+        <Route path="/documents/:collectionName/:id" element={<ProtectedDocFullPage />} />
+        <Route path="/test" element={<ProtectedTestEditorPage />} />
+      </Routes>
+    </>
+  )
 }
 
 
+
+const ProtectedDocFullPage = withAuthenticationRequired(DocFullpage);
+const ProtectedSearchPage = withAuthenticationRequired(Search);
+const ProtectedTestEditorPage = withAuthenticationRequired(Testeditor1);
+
+function LoginPage() {
+  return (
+    <>
+      <div>Login to start using Osobisty: <LoginButton /></div>
+    </>
+  )
+};
+
+function LogoutPage() {
+  return (
+    <>
+      <div>Logout of Osobisty: <LogoutButton /></div>
+    </>
+  )
+};
+
+function ErrorMessage({ message }: { message: string }) {
+  return (
+    <div className="alert alert-danger" role="alert">
+      Oops... {message}
+    </div>
+  );
+};
 
 export default App;
 
