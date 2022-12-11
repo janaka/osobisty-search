@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom"
 import { addHightlightMarkup } from "../utils/addHighlightMarkup"
 
 export function SearchResults({searchResultsData, selectedHitData, setSelectedHitFunc}:{searchResultsData: any, selectedHitData: any, setSelectedHitFunc: React.Dispatch<React.SetStateAction<{} | null | undefined>>}) {
@@ -18,6 +19,8 @@ export function SearchResults({searchResultsData, selectedHitData, setSelectedHi
   // }
 
   //useKeyboardShortcut([String.fromCharCode(40), String.fromCharCode(38)], moveFocus, { overrideSystem: false })
+
+
 
   return (
     <div className="search-results">
@@ -55,6 +58,8 @@ export function SearchResults({searchResultsData, selectedHitData, setSelectedHi
 }
 
 function Suggestions(props: any) {
+  const navigate = useNavigate();
+
   return (
     <div className="search-results search-results-empty">
       <h2 className="empty-state-heading">Suggestions</h2>
@@ -62,8 +67,8 @@ function Suggestions(props: any) {
         <button className="search-results-suggestion">PaaS</button>
         <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'simpletestmd', collectionName: 'zettlekasten__root' } })}>Simple Test.md</button>
         <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'complextestmd', collectionName: 'zettlekasten__root' } })}>Complex Test.md</button>
-        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'inboxmd', collectionName: 'zettlekasten__root' } })}>Inbox</button>
-        <button className="search-results-suggestion" onClick={() => props.setSelectedHitFunc({ document: { authors: '', date: '', id: 'todomd', collectionName: 'zettlekasten__root' } })}>TODO</button>
+        <button className="search-results-suggestion" onClick={() => navigate("/documents/zettlekasten__root/inboxmd")}>Inbox</button>
+        <button className="search-results-suggestion" onClick={() => navigate("/documents/zettlekasten__root/todomd")}>TODO</button>
       </div>
       <h2 className="empty-state-heading">Key bindings</h2><div className="keyboard-map">
         <ul className="keyboard-map-list"><li className="keyboard-map-item"><div className="keybinding-keys">

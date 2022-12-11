@@ -19,6 +19,7 @@ import {
   LinkToolbarButton,
   ToolbarProps,
   HeadingToolbar,
+  selectEditor,
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
 
@@ -35,6 +36,8 @@ import LoginButton from './loginButton';
 
 
 
+const audience: string = process.env.REACT_APP_AUTH0_AUDIENCE ? process.env.REACT_APP_AUTH0_AUDIENCE : "";
+
 //export type MyEditor = PlateEditor<TElement[]> & { typescript: boolean };
 
 // self note: destructuring syntax with TS works (dev time). check what the advantages are of using RN prop-types (runtime).
@@ -42,9 +45,14 @@ import LoginButton from './loginButton';
 
 
 
-const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editMode: TEditMode, isAuthenticated: boolean, wsAuthToken: string, className?: string }) => {
+const EditView = ({ editMode, className }: { editMode: TEditMode, className?: string }) => {
+
+  const { user, error, isAuthenticated, isLoading, getAccessTokenSilently } = useAuth0();
 
   const [authError, setAuthError] = useState<string>();
+  const [wsAuthToken, setWsAuthToken] = useState("");
+  const [wsProvider, setWsProvider] = useState<WebsocketProvider>();
+  const [editor, setEditor] = useState<any>();
 
   const editableProps: TEditableProps<MyValue> = {
     autoFocus: false,
@@ -84,9 +92,6 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
   //   // synced or peers
   //   console.log("webRtcProvider server connect status:", synced)
   // })
-
-
-
   const params = useParams();
   console.log("url param id: ", params.id);
 
@@ -96,126 +101,153 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
   const docId = params.id;
   const docName = "osobisty" + docId;
   const roomName = docName;
+  
   console.log("<editView> LOAD");
   console.log("docId=" + docId);
 
-  const wsProvider = useMemo(() => {
-    let reconnecCount: number = 0;
-    const collectionName = params.collectionName;
+  useEffect(() => {
+    (async () => {
+      try {
+        const t = await getAccessTokenSilently({
+          audience: audience,
+          scope: "read:zettleDocuments"
+        })
+        setWsAuthToken(t);
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+
+  }, [getAccessTokenSilently])
 
 
-    const yWebsocketHost: string = process.env.REACT_APP_Y_WEBSOCKET_HOST ? process.env.REACT_APP_Y_WEBSOCKET_HOST : "";
-    const yWebsocketPort: string = process.env.REACT_APP_Y_WEBSOCKET_PORT ? process.env.REACT_APP_Y_WEBSOCKET_PORT : "";
+  useMemo(() => {
+    if (wsAuthToken) {
+      let reconnecCount: number = 0;
+      const collectionName = params.collectionName;
 
-    console.log("useMemo ran");
-    console.log("room name: ", roomName);
-    const yDoc = new Y.Doc();
 
-    if (isAuthenticated && !wsAuthToken) throw new Error("Access token is null! Cannot proceed. " + wsAuthToken);
+      const yWebsocketHost: string = process.env.REACT_APP_Y_WEBSOCKET_HOST ? process.env.REACT_APP_Y_WEBSOCKET_HOST : "";
+      const yWebsocketPort: string = process.env.REACT_APP_Y_WEBSOCKET_PORT ? process.env.REACT_APP_Y_WEBSOCKET_PORT : "";
 
-    if (yWebsocketHost == "") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
+      console.log("useMemo ran");
+      console.log("room name: ", roomName);
+      const yDoc = new Y.Doc();
 
-    let fqdnAddress: string = "wss://" + yWebsocketHost;
-    if (yWebsocketPort !== "") { fqdnAddress = fqdnAddress + ":" + yWebsocketPort; }
+      if (!isAuthenticated) throw new Error("isAuthenticated=false, cannot proceed")
+      if (isAuthenticated && !wsAuthToken) throw new Error("Access token is null! Cannot proceed. " + wsAuthToken);
 
-    const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) // sync to backend for persistence 
+      if (yWebsocketHost == "") throw new Error("`REACT_Y_WEBSOCKET_HOST` config value cannot be empty. Set this to the host name of the y-websocket backend.");
 
-    _wsProvider.on('status', (event: any) => {
-      console.log(`wsProvider server connect status(roomName:${roomName}):`, event.status) // logs "connected" or "disconnected"
-      console.log(event)
-    })
+      let fqdnAddress: string = "wss://" + yWebsocketHost;
+      if (yWebsocketPort !== "") { fqdnAddress = fqdnAddress + ":" + yWebsocketPort; }
 
-    _wsProvider.on('connection-error', (WSErrorEvent: any) => {
-      console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
-    })
+      const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) // sync to backend for persistence 
 
-    _wsProvider.on('connection-close', (WSCloseEvent: any, provider: any) => {
-      console.log(`wsProvider connection-close:`, WSCloseEvent) // logs "connected" or "disconnected"
-      if (WSCloseEvent.code == "4001") {
-        //_wsProvider.wsconnected = false;
-        reconnecCount++;
-        _wsProvider.wsUnsuccessfulReconnects = reconnecCount;
+      _wsProvider.on('status', (event: any) => {
+        console.log(`wsProvider server connect status(roomName:${roomName}):`, event.status) // logs "connected" or "disconnected"
+        console.log(event)
+      })
 
-        console.log("Exponential back off, wsUnsuccessfulReconnects: ", _wsProvider.wsUnsuccessfulReconnects)
-        setAuthError(WSCloseEvent.reason);
-        // if (String(WSCloseEvent.reason).includes("jwt expired")) {
-        //   window.location.reload();
+      _wsProvider.on('connection-error', (WSErrorEvent: any) => {
+        console.log(`wsProvider connection-error:`, WSErrorEvent) // logs "connected" or "disconnected"
+      })
+
+      _wsProvider.on('connection-close', (WSCloseEvent: any, provider: any) => {
+        console.log(`wsProvider connection-close:`, WSCloseEvent) // logs "connected" or "disconnected"
+        if (WSCloseEvent.code == "4001") {
+          //_wsProvider.wsconnected = false;
+          reconnecCount++;
+          _wsProvider.wsUnsuccessfulReconnects = reconnecCount;
+
+          console.log("Exponential back off, wsUnsuccessfulReconnects: ", _wsProvider.wsUnsuccessfulReconnects)
+          setAuthError(WSCloseEvent.reason);
+          // if (String(WSCloseEvent.reason).includes("jwt expired")) {
+          //   window.location.reload();
+          // }
+        }
+      })
+
+      if (_wsProvider.ws !== null) {
+        // wsProvider.ws.onmessage = (event) => { // switching this on causes the sync on the clinet side to be exteremly delayed. RCA theory - this was originally outside a hook like useEffect or useMemo. So each React render would have added a new handler. More handlers in the list the more too to get fired.
+        //   console.log("ws message received: ", event)
+        //   //wsProvider.ws?.onmessage
         // }
       }
-    })
 
-    if (_wsProvider.ws !== null) {
-      // wsProvider.ws.onmessage = (event) => { // switching this on causes the sync on the clinet side to be exteremly delayed. RCA theory - this was originally outside a hook like useEffect or useMemo. So each React render would have added a new handler. More handlers in the list the more too to get fired.
-      //   console.log("ws message received: ", event)
-      //   //wsProvider.ws?.onmessage
-      // }
+      setWsProvider(_wsProvider);
+      //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
     }
 
-    return _wsProvider;
-    //return new WebsocketProvider('ws://127.0.0.1:12345', docName, yDoc) // sync to yjs-ws-server/server.ts
-
-
-  }, [roomName])
+  }, [roomName, wsAuthToken])
 
 
   let sharedRoot: XmlText | null = null;
 
-  const editor = useMemo(() => {
+  useMemo(() => {
+    if (wsProvider) {
+      console.log("wsProvider.doc.get(`" + docName + "`, Y.XmlText)")
+      // define top level type as yXmlText
+      sharedRoot = wsProvider.doc.get(docName, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
 
-    console.log("wsProvider.doc.get(`" + docName + "`, Y.XmlText)")
-    // define top level type as yXmlText
-    sharedRoot = wsProvider.doc.get(docName, Y.XmlText) as Y.XmlText //getXmlText(yDoc, docId);
-
-    // the order below is important
-    return withTReact(
-      withTYjs(
-        withPlate<MyValue, MyEditor>( //withPlate is what applies the plugin overrides we define
-          createMyEditor(),
-          { id: docName, plugins: PLUGINS.allNodes }
-        ),
-        sharedRoot,
-        { autoConnect: false }
-      )
-    );
-  }, [docName])
+      // the order below is important
+      const _editor = withTReact(
+        withTYjs(
+          withPlate<MyValue, MyEditor>( //withPlate is what applies the plugin overrides we define
+            createMyEditor(),
+            { id: docName, plugins: PLUGINS.allNodes }
+          ),
+          sharedRoot,
+          { autoConnect: false }
+        )
+      );
+      setEditor(_editor);
+    }
+  }, [wsProvider]) //was `docname`
 
 
   // Connect editor and providers in useEffect to comply with concurrent mode requirements.
 
   useEffect(() => {
-    // `synced` fires before `sync`
-    wsProvider.on('synced', async (isSynced: boolean) => {
-      console.log("==== onSynced() ======");
-      console.log("synced status: ", isSynced);
-      console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
+    if (wsProvider && sharedRoot) {
+      // `synced` fires before `sync`
+      wsProvider.on('synced', async (isSynced: boolean) => {
+        console.log("==== onSynced() ======");
+        console.log("synced status: ", isSynced);
+        console.log("sharedRoot len: ", sharedRoot && sharedRoot.length)
 
-      if (sharedRoot !== null && sharedRoot.length == 0) {
-        console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero. Obj `sharedRoot`:: ", sharedRoot)
-      } else if (wsProvider.wsconnected == true && sharedRoot == null) {
-        console.log("`sharedRood` object is `null`. Obj `sharedRoot`: ", sharedRoot)
-        throw new Error("sharedRoot is `null`. Something has gone wrong.")
-      } else if (wsProvider.wsconnected == false) {
-        console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
-      } else {
-        console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
-      }
+        if (sharedRoot !== null && sharedRoot.length == 0) {
+          console.log("Server didn't return data. `sharedRoot` not `null` and `sharedRoot.length` is zero. Obj `sharedRoot`:: ", sharedRoot)
+        } else if (wsProvider.wsconnected == true && sharedRoot == null) {
+          console.log("`sharedRood` object is `null`. Obj `sharedRoot`: ", sharedRoot)
+          throw new Error("sharedRoot is `null`. Something has gone wrong.")
+        } else if (wsProvider.wsconnected == false) {
+          console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
+        } else {
+          console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
+        }
 
-      console.log("`sharedRoot` content: ", sharedRoot?.toString())
+        console.log("`sharedRoot` content: ", sharedRoot?.toString())
 
-      console.log("==========");
-    })
+        console.log("==========");
+      })
 
-    wsProvider.connect();
-    console.log("connect wsProvider")
-    return () => wsProvider.disconnect();
+      wsProvider.connect();
+      console.log("connect wsProvider")
+      return () => wsProvider.disconnect();
+    }
   }, [wsProvider]);
 
-  useEffect(() => {
-    //Connect the editor to the shared type by overwriting the current editor value with the in the shared root contained document and registering the appropriate event listeners.
-    YjsEditor.connect(editor);
-    console.log("connect editor. connected=", YjsEditor.connected(editor))
 
-    return () => YjsEditor.disconnect(editor);
+
+  useEffect(() => {
+    if (editor) {
+      //Connect the editor to the shared type by overwriting the current editor value with the in the shared root contained document and registering the appropriate event listeners.
+      YjsEditor.connect(editor);
+      console.log("connect editor. connected=", YjsEditor.connected(editor))
+
+      return () => YjsEditor.disconnect(editor);
+    }
   }, [editor]);
 
   return (
@@ -229,7 +261,7 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
       :
       <div>
         {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
-        <Plate<MyValue, MyEditor>
+        {editor && <Plate<MyValue, MyEditor>
           //id={docId} // do NOT set this prop. breaks plugins like links floating menu
           editor={editor}
           editableProps={{ ...editableProps }}
@@ -239,7 +271,7 @@ const EditView = ({ editMode, isAuthenticated, wsAuthToken, className }: { editM
 
           }}
 
-        />
+        />}
 
       </div>
 
