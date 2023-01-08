@@ -127,7 +127,7 @@ const complex = createMyPlugins(
     createTodoListPlugin(
       {
         options: {
-          hotkey: ['commmand+shift+space']
+          hotkey: ['cmd+shift+space']
         }
       }
     ),
