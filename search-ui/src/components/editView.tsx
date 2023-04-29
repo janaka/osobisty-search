@@ -1,7 +1,7 @@
 // @refresh reset
 import React, { useState, useMemo, useEffect } from 'react'
 // Import the core binding
-import { withYjs, yTextToSlateElement, slateNodesToInsertDelta, YjsEditor } from '@slate-yjs/core';
+import { withYjs, yTextToSlateElement, slateNodesToInsertDelta, YjsEditor, withYHistory, YHistoryEditor } from '@slate-yjs/core';
 import * as Y from 'yjs';
 //import {YXmlText} from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
@@ -20,6 +20,9 @@ import {
   ToolbarProps,
   HeadingToolbar,
   selectEditor,
+  withTHistory,
+  Toolbar,
+  Button,
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
 
@@ -33,6 +36,8 @@ import { useAuth0 } from '@auth0/auth0-react';
 import { Link } from '@styled-icons/material/Link';
 import { useParams } from 'react-router-dom';
 import LoginButton from './loginButton';
+import { HistoryEditor, withHistory } from 'slate-history';
+import { MyReactEditor } from './slate-plate/plateTypes';
 
 
 
@@ -52,7 +57,7 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
   const [authError, setAuthError] = useState<string>();
   const [wsAuthToken, setWsAuthToken] = useState("");
   const [wsProvider, setWsProvider] = useState<WebsocketProvider>();
-  const [editor, setEditor] = useState<any>();
+  const [editor, setEditor] = useState<YHistoryEditor & MyEditor>();
 
   const editableProps: TEditableProps<MyValue> = {
     autoFocus: false,
@@ -101,7 +106,7 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
   const docId = params.id;
   const docName = "osobisty" + docId;
   const roomName = docName;
-  
+
   console.log("<editView> LOAD");
   console.log("docId=" + docId);
 
@@ -192,13 +197,15 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
 
       // the order below is important
       const _editor = withTReact(
-        withTYjs(
-          withPlate<MyValue, MyEditor>( //withPlate is what applies the plugin overrides we define
-            createMyEditor(),
-            { id: docName, plugins: PLUGINS.allNodes }
-          ),
-          sharedRoot,
-          { autoConnect: false }
+        withYHistory(
+          withTYjs(
+            withPlate<MyValue, MyEditor>( //withPlate is what applies the plugin overrides we define
+              createMyEditor(),
+              { id: docName, plugins: PLUGINS.allNodes }
+            ),
+            sharedRoot,
+            { autoConnect: false }
+          )
         )
       );
       setEditor(_editor);
@@ -259,8 +266,10 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
       </div>
 
       :
-      <div>
-        {/* <Toolbar><LinkToolbarButton icon={<Link />} /></Toolbar> */}
+      <>
+      
+        {editor && <> <button onClick={() => {editor.undo();} }>Undo</button> <button onClick={() => {editor.redo()} }>Redo</button> </>}
+        
         {editor && <Plate<MyValue, MyEditor>
           //id={docId} // do NOT set this prop. breaks plugins like links floating menu
           editor={editor}
@@ -272,9 +281,8 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
           }}
 
         />}
-
-      </div>
-
+      
+      </>
   );
 };
 

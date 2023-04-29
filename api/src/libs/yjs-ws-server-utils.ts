@@ -347,8 +347,8 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
       provider: ldb as LeveldbPersistence,
       bindState: ldbBindState,
       writeState: async (docName, ydoc) => {
-        const newUpdates = Y.encodeStateAsUpdate(ydoc)
-        ldb.storeUpdate(docName, newUpdates)
+        const newUpdates = Y.encodeStateAsUpdate(ydoc);
+        ldb.storeUpdate(docName, newUpdates);
         ydoc.markdownFileRef.save();
       }
     }
