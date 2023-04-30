@@ -5,6 +5,7 @@ import {
   autoformatMath,
   autoformatPunctuation,
   autoformatSmartQuotes,
+  withAutoformat
 } from '@udecode/plate';
 import { autoformatBlocks } from './autoformatBlocks';
 import { autoformatLists } from './autoformatLists';
@@ -21,3 +22,4 @@ export const autoformatRules = [
   ...autoformatArrow,
   ...autoformatMath,
 ];
+

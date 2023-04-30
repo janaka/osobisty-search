@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 // Import the core binding
 import { withYjs, yTextToSlateElement, slateNodesToInsertDelta, YjsEditor, withYHistory, YHistoryEditor } from '@slate-yjs/core';
+import { withTYjs } from './slate-plate/withTYjs';
 import * as Y from 'yjs';
 //import {YXmlText} from 'yjs'
 import { WebrtcProvider } from 'y-webrtc'
@@ -26,7 +27,7 @@ import {
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
 
-import { withTYjs } from './slate-plate/withTYjs';
+
 
 import { XmlText } from 'yjs';
 import { MyValue, MyEditor, createMyEditor } from './slate-plate/plateTypes';
@@ -58,6 +59,7 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
   const [wsAuthToken, setWsAuthToken] = useState("");
   const [wsProvider, setWsProvider] = useState<WebsocketProvider>();
   const [editor, setEditor] = useState<YHistoryEditor & MyEditor>();
+  
 
   const editableProps: TEditableProps<MyValue> = {
     autoFocus: false,

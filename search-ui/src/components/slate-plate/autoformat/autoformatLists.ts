@@ -8,7 +8,7 @@ import {
   setNodes,
   TTodoListItemElement,
 } from '@udecode/plate';
-import { isBlock } from '@udecode/plate-core';
+import {isElement} from '@udecode/plate-core';
 import { clearBlockFormat, formatList } from './autoformatUtils';
 
 export const autoformatLists: AutoformatRule[] = [
@@ -41,7 +41,8 @@ export const autoformatLists: AutoformatRule[] = [
         editor,
         { type: ELEMENT_TODO_LI, checked: true },
         {
-          match: (n) => isBlock(editor, n),
+          match: (n) => isElement(n),
+          
         }
       ),
   },

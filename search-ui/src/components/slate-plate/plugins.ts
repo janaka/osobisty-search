@@ -135,7 +135,7 @@ const complex = createMyPlugins(
       {
         options: {
           rules: [
-            ...autoformatRules,
+            ...autoformatRules as any,
           ],
 
         },
