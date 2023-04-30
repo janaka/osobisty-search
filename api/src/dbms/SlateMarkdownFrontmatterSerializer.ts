@@ -5,7 +5,6 @@ import remarkUnwrapImages from 'remark-unwrap-images';
 import remarkStringify from "remark-stringify";
 import { unified } from 'unified';
 import markdown from 'remark-parse';
-import remarkCodeBlocks from 'remark-code-blocks';
 import { remarkToSlateOverrides, slateToRemarkOverrides, slateNodeTypes, plateNodeTypes, plateNodeTypesHeadingObjectKey } from '../libs/remarkslate-nodetypes.js';
 import { IAbstractSerializerFactory } from './IAbstractSerializerFactory.js';
 import { ISerializer } from './ISerializer.js';
