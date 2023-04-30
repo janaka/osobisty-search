@@ -5,6 +5,7 @@ import remarkUnwrapImages from 'remark-unwrap-images';
 import remarkStringify from "remark-stringify";
 import { unified } from 'unified';
 import markdown from 'remark-parse';
+import remarkCodeBlocks from 'remark-code-blocks';
 import { remarkToSlateOverrides, slateToRemarkOverrides, slateNodeTypes, plateNodeTypes, plateNodeTypesHeadingObjectKey } from '../libs/remarkslate-nodetypes.js';
 import { IAbstractSerializerFactory } from './IAbstractSerializerFactory.js';
 import { ISerializer } from './ISerializer.js';
@@ -26,8 +27,11 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
   serialize(data: Node[]): string {
     // use remark to serialize
     let serializedData: string = "";
-    console.log("serialize(data) data param value. Slate format `children` node: ", JSON.stringify(data))
-
+    console.log("");
+    console.log("");
+    console.log("serialize(data) input value. PLATE format `children` node: ")
+    console.log(JSON.stringify(data));
+    console.log("");
     const data1 = [{ "type": "p", "children": [{ "text": "What is this?" }] }, { "type": "p", "children": [{ "text": "" }] }, { "type": "ul", "children": [{ "type": "li", "children": [{ "type": "lic", "children": [{ "text": " dfgdfgdfg" }] }] }] }, { "type": "p", "children": [{ "text": "" }] }, { "type": "p", "children": [{ "text": "s" }] }, { "type": "p", "children": [{ "text": "ssafdsf h jkhkjhkf" }] }, { "type": "p", "children": [{ "text": "sdfds aSDASDASD D " }] }, { "type": "p", "children": [{ "text": "d d zc n d" }] }];
     // const data2 = [{
     //   type: 'p',
@@ -51,12 +55,15 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
           children: data,
         })
 
-        console.log("serialise() root node AST: ", JSON.stringify(ast))
+        console.log("serialise() processor stringify input - SLATE root node AST: ")
+        console.log(JSON.stringify(ast));
+        console.log("");
 
         serializedData = processor.stringify(ast) //JSON.stringify(data);
 
-        console.log("serialize() return data after running processor: ", serializedData)
-        
+        console.log("serialize() processor output: ")
+        console.log(serializedData);
+        console.log("");
       } catch (error) {
         console.error("slateToRemark failed. " + error)
         //throw new Error("slateToRemark failed. " + error)
@@ -69,31 +76,36 @@ export class SlateMarkdownFrontMatterSerializer implements ISerializer<Node[]> {
     // const result: object = JSON.parse(data);
     let result: Node[] = [];  //: Array<Element> = new Array<Element>();
 
-    unified()
-      .use(markdown)
-      .use(remarkFrontmatter, ['yaml'])
-      .use(remarkUnwrapImages)
-      .use(remarkGfm)
-      .use(remarkToSlate, {
-        // If you use TypeScript, install `@types/mdast` for autocomplete.
-        overrides: remarkToSlateOverrides
-      })
-      .process(data, (error, vfile) => {
-
-        if (error) throw (error)
-
-        //let initialValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
-
-        if (!vfile) throw ("vfile empty")
-
-        if (!vfile.result) throw ("remark-slate ain't doing it's thing")
-
-        //console.log("remark-slate `result`:", vfile.result)
-
-        result = vfile.result as Node[];
-
-      })
-    return result;
+    try {
+      unified()
+        .use(markdown)
+        .use(remarkFrontmatter, ['yaml'])
+        .use(remarkUnwrapImages)
+        .use(remarkGfm)
+        .use(remarkToSlate, {
+          // If you use TypeScript, install `@types/mdast` for autocomplete.
+          overrides: remarkToSlateOverrides
+        })
+        .process(data, (error, vfile) => {
+  
+          if (error) throw new Error (`Error: SlateMarkdownFrontMatterSerializer.deserialize() error. Error message: ${error as Error}`)
+  
+          //let initialValue: any = [{ type: 'p', children: [{ text: 'initial value from backend' }] }, { type: 'p', children: [{ text: 'hehehehe' }] }];
+  
+          if (!vfile) throw new Error(`Error: SlateMarkdownFrontMatterSerializer.deserialize() error. vfile empty`)
+  
+          if (!vfile.result) throw new Error(`Error: SlateMarkdownFrontMatterSerializer.deserialize() error. remark-slate ain't doing it's thing. Empty vfile.result returned`)
+  
+          //console.log("remark-slate `result`:", vfile.result)
+  
+          result = vfile.result as Node[];
+  
+        })
+        return result;
+    } catch (error) {
+      throw new Error(`SlateMarkdownFrontMatterSerializer.deserialize(): unified() had a fatal crash: ${error as Error}`)
+    }
+    
   }
 }
 

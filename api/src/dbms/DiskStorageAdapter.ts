@@ -80,21 +80,29 @@ export class DiskStorageAdapter implements IStorageAdapter {
     let fqfn: string = "";
     let c: object | undefined;
     let s: string = "";
-    let b: Buffer;
+    //let b: Buffer;
     try {
       fqfn = DiskStorageAdapter.fqfilename(path, filename);
       s = fs.readFileSync(fqfn, "utf-8");
       if (s.length == 0) s = "[]" // bug/behaviour: readFileSync returns empty string when file has `[]` i.e empty array. Maybe copy function over to debug https://cs.github.com/nodejs/node/blob/2a7ac9298e896760ce3c1cfed8437fa8bdbde2bb/lib/fs.js#L464
-      c = this._serializer.deserialize(s);
-      return c;
+     
+      
     } catch (error) {
       const e = error as NodeJS.ErrnoException;
       if (e.code === "ENOENT") {
-        console.log("DiskStorageAdaptor.loadFromDisk(" + fqfn + ") file doesn't exist so returning `undefined`. Likely legit. " + error);
+        console.log("DiskStorageAdaptor.loadFromDisk(" + fqfn + "): fs.readFileSync() error. File doesn't exist so returning `undefined`. Likely legit. " + error);
         return undefined;
       } else {
-        throw new Error("DiskStorageAdaptor.loadFromDisk(" + fqfn + ") failed. " + error + ". Error Code: " + e.code + "json: " + s);
+        throw new Error("DiskStorageAdaptor.loadFromDisk(" + fqfn + ") fs.readFileSync() error: " + error + ". Error Code: " + e.code + "data string: " + s);
       }
+    } 
+
+    try {
+      console.log(`DiskStorageAdaptor.loadFromDisk() deserialize(): concrete serializer name: ${this._serializer.constructor.name}`);
+      c = this._serializer.deserialize(s);
+      return c;
+    } catch (error) {
+      throw new Error(`DiskStorageAdaptor.loadFromDisk(${fqfn}) deserialize() error. Concrete serializer name: ${this._serializer.constructor.name} , error message: ${error as NodeJS.ErrnoException}, data string: ${s}`);
     }
 
     // fs.readFileSync(this._fqfilename, 'utf-8', (error: any, data: string) => {

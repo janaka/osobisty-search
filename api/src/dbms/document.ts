@@ -60,7 +60,13 @@ export class Document {
 
 
     if (this._storageAdaptor.fileExists(this._fqpath, this.filename)) {
-      this._data = this._storageAdaptor.loadFromDisk(this._fqpath, this.filename)
+      
+      try {
+        console.log(`Document(): Loading file from disk: ${this._fqpath + this.filename}`);
+        this._data = this._storageAdaptor.loadFromDisk(this._fqpath, this.filename)
+      } catch (error) {
+        throw new Error(`Document(): Error loading file from disk. ${this._fqpath + this.filename} . ${error as Error}`)
+      }
     }
 
 

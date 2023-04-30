@@ -179,8 +179,6 @@ export class WSSharedDoc extends Y.Doc {
 
     this.on('update', updateHandler)
 
-
-
     if (isCallbackSet) {
       this.on('update', debounce(
         callbackHandler,

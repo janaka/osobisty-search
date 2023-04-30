@@ -2,42 +2,42 @@
 import { OverridedMdastBuilders } from "remark-slate-transformer/lib/transformers/mdast-to-slate";
 import { OverridedSlateBuilders } from "remark-slate-transformer/lib/transformers/slate-to-mdast";
 import slate from 'slate';
-import type {
-  Parent,
-  Literal,
-  Root,
-  Paragraph,
-  Heading,
-  ThematicBreak,
-  Blockquote,
-  List,
-  ListItem,
-  Table,
-  TableRow,
-  TableCell,
-  HTML,
-  Code,
-  YAML,
-  Definition,
-  FootnoteDefinition,
-  Text,
-  Emphasis,
-  Strong,
-  Delete,
-  InlineCode,
-  Break,
-  Link,
-  Image,
-  LinkReference,
-  ImageReference,
-  Footnote,
-  FootnoteReference,
-  Resource,
-  Association,
-  Reference,
-  Alternative,
-}  from 'mdast';
-import { toNamespacedPath } from "node:path";
+// import type {
+//   Parent,
+//   Literal,
+//   Root,
+//   Paragraph,
+//   Heading,
+//   ThematicBreak,
+//   Blockquote,
+//   List,
+//   ListItem,
+//   Table,
+//   TableRow,
+//   TableCell,
+//   HTML,
+//   Code,
+//   YAML,
+//   Definition,
+//   FootnoteDefinition,
+//   Text,
+//   Emphasis,
+//   Strong,
+//   Delete,
+//   InlineCode,
+//   Break,
+//   Link,
+//   Image,
+//   LinkReference,
+//   ImageReference,
+//   Footnote,
+//   FootnoteReference,
+//   Resource,
+//   Association,
+//   Reference,
+//   Alternative,
+// }  from 'mdast';
+
 
 // Override the default remark-slate node type names to match Plate defaults
 // <remark-slate type>:<plate type>;
@@ -128,11 +128,13 @@ export const slateNodeTypes = {
   inline_math: 'inlineMath',
   html:'html',
   yaml: 'yaml',
-  toml: 'toml',
+  toml: 'toml', 
+  text: 'text',
 };
 
+
 /**
- * Map from remark to Plate node names when deserializing MD
+ * Map from remark AST to Plate node names when deserializing MD
  */
 export const remarkToSlateOverrides: OverridedMdastBuilders = {
   
@@ -162,18 +164,19 @@ export const remarkToSlateOverrides: OverridedMdastBuilders = {
     type: node.checked ? plateNodeTypes.actionListItem : plateNodeTypes.listItem,
     children: next(node.children),
   }),
-  code: (node: any, next:any) => ({
-    type: plateNodeTypes.code_block,
-    depth: node.depth,
-    // You have to call next if the node have children
-    children: next(node.children),
-  }),
-  inlineCode: (node: any, next:any) => ({
-    type: plateNodeTypes.code_line_mark,
-    depth: node.depth,
-    // You have to call next if the node have children
-    children: next(node.children),
-  }),
+  // code: (node: any, next:any) => ({
+  //   type: plateNodeTypes.code_block,
+  //   lang: node.lang,
+  //   meta: node.meta,
+  //   // You have to call next if the node have children
+  //   children: next(node.children),
+  // }),
+  // inlineCode: (node: any, next:any) => ({
+  //   type: plateNodeTypes.code_line_mark,
+  //   depth: node.depth,
+  //   // You have to call next if the node have children
+  //   children: next(node.children),
+  // }),
 }
 
 /**
@@ -194,11 +197,11 @@ export const slateToRemarkOverrides: OverridedSlateBuilders = {
   a: (node: any, next:any) => ({
     type: slateNodeTypes.link,
     url: node.url,
-    title: node.title,//node.children>0 && node.children[0].type=='text' ? node.children[0].value : node.url,
+    title: node.title,
     // You have to call next if the node have children
     children: next(node.children),
   }),
-  // This overrides `type: "heading"` builder to go from Plate to Slate for remark
+  // This overrides plate `type: "h1"` builder to go from Plate to Slate for remark.
   h1: (node: any, next:any) => ({
     type: slateNodeTypes.heading,
     level: 1,
@@ -271,7 +274,24 @@ export const slateToRemarkOverrides: OverridedSlateBuilders = {
   code_block: (node: any, next:any) => ({
     type: slateNodeTypes.code,
     depth: node.depth,
+    lang: node.lang,
+    meta: node.meta,
     children: next(node.children),
-  }),
 
+  }),
+  code_line: (node: any, next:any) => ({
+    text: node.children[0].text,
+  }),
 }
+
+// SLATE CODE BLOCK
+//{"type":"code","lang":"typescript","meta":null,"children":[{"text":"  const a = () => {};"}]}
+
+//PLATE CODE BLOCK
+// {"type":"code_block","lang":"erlang","children":[{"type":"code_line","children":[{"text":"code line onesd"}]}]}
+
+//SLATE inline code
+//{"type":"paragraph","children":[{"text":"Hello "},{"inlineCode":true,"text":"const code = () => {}"}]}
+
+//PLATE inline code
+//{"type":"p","children":[{"text":"sdfsddd dssdddssddsssssssssssssad "},{"code":true,"text":"code"}]}

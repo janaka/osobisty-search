@@ -6,6 +6,7 @@ import { DiskStorageAdapter } from "./DiskStorageAdapter.js";
 import fs from 'fs'
 import { Mutex } from "async-mutex";
 import { throws } from "assert";
+import { logger } from "../utils/logger.js";
 
 
 export interface CollectionPointer {
@@ -132,6 +133,7 @@ class Collection {
   private initialiseDocuments(): Map<string, Document> {
     const documents = new Map<string, Document>();
     if (this._documentsIndexStorageAdaptor.fileExists(this._dbms.config.metaDataRootPath, this._documentsIndexFileName)) {
+      console.log("initialiseDocuments(). Loading docs from disk as cache");
       const di = this.loadDocumentsIndexFromDisk()
       di.forEach((e: DocumentPointer) => {
         documents.set(e.name, new Document(e.name, this._dbms, e.reldirname))
