@@ -41,11 +41,11 @@ describe('Unified troubleshooting', () => {
         .use(remarkFrontmatter, ['yaml'])
         .use(remarkUnwrapImages)
         .use(remarkGfm)
-        .use(remarkToSlate)
-        // .use(remarkToSlate, {
-        //   // If you use TypeScript, install `@types/mdast` for autocomplete.
-        //   overrides: remarkToSlateOverrides
-        // })
+        //.use(remarkToSlate)
+        .use(remarkToSlate, {
+          // If you use TypeScript, install `@types/mdast` for autocomplete.
+          overrides: remarkToSlateOverrides
+        })
         .process(data, (error, vfile) => {
   
           if (error) throw new Error (`Error: SlateMarkdownFrontMatterSerializer.deserialize() error. Error message: ${error as Error}`)
