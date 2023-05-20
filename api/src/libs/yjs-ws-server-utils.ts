@@ -54,7 +54,7 @@ const wsReadyStateClosed = 3 // eslint-disable-line
 // disable gc when using snapshots!
 // disable gc enables restoring old content
 const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'; //TODO: this needs to be passed in via the constructor to WSSharedDoc
-const YSTATE_LEVELDB_PATH = String(process.env.YSTATE_LEVELDB_PATH);
+
 let fileDbmsDataPath = String(process.env.FILE_DBMS_DATAPATH);
 let fileDbmsMetaDataPath = String(process.env.FILE_DBMS_METADATAPATH);
 
@@ -209,7 +209,7 @@ export const getYDoc = (docname: string, collectionName: string, gc: boolean = f
   console.log("getYDoc(" + docname + ")")
 
 
-  if (levelDbPersistence == null) throw new Error("getYDc(): 'levelDbPersistance' cannot be null.")
+  if (levelDbPersistence == null) throw new Error("getYDoc(): 'levelDbPersistance' cannot be null.")
   //levelDB bindState needs to be called always
   levelDbPersistence.bindState(docname, collectionName, sharedDoc)
 
@@ -230,12 +230,15 @@ const messageListener = (conn: ws, doc: WSSharedDoc, message: Uint8Array) => {
   try {
     const encoder = encoding.createEncoder()
     const decoder = decoding.createDecoder(message)
-    const messageType = decoding.readVarUint(decoder)
+    const messageType = decoding.readVarUint(decoder) 
     switch (messageType) {
-      case messageSync:
+      case messageSync: // messageYjsSyncStep1=0, messageYjsSyncStep2=1, messageYjsUpdate=2
         encoding.writeVarUint(encoder, messageSync)
-        syncProtocol.readSyncMessage(decoder, encoder, doc, null)
+        syncProtocol.readSyncMessage(decoder, encoder, doc, null) // this calls syncProtocol.writeSyncStep2 under the hood
         if (encoding.length(encoder) > 1) {
+          // If the `encoder` only contains the type of reply message and no
+          // message, there is no need to send the message. When `encoder` only
+          // contains the type of reply, its length is 1.
           send(doc, conn, encoding.toUint8Array(encoder))
         }
         break
@@ -301,7 +304,7 @@ const pingTimeout = 30000
  * 
  * @param path path where data is persisted
  */
-const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> => {
+export const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> => {
 
   if (typeof path === 'string' && levelDbPersistence == null) {
     console.log('initLevelDbConneciton(): Persisting document state to "' + path + '"')
@@ -324,13 +327,13 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
         doc.applyDelta(mdfileDelta)
       }
 
-      console.log(`ydoc sent by client (ydoc) data: ${JSON.stringify(yTextToSlateElement(ydoc.getText(docName) as Y.XmlText).children)}`);
+      console.log(`ldbBindState(): ydoc sent by client (ydoc) data: ${JSON.stringify(yTextToSlateElement(ydoc.getText(docName) as Y.XmlText).children)}`);
 
       const newUpdates = Y.encodeStateAsUpdate(ydoc) // new state coming from client
       ldb.storeUpdate(docName, newUpdates) // persist updated state
 
       Y.applyUpdate(ydoc, Y.encodeStateAsUpdate(persistedYdoc)) // apply persisted state to client
-      ydoc.on('update', update => {
+      ydoc.on('client ydoc.update', update => {
         console.log("\x1b[31m", "ydoc.on(update)")
         console.log('ldb.storeUpate() fired')
         ldb.storeUpdate(docName, update).then(() => {
@@ -378,13 +381,16 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
   ws.binaryType = 'arraybuffer'
 
   // initLevelDbConneciton() check if leveldb connection string exists
-  setLevelDbPersistence(initLevelDbConneciton(YSTATE_LEVELDB_PATH))
+  //setLevelDbPersistence(initLevelDbConneciton(YSTATE_LEVELDB_PATH))
 
   // get doc, initialize if it does not exist yet
+  // this represents the client ydoc
   const doc = getYDoc(docName, collectionName, gc)
   doc.wsConns.set(ws, new Set())
 
   // listen and reply to events
+  // this has logic to respond to syncStep1 sent by the client. 
+  // always start with client senting syncStep1 to server
   ws.on('message', (message: ArrayBuffer) => messageListener(ws, doc, new Uint8Array(message)))
 
   // TODO: check if we can use the hapi-websocket built in ping/pong
@@ -406,10 +412,12 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
       }
     }
   }, pingTimeout)
+
   ws.on('close', () => {
     closeConn(doc, ws)
     clearInterval(pingInterval)
   })
+  
   ws.on('pong', () => {
     pongReceived = true
   })
@@ -418,8 +426,9 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
   {
     // send sync step 1
     const encoder = encoding.createEncoder()
-    encoding.writeVarUint(encoder, messageSync)
+    encoding.writeVarUint(encoder, messageSync) // messageYjsSyncStep1=0, messageYjsSyncStep2=1, messageYjsUpdate=2
     syncProtocol.writeSyncStep1(encoder, doc)
+    
     send(doc, ws, encoding.toUint8Array(encoder))
     const awarenessStates = doc.awareness.getStates()
     if (awarenessStates.size > 0) {

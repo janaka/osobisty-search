@@ -7,6 +7,7 @@ import HapiAuthJwt2 from 'hapi-auth-jwt2';
 import jwksRsa from 'jwks-rsa';
 import fs from 'fs';
 import HAPIWebSocket from 'hapi-plugin-websocket';
+import * as yWsServer from '../libs/yjs-ws-server-utils.js'
 
 import dotenv from 'dotenv';
 
@@ -223,9 +224,13 @@ export const start = async () => {
 
 export const init = async () => {
   await server.register(plugins);
-  console.log("plugins registered");
+  console.log("api server init(): plugins registered");
 
   await server.initialize();
+
+  const YSTATE_LEVELDB_PATH = String(process.env.YSTATE_LEVELDB_PATH);
+  console.log(`api server init(): initialise LevelDB instance from ${YSTATE_LEVELDB_PATH} for yjs document state tracking`)
+  yWsServer.setLevelDbPersistence(yWsServer.initLevelDbConneciton(YSTATE_LEVELDB_PATH));
   return server;
 }
 
