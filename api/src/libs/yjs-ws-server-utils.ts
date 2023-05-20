@@ -52,7 +52,8 @@ const wsReadyStateClosing = 2 // eslint-disable-line
 const wsReadyStateClosed = 3 // eslint-disable-line
 
 // disable gc when using snapshots!
-const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0';
+// disable gc enables restoring old content
+const gcEnabled = process.env.GC !== 'false' && process.env.GC !== '0'; //TODO: this needs to be passed in via the constructor to WSSharedDoc
 const YSTATE_LEVELDB_PATH = String(process.env.YSTATE_LEVELDB_PATH);
 let fileDbmsDataPath = String(process.env.FILE_DBMS_DATAPATH);
 let fileDbmsMetaDataPath = String(process.env.FILE_DBMS_METADATAPATH);
@@ -198,7 +199,7 @@ export class WSSharedDoc extends Y.Doc {
  * @param {boolean} gc - whether to allow garbage collection on the doc (applies only when created)
  * @return {WSSharedDoc}
  */
-export const getYDoc = (docname: string, collectionName: string, gc: boolean = true): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
+export const getYDoc = (docname: string, collectionName: string, gc: boolean = false): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
 
 
   let docFileRef = getDbmsDocOrCreate(docname, collectionName)
@@ -364,7 +365,7 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
  * @param {any} req
  * @param {any} opts 
  */
-export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.slice(1).split('?')[0], collectionName: string, gc: boolean = true) => {
+export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.slice(1).split('?')[0], collectionName: string, gc: boolean = false) => {
   ws.binaryType = 'arraybuffer'
 
   // initLevelDbConneciton() check if leveldb connection string exists
