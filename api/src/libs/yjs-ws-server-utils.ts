@@ -310,17 +310,22 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
 
     const ldbBindState = async (docName: string, collectionName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
       const persistedYdoc = await ldb.getYDoc(docName) // get persisted state
-      console.log("leveldb state length ", persistedYdoc.store.clients.size)
+      console.log("ldbBindState(): leveldb state length ", persistedYdoc.store.clients.size)
+
+      console.log(` ydoc load from leveldb (persistedYdoc) data: ${JSON.stringify(yTextToSlateElement(persistedYdoc.getText(docName) as Y.XmlText).children)}`);
 
       const allDocNames = await ldb.getAllDocNames();
 
-      allDocNames.includes(docName) ? console.log("doc exists in leveldb") : console.log("doc does not exist in leveldb yes");
+      allDocNames.includes(docName) ? console.log("ldbBindState(): doc exists in leveldb") : console.log("initLevelDbConneciton():doc does not exist in leveldb yes");
 
       if (persistedYdoc.store.clients.size == 0) { // doc state isn't tracked in leveldb yet. Load from disk if exists or create.
         mdfileDelta = loadFileAsSlateDelta(docName, collectionName)
         const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
         doc.applyDelta(mdfileDelta)
       }
+
+      console.log(`ydoc sent by client (ydoc) data: ${JSON.stringify(yTextToSlateElement(ydoc.getText(docName) as Y.XmlText).children)}`);
+
       const newUpdates = Y.encodeStateAsUpdate(ydoc) // new state coming from client
       ldb.storeUpdate(docName, newUpdates) // persist updated state
 
@@ -333,7 +338,7 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
 
           ldb.getYDoc(docName).then((doc: Y.Doc) => {
             const data = yTextToSlateElement(doc.getText(docName) as Y.XmlText).children;
-            console.log("persistedYdoc.get().yTextToSlateElement().children: ", JSON.stringify(data));
+            console.log("initLevelDbConneciton(): persistedYdoc.get().yTextToSlateElement().children: ", JSON.stringify(data));
             ydoc.markdownFileRef.data = data;
             ydoc.markdownFileRef.save();
             console.log("\x1b[37m");
