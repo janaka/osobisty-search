@@ -7,6 +7,9 @@ import App from './App';
 import { AppState, Auth0Provider, Auth0ProviderOptions } from "@auth0/auth0-react";
 import { BrowserRouter, useNavigate } from 'react-router-dom';
 import * as Sentry from "@sentry/react";
+import p from '../package.json';
+
+console.log("UI Version: " + p.version);
 
 const sentryDsn: string = process.env.REACT_APP_SENTRY_DSN ? process.env.REACT_APP_SENTRY_DSN : "";
 
