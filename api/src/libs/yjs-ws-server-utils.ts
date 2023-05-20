@@ -58,9 +58,9 @@ const YSTATE_LEVELDB_PATH = String(process.env.YSTATE_LEVELDB_PATH);
 let fileDbmsDataPath = String(process.env.FILE_DBMS_DATAPATH);
 let fileDbmsMetaDataPath = String(process.env.FILE_DBMS_METADATAPATH);
 
-if (process.env.NODE_ENV=="development") {
-  fileDbmsDataPath = os.homedir + fileDbmsDataPath 
-  fileDbmsMetaDataPath = os.homedir + fileDbmsMetaDataPath 
+if (process.env.NODE_ENV == "development") {
+  fileDbmsDataPath = os.homedir + fileDbmsDataPath
+  fileDbmsMetaDataPath = os.homedir + fileDbmsMetaDataPath
 }
 //const ySTATE_LEVELDB_PATH = process.env.YPERSISTENCE
 
@@ -80,7 +80,7 @@ let dbconfig1: DbmsConfig = {
 let db1: Dbms = new Dbms(dbconfig1);
 
 interface IPersistence<T> {
-  bindState: (docName: string,collectionName: string, yDoc: WSSharedDoc) => void;
+  bindState: (docName: string, collectionName: string, yDoc: WSSharedDoc) => void;
   writeState: (docName: string, yDoc: WSSharedDoc) => Promise<any>;
   provider: T
 }
@@ -162,7 +162,7 @@ export class WSSharedDoc extends Y.Doc {
 
 
 
-    
+
     /**
      * @param {Uint8Array} update
      * @param {any} origin
@@ -201,18 +201,18 @@ export class WSSharedDoc extends Y.Doc {
  */
 export const getYDoc = (docname: string, collectionName: string, gc: boolean = false): WSSharedDoc => map.setIfUndefined(docs, docname, () => {
 
-
+  console.log(`getYDoc(): get ref to MD file for docname: ${docname}`)
   let docFileRef = getDbmsDocOrCreate(docname, collectionName)
-  
+
   const sharedDoc = new WSSharedDoc(docname, docFileRef)
   sharedDoc.gc = gc
   console.log("getYDoc(" + docname + ")")
 
 
-  if (levelDbPersistence == null) throw new Error("`levelDbPersistance` cannot be null.")
-    //levelDB bindState needs to be called always
+  if (levelDbPersistence == null) throw new Error("getYDc(): 'levelDbPersistance' cannot be null.")
+  //levelDB bindState needs to be called always
   levelDbPersistence.bindState(docname, collectionName, sharedDoc)
-  
+
   docs.set(docname, sharedDoc) // add to docs collection
 
   console.log("doc added: ", docname)
@@ -304,14 +304,18 @@ const pingTimeout = 30000
 const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> => {
 
   if (typeof path === 'string' && levelDbPersistence == null) {
-    console.log('Persisting document state to "' + path + '"')
+    console.log('initLevelDbConneciton(): Persisting document state to "' + path + '"')
     let mdfileDelta
-    const ldb = new LeveldbPersistence(path, {levelOptions:{create_if_missing: true}})
+    const ldb = new LeveldbPersistence(path, { levelOptions: { create_if_missing: true } })
 
     const ldbBindState = async (docName: string, collectionName: string, ydoc: WSSharedDoc) => { // Sync doc state between client and server. Especially to handle server restarts
       const persistedYdoc = await ldb.getYDoc(docName) // get persisted state
       console.log("leveldb state length ", persistedYdoc.store.clients.size)
-      
+
+      const allDocNames = await ldb.getAllDocNames();
+
+      allDocNames.includes(docName) ? console.log("doc exists in leveldb") : console.log("doc does not exist in leveldb yes");
+
       if (persistedYdoc.store.clients.size == 0) { // doc state isn't tracked in leveldb yet. Load from disk if exists or create.
         mdfileDelta = loadFileAsSlateDelta(docName, collectionName)
         const doc = persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
@@ -326,7 +330,7 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
         console.log('ldb.storeUpate() fired')
         ldb.storeUpdate(docName, update).then(() => {
           console.log('ldb.storeUpate() complete')
-          
+
           ldb.getYDoc(docName).then((doc: Y.Doc) => {
             const data = yTextToSlateElement(doc.getText(docName) as Y.XmlText).children;
             console.log("persistedYdoc.get().yTextToSlateElement().children: ", JSON.stringify(data));
@@ -334,11 +338,11 @@ const initLevelDbConneciton = (path: string): IPersistence<LeveldbPersistence> =
             ydoc.markdownFileRef.save();
             console.log("\x1b[37m");
           }) //persistedYdoc.get(docName, Y.XmlText) as Y.XmlText
-          
-        }, 
-        (reason: any) => {
-          throw new Error("ldb.storeUpdate() failed. Reason: " + reason)
-        })
+
+        },
+          (reason: any) => {
+            throw new Error("ldb.storeUpdate() failed. Reason: " + reason)
+          })
       })
     }
 
@@ -427,12 +431,12 @@ export const setupWSConnection = (ws: ws, req: any, docName: string = req.url.sl
 function loadFileAsSlateDelta(docName: string, collectionName: string): InsertDelta | null {
 
   let delta: InsertDelta | null = null;
-  console.log("ydoc.get(`" + docName + "`, Y.XmlText)")
+  console.log(`loadFileAsSlateDelta(): docName: ${docName} collectionName: ${collectionName}`)
 
   try {
 
-        const dbmsDoc = getDbmsDocOrCreate(docName, collectionName);
-        const slateMd = dbmsDoc?.data; //loadTestMdFileFromDisk(docName + ".md")
+    const dbmsDoc = getDbmsDocOrCreate(docName, collectionName);
+    const slateMd = dbmsDoc?.data; //loadTestMdFileFromDisk(docName + ".md")
 
     delta = slateNodesToInsertDelta(slateMd)
 
@@ -449,10 +453,11 @@ function loadFileAsSlateDelta(docName: string, collectionName: string): InsertDe
  * Creates the collection if it doesn't exist
  */
 function getDbmsDocOrCreate(docName: string, collectionName: string): Document {
-//zettlekasten_root
-
+  //zettlekasten_root
+  console.log(`getDbmsDocOrCreate(): attemptig to fetch docName: ${docName} from the MD database. Else will create it.`)
   let dbmsCollection: Collection | undefined;
   if (!db1.Collections.has(collectionName)) {
+    console.log("getDbmsDocOrCreate(): Add collection because it doesn't exist in the file store collection")
     db1.Collections.add(collectionName)
   }
 
@@ -461,14 +466,16 @@ function getDbmsDocOrCreate(docName: string, collectionName: string): Document {
   let dbmsDoc: Document | undefined;
   if (!dbmsCollection?.Documents.has(docName)) {
     dbmsCollection?.Documents.add(docName)
+    console.log("getDbmsDocOrCreate(): Add doc to collection because it doesn't exist in the file store collection")
   }
 
   dbmsDoc = dbmsCollection?.Documents.get(docName);
+  console.log(`getDbmsDocOrCreate(): get doc: ${docName} from the MD database.`)
 
   if (dbmsDoc == undefined || dbmsDoc == null) throw new Error("Something went wrong. Document object is `undefined` or `null`. This isn't a state we should be in here.")
- 
+
   if (dbmsDoc && !dbmsDoc.data) {
-    dbmsDoc.dataRaw = "new file 2";
+    dbmsDoc.dataRaw = "new file... now write something aleady :)";
   }
 
   return dbmsDoc

@@ -53,6 +53,8 @@ const swaggerOptions: HapiSwagger.RegisterOptions = {
   }
 };
 
+console.log(`Osobisty API version: ${version}`)
+
 const plugins: Array<Hapi.ServerRegisterPluginObject<any>> = [
   {
     plugin: HAPIWebSocket,

@@ -24,6 +24,7 @@ import {
   withTHistory,
   Toolbar,
   Button,
+  isText
 } from '@udecode/plate'
 import { PLUGINS } from './slate-plate/plugins';
 
@@ -232,6 +233,9 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
           throw new Error("sharedRoot is `null`. Something has gone wrong.")
         } else if (wsProvider.wsconnected == false) {
           console.log("Explicit disconnect. Obj `sharedRoot`: ", sharedRoot)
+        }
+        else if (!isText(sharedRoot)) {
+          console.log("sharedRoot doesn't have a text node. `sharedRoot`: ", sharedRoot)
         } else {
           console.log("We have some content! Obj `sharedRoot`: ", sharedRoot)
         }
