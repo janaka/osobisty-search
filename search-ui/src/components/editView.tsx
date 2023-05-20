@@ -150,7 +150,9 @@ const EditView = ({ editMode, className }: { editMode: TEditMode, className?: st
       let fqdnAddress: string = "wss://" + yWebsocketHost;
       if (yWebsocketPort !== "") { fqdnAddress = fqdnAddress + ":" + yWebsocketPort; }
 
-      const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) // sync to backend for persistence 
+      // sync to backend for persistence 
+      // y-websocker handles sending syncStep1 to the server, handling the reponse from the server (syncStep2 response from server)
+      const _wsProvider = new WebsocketProvider(fqdnAddress + "/documents/" + collectionName, roomName, yDoc, { params: { token: wsAuthToken } }) 
 
       _wsProvider.on('status', (event: any) => {
         console.log(`wsProvider server connect status(roomName:${roomName}):`, event.status) // logs "connected" or "disconnected"
